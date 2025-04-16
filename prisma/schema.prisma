@@ -1,0 +1,79 @@
+// This is your Prisma schema file
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Class {
+  id          Int          @id @default(autoincrement())
+  name        String
+  students    Student[]
+  attendances Attendance[]
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+
+  @@map("classes")
+}
+
+model Student {
+  id                Int                @id @default(autoincrement())
+  firstName         String
+  lastName          String
+  gender            Gender
+  age               Int
+  classId           Int
+  class             Class              @relation(fields: [classId], references: [id], onDelete: Cascade)
+  attendanceRecords AttendanceRecord[]
+  createdAt         DateTime           @default(now())
+  updatedAt         DateTime           @updatedAt
+
+  @@map("students")
+}
+
+model Attendance {
+  id        Int                @id @default(autoincrement())
+  date      DateTime           @db.Date
+  classId   Int
+  class     Class              @relation(fields: [classId], references: [id], onDelete: Cascade)
+  records   AttendanceRecord[]
+  createdAt DateTime           @default(now())
+  updatedAt DateTime           @updatedAt
+
+  @@unique([date, classId])
+  @@map("attendances")
+}
+
+model AttendanceRecord {
+  id           Int        @id @default(autoincrement())
+  present      Boolean
+  studentId    Int
+  student      Student    @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  attendanceId Int
+  attendance   Attendance @relation(fields: [attendanceId], references: [id], onDelete: Cascade)
+  createdAt    DateTime   @default(now())
+  updatedAt    DateTime   @updatedAt
+
+  @@unique([studentId, attendanceId])
+  @@map("attendance_records")
+}
+
+model AgeRange {
+  id        Int      @id @default(autoincrement())
+  label     String
+  minAge    Int
+  maxAge    Int
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("age_ranges")
+}
+
+enum Gender {
+  M
+  F
+}
