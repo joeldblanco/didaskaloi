@@ -1,36 +1,67 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# 📊 Didaskaloi: Sistema de Gestión de Asistencia Estudiantil
 
-## Getting Started
+Una aplicación móvil optimizada en NextJS para gestionar clases, estudiantes y asistencia con reportes detallados.
 
-First, run the development server:
+## 🚀 Características
+
+- Gestión de clases con múltiples estudiantes
+- Registro de asistencia intuitivo
+- Reportes detallados por rango de edad y género
+- Interfaz optimizada para dispositivos móviles
+- Filtros y ordenación avanzados
+
+## 📱 Vistas Principales
+
+1. **Clases**: Lista completa de clases con acceso a estudiantes y estadísticas
+2. **Estudiantes**: Gestión centralizada de estudiantes con filtros
+3. **Asistencia**: Registro rápido de asistencia por clase
+4. **Reportes**: Análisis estadísticos de asistencia y demografía
+5. **Configuración**: Personalización de rangos de edad
+
+## 💻 Tecnologías
+
+- Next.js 14+
+- React 18+
+- TypeScript
+- Tailwind CSS
+- Lucide React (iconos)
+- Recharts (gráficos)
+
+## 🛠️ Instalación
 
 ```bash
+# Clonar el repositorio
+git clone https://github.com/tu-usuario/didaskaloi.git
+
+# Instalar dependencias
+cd didaskaloi
+npm install
+
+# Iniciar en modo desarrollo
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## 📝 Uso
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+1. Crear clases desde la vista principal
+2. Añadir estudiantes a cada clase
+3. Registrar asistencia diaria
+4. Consultar estadísticas en la sección de reportes
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## 📊 Estadísticas y Reportes
 
-## Learn More
+- Distribución por género
+- Mejores asistencias por categoría
+- Distribución por rangos de edad
+- Porcentajes de asistencia por edad
 
-To learn more about Next.js, take a look at the following resources:
+## 🔜 Próximas funcionalidades
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+- Exportación de reportes a PDF/Excel
+- Modo sin conexión
+- Sincronización entre dispositivos
+- Notificaciones automáticas
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## 📄 Licencia
 
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+MIT
