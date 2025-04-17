@@ -100,7 +100,7 @@ const BottomNavigation = () => {
       ),
     },
     {
-      name: "Configuración",
+      name: "Config.",
       path: "/configuracion",
       icon: (
         <svg
