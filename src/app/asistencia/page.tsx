@@ -654,20 +654,22 @@ const AsistenciaView = () => {
         </div>
       ) : (
         <div className="space-y-3">
-          {classes.map((cls) => (
-            <Card
-              key={cls.id}
-              className="cursor-pointer hover:bg-gray-50"
-              onClick={() => setSelectedClass(cls)}
-            >
-              <CardContent className="p-4">
-                <h2 className="text-lg font-medium">{cls.name}</h2>
-                <p className="text-sm text-gray-500">
-                  {cls._count.students} estudiantes
-                </p>
-              </CardContent>
-            </Card>
-          ))}
+          {classes
+            .sort((a, b) => (b.createdAt < a.createdAt ? 1 : -1))
+            .map((cls) => (
+              <Card
+                key={cls.id}
+                className="cursor-pointer hover:bg-gray-50"
+                onClick={() => setSelectedClass(cls)}
+              >
+                <CardContent className="p-4">
+                  <h2 className="text-lg font-medium">{cls.name}</h2>
+                  <p className="text-sm text-gray-500">
+                    {cls._count.students} estudiantes
+                  </p>
+                </CardContent>
+              </Card>
+            ))}
         </div>
       )}
 
