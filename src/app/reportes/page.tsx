@@ -23,6 +23,7 @@ import {
   Tooltip,
   XAxis,
   YAxis,
+  Legend,
 } from "recharts";
 import { toast } from "sonner";
 
@@ -58,6 +59,11 @@ interface ReportData {
   };
   studentsByAgeRange: { range: string; count: number }[];
   attendanceByAgeRange: { range: string; average: number }[];
+  studentsByAgeRangeAndGender: {
+    range: string;
+    masculino: number;
+    femenino: number;
+  }[];
   classesSummary?: {
     name: string;
     students: number;
@@ -188,7 +194,27 @@ const ReportesView = () => {
         };
       });
 
-      // 5. Classes summary (only for general report)
+      // 5. NEW: Students by age range and gender
+      const studentsByAgeRangeAndGender = ageRanges.map((range) => {
+        const rangeStudents = studentsToInclude.filter(
+          (s) => s.age >= range.minAge && s.age <= range.maxAge
+        );
+
+        const maleStudents = rangeStudents.filter(
+          (s) => s.gender === "M"
+        ).length;
+        const femaleStudents = rangeStudents.filter(
+          (s) => s.gender === "F"
+        ).length;
+
+        return {
+          range: range.label,
+          masculino: maleStudents,
+          femenino: femaleStudents,
+        };
+      });
+
+      // 6. Classes summary (only for general report)
       let classesSummary = undefined;
       if (isGeneralReport) {
         classesSummary = classes.map((cls) => {
@@ -223,6 +249,7 @@ const ReportesView = () => {
         },
         studentsByAgeRange,
         attendanceByAgeRange,
+        studentsByAgeRangeAndGender,
         classesSummary,
       });
     } catch (error) {
@@ -331,6 +358,59 @@ const ReportesView = () => {
                     {reportData.genderDistribution[1].value}
                   </p>
                 </div>
+              </div>
+            </AccordionContent>
+          </AccordionItem>
+
+          {/* Age Range and Gender Distribution Section - NEW */}
+          <AccordionItem
+            value="ageGender"
+            className="border rounded-lg overflow-hidden"
+          >
+            <AccordionTrigger className="px-4 py-3 hover:no-underline hover:bg-gray-50">
+              <div className="flex items-center gap-2">
+                <Users className="h-5 w-5 text-teal-500" />
+                <span className="font-medium">
+                  Distribución por Edad y Género
+                </span>
+              </div>
+            </AccordionTrigger>
+            <AccordionContent className="px-4 py-3 border-t">
+              <div className="h-64 mb-4">
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart data={reportData.studentsByAgeRangeAndGender}>
+                    <XAxis dataKey="range" />
+                    <YAxis />
+                    <Tooltip />
+                    <Legend />
+                    <Bar dataKey="masculino" fill="#3b82f6" name="Masculino" />
+                    <Bar dataKey="femenino" fill="#ec4899" name="Femenino" />
+                  </BarChart>
+                </ResponsiveContainer>
+              </div>
+
+              <div className="space-y-3">
+                {reportData.studentsByAgeRangeAndGender.map((item, index) => (
+                  <div key={index} className="border-b pb-2">
+                    <h3 className="font-medium">{item.range}</h3>
+                    <div className="grid grid-cols-2 gap-4 mt-1">
+                      <div className="flex items-center">
+                        <div className="w-3 h-3 bg-blue-500 rounded-full mr-2"></div>
+                        <span>
+                          Masculino:{" "}
+                          <span className="font-medium">{item.masculino}</span>
+                        </span>
+                      </div>
+                      <div className="flex items-center">
+                        <div className="w-3 h-3 bg-pink-500 rounded-full mr-2"></div>
+                        <span>
+                          Femenino:{" "}
+                          <span className="font-medium">{item.femenino}</span>
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                ))}
               </div>
             </AccordionContent>
           </AccordionItem>
