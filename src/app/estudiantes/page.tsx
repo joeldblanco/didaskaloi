@@ -561,7 +561,6 @@ const EstudiantesView = () => {
                     {student.gender === "M" ? "Masculino" : "Femenino"}
                   </p>
                   <div className="flex items-center text-xs text-gray-500 mt-1">
-                    <span className="inline-block w-3 h-3 rounded-full bg-blue-500 mr-1"></span>
                     {getClassName(student.classId)}
                   </div>
                 </div>
