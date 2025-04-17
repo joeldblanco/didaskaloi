@@ -206,45 +206,47 @@ const ClasesView = () => {
         </div>
       ) : (
         <div className="space-y-3 mb-20">
-          {filteredClasses.map((cls) => (
-            <Card
-              key={cls.id}
-              className="cursor-pointer transition-colors"
-              onClick={() => handleClaseClick(cls)}
-            >
-              <CardContent className="p-4 flex justify-between items-center">
-                <div>
-                  <h2 className="text-lg font-medium">{cls.name}</h2>
-                  <p className="text-sm text-gray-500">
-                    {cls._count.students} estudiantes
-                  </p>
-                </div>
-                <div className="flex gap-2">
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      handleEditClassClick(cls);
-                    }}
-                  >
-                    <Edit className="h-4 w-4" />
-                  </Button>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="text-red-500 hover:text-red-700"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      handleDeleteClick(cls.id);
-                    }}
-                  >
-                    <Trash className="h-4 w-4" />
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
-          ))}
+          {filteredClasses
+            .sort((a, b) => (a.createdAt < b.createdAt ? 1 : -1))
+            .map((cls) => (
+              <Card
+                key={cls.id}
+                className="cursor-pointer transition-colors"
+                onClick={() => handleClaseClick(cls)}
+              >
+                <CardContent className="p-4 flex justify-between items-center">
+                  <div>
+                    <h2 className="text-lg font-medium">{cls.name}</h2>
+                    <p className="text-sm text-gray-500">
+                      {cls._count.students} estudiantes
+                    </p>
+                  </div>
+                  <div className="flex gap-2">
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleEditClassClick(cls);
+                      }}
+                    >
+                      <Edit className="h-4 w-4" />
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="text-red-500 hover:text-red-700"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleDeleteClick(cls.id);
+                      }}
+                    >
+                      <Trash className="h-4 w-4" />
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
         </div>
       )}
 
