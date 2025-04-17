@@ -207,7 +207,7 @@ const ClasesView = () => {
       ) : (
         <div className="space-y-3 mb-20">
           {filteredClasses
-            .sort((a, b) => (a.createdAt < b.createdAt ? 1 : -1))
+            .sort((a, b) => (b.createdAt < a.createdAt ? 1 : -1))
             .map((cls) => (
               <Card
                 key={cls.id}
