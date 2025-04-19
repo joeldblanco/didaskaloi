@@ -17,7 +17,6 @@ import {
   Dialog,
   DialogContent,
   DialogDescription,
-  DialogFooter,
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
@@ -38,6 +37,7 @@ import {
   deleteStudent,
   getClasses,
   getStudents,
+  updateStudent,
 } from "@/lib/actions";
 import { studentSchema, type StudentFormValues } from "@/lib/validations";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -50,6 +50,7 @@ import {
   Plus,
   Search,
   Trash,
+  X,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { use, useEffect, useState } from "react";
@@ -80,10 +81,14 @@ const ClassDetailPage = ({ params }: Props) => {
   );
   const [showDeleteAlert, setShowDeleteAlert] = useState(false);
   const [showAddStudentDialog, setShowAddStudentDialog] = useState(false);
+  const [isEditMode, setIsEditMode] = useState(false);
+  const [studentToEdit, setStudentToEdit] = useState<ExtendedStudent | null>(
+    null
+  );
 
   const classId = parseInt(pageParams.id);
 
-  // Form for creating a new student
+  // Form for creating or editing a student
   const form = useForm<StudentFormValues>({
     resolver: zodResolver(studentSchema),
     defaultValues: {
@@ -188,6 +193,42 @@ const ClassDetailPage = ({ params }: Props) => {
     }
   };
 
+  // Handle editing a student
+  const onSubmitEditStudent = async (data: StudentFormValues) => {
+    try {
+      const result = await updateStudent(data);
+
+      if (result.success) {
+        toast.success("Estudiante actualizado correctamente");
+        setIsEditMode(false);
+        setStudentToEdit(null);
+
+        // Refresh students
+        const studentsData = await getStudents({ classId });
+
+        // Calculate attendance percentages
+        const studentsWithAttendance = await Promise.all(
+          studentsData.map(async (student) => {
+            const attendancePercentage = await calculateStudentAttendance(
+              student.id
+            );
+            return {
+              ...student,
+              attendancePercentage,
+            };
+          })
+        );
+
+        setStudents(studentsWithAttendance as ExtendedStudent[]);
+      } else {
+        toast.error(result.error || "Error al actualizar el estudiante");
+      }
+    } catch (error) {
+      console.error("Error updating student:", error);
+      toast.error("Error al actualizar el estudiante");
+    }
+  };
+
   // Handle sorting changes
   const handleSort = (criteria: string) => {
     if (sortCriteria === criteria) {
@@ -199,8 +240,17 @@ const ClassDetailPage = ({ params }: Props) => {
   };
 
   // Handle student click
-  const handleStudentClick = (studentId: number) => {
-    router.push(`/estudiantes/${studentId}`);
+  const handleStudentClick = (student: ExtendedStudent) => {
+    setStudentToEdit(student);
+    form.reset({
+      id: student.id,
+      firstName: student.firstName,
+      lastName: student.lastName,
+      gender: student.gender,
+      age: student.age,
+      classId: classId,
+    });
+    setIsEditMode(true);
   };
 
   // Handle deleting a student
@@ -230,6 +280,8 @@ const ClassDetailPage = ({ params }: Props) => {
         );
 
         setStudents(studentsWithAttendance as ExtendedStudent[]);
+        setIsEditMode(false);
+        setStudentToEdit(null);
       } else {
         toast.error(result.error || "Error al eliminar el estudiante");
       }
@@ -273,6 +325,174 @@ const ClassDetailPage = ({ params }: Props) => {
       }
       return 0;
     });
+
+  // Student editing view
+  if (isEditMode && studentToEdit) {
+    return (
+      <div className="p-4">
+        <div className="flex justify-between items-center mb-4">
+          <div className="flex items-center gap-2">
+            <Button
+              onClick={() => {
+                setIsEditMode(false);
+                setStudentToEdit(null);
+              }}
+              variant="ghost"
+              size="icon"
+              className="p-0"
+            >
+              <ArrowLeft size={20} />
+            </Button>
+            <h1 className="text-xl font-bold">Editar Estudiante</h1>
+          </div>
+          <Button
+            onClick={() => {
+              setIsEditMode(false);
+              setStudentToEdit(null);
+            }}
+            variant="ghost"
+            size="icon"
+          >
+            <X size={20} />
+          </Button>
+        </div>
+
+        <Form {...form}>
+          <form
+            onSubmit={form.handleSubmit(onSubmitEditStudent)}
+            className="space-y-4"
+          >
+            <FormField
+              control={form.control}
+              name="firstName"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Nombre</FormLabel>
+                  <FormControl>
+                    <Input placeholder="Nombre del estudiante" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="lastName"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Apellidos</FormLabel>
+                  <FormControl>
+                    <Input placeholder="Apellidos del estudiante" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="gender"
+              render={({ field }) => (
+                <FormItem className="space-y-2">
+                  <FormLabel>Género</FormLabel>
+                  <FormControl>
+                    <RadioGroup
+                      onValueChange={field.onChange}
+                      defaultValue={field.value}
+                      className="flex gap-4"
+                    >
+                      <div className="flex items-center space-x-2">
+                        <RadioGroupItem value="M" id="male" />
+                        <Label htmlFor="male">Masculino</Label>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <RadioGroupItem value="F" id="female" />
+                        <Label htmlFor="female">Femenino</Label>
+                      </div>
+                    </RadioGroup>
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="age"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Edad</FormLabel>
+                  <FormControl>
+                    <Input
+                      type="number"
+                      min={1}
+                      max={100}
+                      {...field}
+                      onChange={(e) => {
+                        const value = e.target.value;
+                        // Si el campo está vacío, pasamos un valor vacío
+                        // Si tiene un valor, lo convertimos a entero
+                        field.onChange(
+                          value === "" ? "" : parseInt(value) || ""
+                        );
+                      }}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <input
+              type="hidden"
+              {...form.register("classId", { value: classId })}
+            />
+
+            <div className="flex gap-3 pt-4">
+              <Button type="submit" className="flex-1">
+                Actualizar
+              </Button>
+              <Button
+                type="button"
+                variant="outline"
+                className="flex-1 border-red-500 text-red-500 hover:bg-red-50"
+                onClick={() => {
+                  setSelectedStudentId(studentToEdit.id);
+                  setShowDeleteAlert(true);
+                }}
+              >
+                Eliminar
+              </Button>
+            </div>
+          </form>
+        </Form>
+
+        {/* Delete Confirmation Alert */}
+        <AlertDialog open={showDeleteAlert} onOpenChange={setShowDeleteAlert}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>¿Estás seguro?</AlertDialogTitle>
+              <AlertDialogDescription>
+                Esta acción eliminará permanentemente a{" "}
+                {studentToEdit.firstName} {studentToEdit.lastName} y todos sus
+                registros de asistencia.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>Cancelar</AlertDialogCancel>
+              <AlertDialogAction
+                onClick={handleDeleteStudent}
+                className="bg-red-500 hover:bg-red-600"
+              >
+                Eliminar
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
+      </div>
+    );
+  }
 
   return (
     <div className="p-4">
@@ -406,7 +626,7 @@ const ClassDetailPage = ({ params }: Props) => {
             <Card
               key={student.id}
               className="cursor-pointer hover:bg-gray-50"
-              onClick={() => handleStudentClick(student.id)}
+              onClick={() => handleStudentClick(student)}
             >
               <CardContent className="p-4">
                 <div className="flex justify-between mb-2">
@@ -589,7 +809,7 @@ const ClassDetailPage = ({ params }: Props) => {
                 {...form.register("classId", { value: classId })}
               />
 
-              <DialogFooter>
+              <div className="flex justify-end gap-2 pt-2">
                 <Button
                   type="button"
                   variant="outline"
@@ -598,7 +818,7 @@ const ClassDetailPage = ({ params }: Props) => {
                   Cancelar
                 </Button>
                 <Button type="submit">Guardar</Button>
-              </DialogFooter>
+              </div>
             </form>
           </Form>
         </DialogContent>
