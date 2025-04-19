@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import BottomNavigation from "@/components/bottom-navigation";
+import ProtectedLayout from "@/components/protected-layout";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -27,12 +28,12 @@ export const metadata: Metadata = {
   ],
   authors: [
     {
-      name: "Tu Nombre",
-      url: "https://github.com/tu-usuario",
+      name: "Joel Blanco",
+      url: "https://github.com/joeldblanco",
     },
   ],
-  creator: "Tu Nombre",
-  publisher: "Tu Nombre",
+  creator: "Joel Blanco",
+  publisher: "Joel Blanco",
 };
 
 export default function RootLayout({
@@ -45,8 +46,10 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased bg-gray-50 max-w-md mx-auto`}
       >
-        <main className="pb-16 h-full">{children}</main>
-        <BottomNavigation />
+        <ProtectedLayout>
+          <main className="pb-16 h-full">{children}</main>
+          <BottomNavigation />
+        </ProtectedLayout>
       </body>
     </html>
   );
