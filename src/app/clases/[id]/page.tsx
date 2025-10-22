@@ -32,16 +32,13 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import {
-  calculateStudentAttendance,
-  getClasses,
-  getStudents,
-} from "@/lib/actions";
-import {
   offlineCreateStudent,
   offlineUpdateStudent,
   offlineDeleteStudent,
+  offlineGetStudents,
+  offlineCalculateStudentAttendance,
+  offlineGetClasses,
 } from "@/lib/offline-actions";
-import { getCachedData } from "@/lib/offline-storage";
 import { studentSchema, type StudentFormValues } from "@/lib/validations";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Class, Student } from "@prisma/client";
@@ -107,13 +104,13 @@ const ClassDetailPage = ({ params }: Props) => {
   // Helper function to refresh students (works both online and offline)
   const refreshStudents = async () => {
     try {
-      // Try to get fresh data from server
-      const studentsData = await getStudents({ classId });
+      // Get students with offline fallback
+      const studentsData = await offlineGetStudents({ classId });
 
-      // Calculate attendance percentages
+      // Calculate attendance percentages with offline fallback
       const studentsWithAttendance = await Promise.all(
         studentsData.map(async (student) => {
-          const attendancePercentage = await calculateStudentAttendance(
+          const attendancePercentage = await offlineCalculateStudentAttendance(
             student.id
           );
           return {
@@ -125,25 +122,8 @@ const ClassDetailPage = ({ params }: Props) => {
 
       setStudents(studentsWithAttendance as ExtendedStudent[]);
     } catch (error) {
-      // If offline, use cached data
-      console.log("Using cached data (offline mode)");
-      try {
-        const cachedStudents = await getCachedData("students");
-        const classStudents = cachedStudents
-          .filter((s) => s.classId === classId)
-          .map((student) => {
-            // Try to preserve attendance percentage, but default to 0 if not available
-            const existingStudent = students.find((s) => s.id === student.id);
-            return {
-              ...student,
-              attendancePercentage: existingStudent?.attendancePercentage || 0,
-            };
-          });
-        setStudents(classStudents as ExtendedStudent[]);
-      } catch (cacheError) {
-        console.error("Error loading cached students:", cacheError);
-        toast.error("Error al cargar los estudiantes");
-      }
+      console.error("Error loading students:", error);
+      toast.error("Error al cargar los estudiantes");
     }
   };
 
@@ -152,8 +132,8 @@ const ClassDetailPage = ({ params }: Props) => {
     const loadData = async () => {
       setIsLoading(true);
       try {
-        // Load class data
-        const classesData = await getClasses();
+        // Load class data with offline fallback
+        const classesData = await offlineGetClasses();
         const currentClass = classesData.find((c) => c.id === classId);
 
         if (!currentClass) {
@@ -164,23 +144,8 @@ const ClassDetailPage = ({ params }: Props) => {
 
         setClassData(currentClass as Class);
 
-        // Load students for this class
-        const studentsData = await getStudents({ classId });
-
-        // Calculate attendance percentages
-        const studentsWithAttendance = await Promise.all(
-          studentsData.map(async (student) => {
-            const attendancePercentage = await calculateStudentAttendance(
-              student.id
-            );
-            return {
-              ...student,
-              attendancePercentage,
-            };
-          })
-        );
-
-        setStudents(studentsWithAttendance as ExtendedStudent[]);
+        // Load students for this class with offline fallback
+        await refreshStudents();
       } catch (error) {
         console.error("Error loading data:", error);
         toast.error("Error al cargar los datos");

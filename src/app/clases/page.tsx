@@ -33,9 +33,9 @@ import { Input } from "@/components/ui/input";
 import {
   createClass,
   deleteClass,
-  getClasses,
   updateClass,
 } from "@/lib/actions";
+import { offlineGetClasses } from "@/lib/offline-actions";
 import { classSchema, type ClassFormValues } from "@/lib/validations";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Class } from "@prisma/client";
@@ -75,7 +75,7 @@ const ClasesView = () => {
     const loadClasses = async () => {
       setIsLoading(true);
       try {
-        const data = await getClasses();
+        const data = await offlineGetClasses();
         setClasses(data as ClassWithStudentCount[]);
       } catch (error) {
         console.error("Error loading classes:", error);
@@ -124,7 +124,7 @@ const ClasesView = () => {
         toast.success("Clase creada correctamente");
         setShowAddClassDialog(false);
         // Refresh classes
-        const updatedClasses = await getClasses();
+        const updatedClasses = await offlineGetClasses();
         setClasses(updatedClasses as ClassWithStudentCount[]);
       } else {
         toast.error(result.error || "Error al crear la clase");
@@ -143,7 +143,7 @@ const ClasesView = () => {
         toast.success("Clase actualizada correctamente");
         setShowEditClassDialog(false);
         // Refresh classes
-        const updatedClasses = await getClasses();
+        const updatedClasses = await offlineGetClasses();
         setClasses(updatedClasses as ClassWithStudentCount[]);
       } else {
         toast.error(result.error || "Error al actualizar la clase");
@@ -165,7 +165,7 @@ const ClasesView = () => {
       toast.success("Clase eliminada correctamente");
 
       // Refresh classes
-      const updatedClasses = await getClasses();
+      const updatedClasses = await offlineGetClasses();
       setClasses(updatedClasses as ClassWithStudentCount[]);
       setClassToDelete(null);
     } catch (error) {

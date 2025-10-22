@@ -9,7 +9,7 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { getAgeRanges, getClasses, getStudents } from "@/lib/actions";
+import { offlineGetAgeRanges, offlineGetClasses, offlineGetStudents } from "@/lib/offline-actions";
 import { AgeRange, Class, Student } from "@prisma/client";
 import { ChevronLeft, Loader2, LayoutGrid, User, Users, Download, FileSpreadsheet } from "lucide-react";
 import { useEffect, useState, useCallback } from "react";
@@ -87,9 +87,9 @@ const ReportesView = () => {
       setIsLoading(true);
       try {
         const [classesData, studentsData, ageRangesData] = await Promise.all([
-          getClasses(),
-          getStudents(),
-          getAgeRanges(),
+          offlineGetClasses(),
+          offlineGetStudents(),
+          offlineGetAgeRanges(),
         ]);
 
         setClasses(classesData as ClassWithCount[]);

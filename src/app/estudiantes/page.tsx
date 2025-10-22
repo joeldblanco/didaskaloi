@@ -32,14 +32,12 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import {
-  calculateStudentAttendance,
-  getClasses,
-  getStudents,
-} from "@/lib/actions";
-import {
   offlineCreateStudent,
   offlineUpdateStudent,
   offlineDeleteStudent,
+  offlineGetClasses,
+  offlineGetStudents,
+  offlineCalculateStudentAttendance,
 } from "@/lib/offline-actions";
 import { cn } from "@/lib/utils";
 import { studentSchema, type StudentFormValues } from "@/lib/validations";
@@ -105,15 +103,15 @@ const EstudiantesView = () => {
     const loadData = async () => {
       setIsLoading(true);
       try {
-        const classesData = await getClasses();
+        const classesData = await offlineGetClasses();
         setClasses(classesData as ClassWithCount[]);
 
-        const studentsData = await getStudents();
+        const studentsData = await offlineGetStudents();
 
         // Calculate attendance percentages
         const studentsWithAttendance = await Promise.all(
           studentsData.map(async (student) => {
-            const attendancePercentage = await calculateStudentAttendance(
+            const attendancePercentage = await offlineCalculateStudentAttendance(
               student.id
             );
             return {
@@ -206,12 +204,12 @@ const EstudiantesView = () => {
 
       if (result?.success) {
         // Refresh students
-        const studentsData = await getStudents();
+        const studentsData = await offlineGetStudents();
 
         // Calculate attendance percentages
         const studentsWithAttendance = await Promise.all(
           studentsData.map(async (student) => {
-            const attendancePercentage = await calculateStudentAttendance(
+            const attendancePercentage = await offlineCalculateStudentAttendance(
               student.id
             );
             return {
@@ -247,12 +245,12 @@ const EstudiantesView = () => {
         toast.success(message);
 
         // Refresh students
-        const studentsData = await getStudents();
+        const studentsData = await offlineGetStudents();
 
         // Calculate attendance percentages
         const studentsWithAttendance = await Promise.all(
           studentsData.map(async (student) => {
-            const attendancePercentage = await calculateStudentAttendance(
+            const attendancePercentage = await offlineCalculateStudentAttendance(
               student.id
             );
             return {

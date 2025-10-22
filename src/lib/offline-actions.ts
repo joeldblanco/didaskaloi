@@ -377,12 +377,12 @@ export async function offlineDeleteAttendance(id: number): Promise<OfflineAction
 export async function initializeCache() {
   try {
     await initDB();
-    
+
     // Si estamos online, intentar cargar datos frescos
     if (isOnline()) {
       // Importar dinámicamente para evitar problemas con server actions
       const { getClasses, getStudents, getAgeRanges, getAttendances } = await import("./actions");
-      
+
       try {
         const [classes, students, ageRanges, attendances] = await Promise.all([
           getClasses(),
@@ -404,5 +404,147 @@ export async function initializeCache() {
     }
   } catch (error) {
     console.error("Error initializing cache:", error);
+  }
+}
+
+// ============ OFFLINE-AWARE READ OPERATIONS ============
+
+/**
+ * Get classes with offline fallback
+ * Tries to fetch from server first, falls back to cache if offline
+ */
+export async function offlineGetClasses() {
+  try {
+    // Try to get fresh data from server
+    const { getClasses } = await import("./actions");
+    const classes = await getClasses();
+
+    // Update cache with fresh data
+    await cacheData("classes", classes as unknown as { id: number; [key: string]: unknown }[]);
+
+    return classes;
+  } catch (error) {
+    // If offline or error, use cached data
+    console.log("Using cached classes (offline mode)");
+    const cachedClasses = await getCachedData("classes");
+    return cachedClasses;
+  }
+}
+
+/**
+ * Get students with offline fallback
+ * Supports optional filters for classId, gender, and searchTerm
+ */
+export async function offlineGetStudents(filters?: {
+  classId?: number;
+  gender?: "M" | "F";
+  searchTerm?: string;
+}) {
+  try {
+    // Try to get fresh data from server
+    const { getStudents } = await import("./actions");
+    const students = await getStudents(filters);
+
+    // Update cache with fresh data
+    await cacheData("students", students as unknown as { id: number; [key: string]: unknown }[]);
+
+    return students;
+  } catch (error) {
+    // If offline or error, use cached data and apply filters manually
+    console.log("Using cached students (offline mode)");
+    let cachedStudents = await getCachedData("students");
+
+    // Apply filters to cached data
+    if (filters?.classId) {
+      cachedStudents = cachedStudents.filter((s) => s.classId === filters.classId);
+    }
+    if (filters?.gender) {
+      cachedStudents = cachedStudents.filter((s) => s.gender === filters.gender);
+    }
+    if (filters?.searchTerm) {
+      const searchLower = filters.searchTerm.toLowerCase();
+      cachedStudents = cachedStudents.filter((s) =>
+        s.firstName?.toLowerCase().includes(searchLower) ||
+        s.lastName?.toLowerCase().includes(searchLower)
+      );
+    }
+
+    return cachedStudents;
+  }
+}
+
+/**
+ * Get age ranges with offline fallback
+ */
+export async function offlineGetAgeRanges() {
+  try {
+    // Try to get fresh data from server
+    const { getAgeRanges } = await import("./actions");
+    const ageRanges = await getAgeRanges();
+
+    // Update cache with fresh data
+    await cacheData("ageRanges", ageRanges as unknown as { id: number; [key: string]: unknown }[]);
+
+    return ageRanges;
+  } catch (error) {
+    // If offline or error, use cached data
+    console.log("Using cached age ranges (offline mode)");
+    const cachedAgeRanges = await getCachedData("ageRanges");
+    return cachedAgeRanges;
+  }
+}
+
+/**
+ * Get attendances with offline fallback
+ */
+export async function offlineGetAttendances(classId?: number) {
+  try {
+    // Try to get fresh data from server
+    const { getAttendances } = await import("./actions");
+    const attendances = await getAttendances(classId);
+
+    // Update cache with fresh data
+    await cacheData("attendances", attendances as unknown as { id: number; [key: string]: unknown }[]);
+
+    return attendances;
+  } catch (error) {
+    // If offline or error, use cached data and filter by classId if provided
+    console.log("Using cached attendances (offline mode)");
+    let cachedAttendances = await getCachedData("attendances");
+
+    if (classId) {
+      cachedAttendances = cachedAttendances.filter((a) => a.classId === classId);
+    }
+
+    return cachedAttendances;
+  }
+}
+
+/**
+ * Calculate student attendance percentage with offline fallback
+ * When offline, calculates from cached attendance records
+ */
+export async function offlineCalculateStudentAttendance(studentId: number): Promise<number> {
+  try {
+    // Try to calculate from server
+    const { calculateStudentAttendance } = await import("./actions");
+    return await calculateStudentAttendance(studentId);
+  } catch (error) {
+    // If offline, calculate from cached data
+    console.log("Calculating attendance from cache (offline mode)");
+
+    // Get student from cache to access attendance records
+    const cachedStudents = await getCachedData("students");
+    const student = cachedStudents.find((s) => s.id === studentId);
+
+    if (!student || !student.attendanceRecords) {
+      return 0;
+    }
+
+    const records = student.attendanceRecords as Array<{ present: boolean }>;
+    if (records.length === 0) return 0;
+
+    const presentCount = records.filter((record) => record.present).length;
+    return Math.round((presentCount / records.length) * 100);
   }
 }
