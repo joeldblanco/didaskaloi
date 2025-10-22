@@ -287,10 +287,10 @@ const EstudiantesView = () => {
   // Handle import completion
   const handleImportComplete = async () => {
     // Refresh students after import
-    const studentsData = await getStudents();
+    const studentsData = await offlineGetStudents();
     const studentsWithAttendance = await Promise.all(
-      studentsData.map(async (student) => {
-        const attendancePercentage = await calculateStudentAttendance(
+      (studentsData as unknown as (Student & { class: Class })[]).map(async (student) => {
+        const attendancePercentage = await offlineCalculateStudentAttendance(
           student.id
         );
         return {

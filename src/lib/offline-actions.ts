@@ -423,7 +423,7 @@ export async function offlineGetClasses() {
     await cacheData("classes", classes as unknown as { id: number; [key: string]: unknown }[]);
 
     return classes;
-  } catch (error) {
+  } catch {
     // If offline or error, use cached data
     console.log("Using cached classes (offline mode)");
     const cachedClasses = await getCachedData("classes");
@@ -449,7 +449,7 @@ export async function offlineGetStudents(filters?: {
     await cacheData("students", students as unknown as { id: number; [key: string]: unknown }[]);
 
     return students;
-  } catch (error) {
+  } catch {
     // If offline or error, use cached data and apply filters manually
     console.log("Using cached students (offline mode)");
     let cachedStudents = await getCachedData("students");
@@ -463,10 +463,12 @@ export async function offlineGetStudents(filters?: {
     }
     if (filters?.searchTerm) {
       const searchLower = filters.searchTerm.toLowerCase();
-      cachedStudents = cachedStudents.filter((s) =>
-        s.firstName?.toLowerCase().includes(searchLower) ||
-        s.lastName?.toLowerCase().includes(searchLower)
-      );
+      cachedStudents = cachedStudents.filter((s) => {
+        const firstName = (s.firstName as string) || "";
+        const lastName = (s.lastName as string) || "";
+        return firstName.toLowerCase().includes(searchLower) ||
+               lastName.toLowerCase().includes(searchLower);
+      });
     }
 
     return cachedStudents;
@@ -486,7 +488,7 @@ export async function offlineGetAgeRanges() {
     await cacheData("ageRanges", ageRanges as unknown as { id: number; [key: string]: unknown }[]);
 
     return ageRanges;
-  } catch (error) {
+  } catch {
     // If offline or error, use cached data
     console.log("Using cached age ranges (offline mode)");
     const cachedAgeRanges = await getCachedData("ageRanges");
@@ -507,7 +509,7 @@ export async function offlineGetAttendances(classId?: number) {
     await cacheData("attendances", attendances as unknown as { id: number; [key: string]: unknown }[]);
 
     return attendances;
-  } catch (error) {
+  } catch {
     // If offline or error, use cached data and filter by classId if provided
     console.log("Using cached attendances (offline mode)");
     let cachedAttendances = await getCachedData("attendances");
@@ -529,7 +531,7 @@ export async function offlineCalculateStudentAttendance(studentId: number): Prom
     // Try to calculate from server
     const { calculateStudentAttendance } = await import("./actions");
     return await calculateStudentAttendance(studentId);
-  } catch (error) {
+  } catch {
     // If offline, calculate from cached data
     console.log("Calculating attendance from cache (offline mode)");
 

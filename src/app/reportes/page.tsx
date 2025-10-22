@@ -97,9 +97,10 @@ const ReportesView = () => {
         // Process students data to include attendancePercentage
         const processedStudents = studentsData.map((student) => {
           // Calculate attendance percentage based on attendance records
-          const totalRecords = student.attendanceRecords.length;
-          const presentCount = student.attendanceRecords.filter(
-            (record) => record.present
+          const attendanceRecords = (student as unknown as ExtendedStudent).attendanceRecords || [];
+          const totalRecords = attendanceRecords.length;
+          const presentCount = attendanceRecords.filter(
+            (record: { present: boolean }) => record.present
           ).length;
           const attendancePercentage =
             totalRecords > 0
@@ -113,7 +114,7 @@ const ReportesView = () => {
         });
 
         setStudents(processedStudents as ExtendedStudent[]);
-        setAgeRanges(ageRangesData);
+        setAgeRanges(ageRangesData as AgeRange[]);
       } catch (error) {
         console.error("Error loading data:", error);
         toast.error("Error al cargar los datos");
