@@ -2,6 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { prisma } from "@/lib/prisma";
+import { Prisma } from "@prisma/client";
 import {
   classSchema,
   studentSchema,
@@ -20,6 +21,20 @@ export async function createClass(data: ClassFormValues) {
   const validatedData = classSchema.parse(data);
 
   try {
+    // Check for duplicate class name
+    const existingClass = await prisma.class.findFirst({
+      where: {
+        name: {
+          equals: validatedData.name,
+          mode: "insensitive",
+        },
+      },
+    });
+
+    if (existingClass) {
+      return { success: false, error: "Ya existe una clase con este nombre" };
+    }
+
     await prisma.class.create({
       data: {
         name: validatedData.name,
@@ -30,6 +45,11 @@ export async function createClass(data: ClassFormValues) {
     return { success: true };
   } catch (error) {
     console.error("Error creating class:", error);
+    if (error instanceof Prisma.PrismaClientKnownRequestError) {
+      if (error.code === "P2002") {
+        return { success: false, error: "Ya existe una clase con este nombre" };
+      }
+    }
     return { success: false, error: "Error al crear la clase" };
   }
 }
@@ -42,6 +62,23 @@ export async function updateClass(data: ClassFormValues) {
   }
 
   try {
+    // Check for duplicate class name (excluding current class)
+    const existingClass = await prisma.class.findFirst({
+      where: {
+        name: {
+          equals: validatedData.name,
+          mode: "insensitive",
+        },
+        id: {
+          not: validatedData.id,
+        },
+      },
+    });
+
+    if (existingClass) {
+      return { success: false, error: "Ya existe otra clase con este nombre" };
+    }
+
     await prisma.class.update({
       where: { id: validatedData.id },
       data: {
@@ -53,6 +90,14 @@ export async function updateClass(data: ClassFormValues) {
     return { success: true };
   } catch (error) {
     console.error("Error updating class:", error);
+    if (error instanceof Prisma.PrismaClientKnownRequestError) {
+      if (error.code === "P2025") {
+        return { success: false, error: "Clase no encontrada" };
+      }
+      if (error.code === "P2002") {
+        return { success: false, error: "Ya existe otra clase con este nombre" };
+      }
+    }
     return { success: false, error: "Error al actualizar la clase" };
   }
 }
@@ -67,6 +112,11 @@ export async function deleteClass(id: number) {
     return { success: true };
   } catch (error) {
     console.error("Error deleting class:", error);
+    if (error instanceof Prisma.PrismaClientKnownRequestError) {
+      if (error.code === "P2025") {
+        return { success: false, error: "Clase no encontrada" };
+      }
+    }
     return { success: false, error: "Error al eliminar la clase" };
   }
 }
@@ -76,6 +126,28 @@ export async function createStudent(data: StudentFormValues) {
   const validatedData = studentSchema.parse(data);
 
   try {
+    // Check for duplicate student in the same class
+    const existingStudent = await prisma.student.findFirst({
+      where: {
+        firstName: {
+          equals: validatedData.firstName,
+          mode: "insensitive",
+        },
+        lastName: {
+          equals: validatedData.lastName,
+          mode: "insensitive",
+        },
+        classId: validatedData.classId,
+      },
+    });
+
+    if (existingStudent) {
+      return {
+        success: false,
+        error: "Ya existe un estudiante con este nombre en la clase",
+      };
+    }
+
     await prisma.student.create({
       data: {
         firstName: validatedData.firstName,
@@ -91,6 +163,11 @@ export async function createStudent(data: StudentFormValues) {
     return { success: true };
   } catch (error) {
     console.error("Error creating student:", error);
+    if (error instanceof Prisma.PrismaClientKnownRequestError) {
+      if (error.code === "P2003") {
+        return { success: false, error: "La clase especificada no existe" };
+      }
+    }
     return { success: false, error: "Error al crear el estudiante" };
   }
 }
@@ -103,6 +180,31 @@ export async function updateStudent(data: StudentFormValues) {
   }
 
   try {
+    // Check for duplicate student in the same class (excluding current student)
+    const existingStudent = await prisma.student.findFirst({
+      where: {
+        firstName: {
+          equals: validatedData.firstName,
+          mode: "insensitive",
+        },
+        lastName: {
+          equals: validatedData.lastName,
+          mode: "insensitive",
+        },
+        classId: validatedData.classId,
+        id: {
+          not: validatedData.id,
+        },
+      },
+    });
+
+    if (existingStudent) {
+      return {
+        success: false,
+        error: "Ya existe otro estudiante con este nombre en la clase",
+      };
+    }
+
     await prisma.student.update({
       where: { id: validatedData.id },
       data: {
@@ -119,6 +221,14 @@ export async function updateStudent(data: StudentFormValues) {
     return { success: true };
   } catch (error) {
     console.error("Error updating student:", error);
+    if (error instanceof Prisma.PrismaClientKnownRequestError) {
+      if (error.code === "P2025") {
+        return { success: false, error: "Estudiante no encontrado" };
+      }
+      if (error.code === "P2003") {
+        return { success: false, error: "La clase especificada no existe" };
+      }
+    }
     return { success: false, error: "Error al actualizar el estudiante" };
   }
 }
@@ -134,6 +244,11 @@ export async function deleteStudent(id: number) {
     return { success: true };
   } catch (error) {
     console.error("Error deleting student:", error);
+    if (error instanceof Prisma.PrismaClientKnownRequestError) {
+      if (error.code === "P2025") {
+        return { success: false, error: "Estudiante no encontrado" };
+      }
+    }
     return { success: false, error: "Error al eliminar el estudiante" };
   }
 }
@@ -194,6 +309,11 @@ export async function deleteAgeRange(id: number) {
     return { success: true };
   } catch (error) {
     console.error("Error deleting age range:", error);
+    if (error instanceof Prisma.PrismaClientKnownRequestError) {
+      if (error.code === "P2025") {
+        return { success: false, error: "Rango de edad no encontrado" };
+      }
+    }
     return { success: false, error: "Error al eliminar el rango de edad" };
   }
 }
@@ -203,6 +323,21 @@ export async function createAttendance(data: AttendanceFormValues) {
   const validatedData = attendanceSchema.parse(data);
 
   try {
+    // Check for duplicate attendance (same date and class)
+    const existingAttendance = await prisma.attendance.findFirst({
+      where: {
+        date: validatedData.date,
+        classId: validatedData.classId,
+      },
+    });
+
+    if (existingAttendance) {
+      return {
+        success: false,
+        error: "Ya existe un registro de asistencia para esta fecha y clase",
+      };
+    }
+
     const attendance = await prisma.attendance.create({
       data: {
         date: validatedData.date,
@@ -234,6 +369,17 @@ export async function createAttendance(data: AttendanceFormValues) {
     return { success: true, attendanceId: attendance.id };
   } catch (error) {
     console.error("Error creating attendance:", error);
+    if (error instanceof Prisma.PrismaClientKnownRequestError) {
+      if (error.code === "P2002") {
+        return {
+          success: false,
+          error: "Ya existe un registro de asistencia para esta fecha y clase",
+        };
+      }
+      if (error.code === "P2003") {
+        return { success: false, error: "La clase especificada no existe" };
+      }
+    }
     return { success: false, error: "Error al crear la asistencia" };
   }
 }
@@ -280,6 +426,11 @@ export async function deleteAttendance(id: number) {
     return { success: true };
   } catch (error) {
     console.error("Error deleting attendance:", error);
+    if (error instanceof Prisma.PrismaClientKnownRequestError) {
+      if (error.code === "P2025") {
+        return { success: false, error: "Registro de asistencia no encontrado" };
+      }
+    }
     return { success: false, error: "Error al eliminar la asistencia" };
   }
 }

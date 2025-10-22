@@ -11,8 +11,9 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { getAgeRanges, getClasses, getStudents } from "@/lib/actions";
 import { AgeRange, Class, Student } from "@prisma/client";
-import { ChevronLeft, Loader2, LayoutGrid, User, Users } from "lucide-react";
+import { ChevronLeft, Loader2, LayoutGrid, User, Users, Download, FileSpreadsheet } from "lucide-react";
 import { useEffect, useState, useCallback } from "react";
+import { exportReportToPDF, exportReportToExcel } from "@/lib/export-utils";
 import {
   Bar,
   BarChart,
@@ -278,6 +279,31 @@ const ReportesView = () => {
     setReportData(null);
   };
 
+  // Handle export functions
+  const handleExportPDF = () => {
+    if (!reportData) return;
+    const title = isGeneralReport ? "Reporte General" : selectedClass?.name || "Reporte";
+    try {
+      exportReportToPDF(reportData, title);
+      toast.success("Reporte exportado a PDF correctamente");
+    } catch (error) {
+      console.error("Error exporting to PDF:", error);
+      toast.error("Error al exportar el reporte a PDF");
+    }
+  };
+
+  const handleExportExcel = async () => {
+    if (!reportData) return;
+    const title = isGeneralReport ? "Reporte General" : selectedClass?.name || "Reporte";
+    try {
+      await exportReportToExcel(reportData, title);
+      toast.success("Reporte exportado a Excel correctamente");
+    } catch (error) {
+      console.error("Error exporting to Excel:", error);
+      toast.error("Error al exportar el reporte a Excel");
+    }
+  };
+
   // Report view for a selected class or general report
   if ((selectedClass || isGeneralReport) && reportData) {
     return (
@@ -295,6 +321,26 @@ const ReportesView = () => {
             <h1 className="text-xl font-bold">
               {isGeneralReport ? "Reporte General" : selectedClass?.name}
             </h1>
+          </div>
+          <div className="flex gap-2">
+            <Button
+              onClick={handleExportPDF}
+              variant="outline"
+              size="sm"
+              className="flex items-center gap-1"
+            >
+              <Download size={16} />
+              PDF
+            </Button>
+            <Button
+              onClick={handleExportExcel}
+              variant="outline"
+              size="sm"
+              className="flex items-center gap-1"
+            >
+              <FileSpreadsheet size={16} />
+              Excel
+            </Button>
           </div>
         </div>
 

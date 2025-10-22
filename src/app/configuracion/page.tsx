@@ -40,6 +40,7 @@ import { CheckCircle, Edit, Loader2, Plus, Save, Trash } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
+import { ThemeToggle } from "@/components/theme-toggle";
 
 const ConfiguracionView = () => {
   const [ageRanges, setAgeRanges] = useState<AgeRange[]>([]);
@@ -419,6 +420,27 @@ const ConfiguracionView = () => {
             </div>
           )}
         </CardFooter>
+      </Card>
+
+      {/* Appearance Settings */}
+      <Card className="mb-4">
+        <CardHeader>
+          <CardTitle>Apariencia</CardTitle>
+          <p className="text-sm text-gray-500">
+            Personaliza la apariencia de la aplicación
+          </p>
+        </CardHeader>
+        <CardContent>
+          <div className="flex items-center justify-between">
+            <div>
+              <h3 className="font-medium">Tema</h3>
+              <p className="text-sm text-gray-500">
+                Cambia entre modo claro y oscuro
+              </p>
+            </div>
+            <ThemeToggle />
+          </div>
+        </CardContent>
       </Card>
 
       {/* Application Information */}

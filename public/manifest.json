@@ -1,0 +1,27 @@
+{
+  "name": "Didaskaloi - Sistema de Gestión de Asistencia",
+  "short_name": "Didaskaloi",
+  "description": "Aplicación móvil para gestión de clases, estudiantes y registro de asistencias con reportes estadísticos detallados",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#3b82f6",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "/didaskaloi_logo.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/didaskaloi_logo.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "categories": ["education", "productivity"],
+  "lang": "es",
+  "dir": "ltr"
+}

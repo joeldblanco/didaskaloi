@@ -33,12 +33,14 @@ import {
 } from "@/components/ui/select";
 import {
   calculateStudentAttendance,
-  createStudent,
-  deleteStudent,
   getClasses,
   getStudents,
-  updateStudent,
 } from "@/lib/actions";
+import {
+  offlineCreateStudent,
+  offlineUpdateStudent,
+  offlineDeleteStudent,
+} from "@/lib/offline-actions";
 import { cn } from "@/lib/utils";
 import { studentSchema, type StudentFormValues } from "@/lib/validations";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -51,10 +53,15 @@ import {
   Plus,
   Search,
   X,
+  Upload,
+  Download,
+  AlertTriangle,
 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
+import ImportStudentsDialog from "@/components/import-students-dialog";
+import { exportStudentsToExcel } from "@/lib/export-utils";
 
 interface ClassWithCount extends Class {
   _count: {
@@ -79,6 +86,7 @@ const EstudiantesView = () => {
     useState<ExtendedStudent | null>(null);
   const [isEditMode, setIsEditMode] = useState(false);
   const [showDeleteAlert, setShowDeleteAlert] = useState(false);
+  const [showImportDialog, setShowImportDialog] = useState(false);
 
   // Form for creating or editing students
   const form = useForm<StudentFormValues>({
@@ -176,17 +184,23 @@ const EstudiantesView = () => {
 
       if (data.id) {
         // Update existing student
-        result = await updateStudent(data);
+        result = await offlineUpdateStudent(data);
 
         if (result.success) {
-          toast.success("Estudiante actualizado correctamente");
+          const message = (result as { offline?: boolean }).offline
+            ? "Estudiante actualizado (se sincronizará cuando haya conexión)"
+            : "Estudiante actualizado correctamente";
+          toast.success(message);
         }
       } else {
         // Create new student
-        result = await createStudent(data);
+        result = await offlineCreateStudent(data);
 
         if (result.success) {
-          toast.success("Estudiante creado correctamente");
+          const message = (result as { offline?: boolean }).offline
+            ? "Estudiante creado (se sincronizará cuando haya conexión)"
+            : "Estudiante creado correctamente";
+          toast.success(message);
         }
       }
 
@@ -210,7 +224,8 @@ const EstudiantesView = () => {
         setStudents(studentsWithAttendance as ExtendedStudent[]);
         setIsEditMode(false);
       } else {
-        toast.error(result?.error || "Error al guardar el estudiante");
+        const errorMessage = !result?.success && "error" in result ? result.error : "Error al guardar el estudiante";
+        toast.error(errorMessage);
       }
     } catch (error) {
       console.error("Error saving student:", error);
@@ -223,10 +238,13 @@ const EstudiantesView = () => {
     if (!selectedStudent) return;
 
     try {
-      const result = await deleteStudent(selectedStudent.id);
+      const result = await offlineDeleteStudent(selectedStudent.id);
 
       if (result.success) {
-        toast.success("Estudiante eliminado correctamente");
+        const message = (result as { offline?: boolean }).offline
+          ? "Estudiante eliminado (se sincronizará cuando haya conexión)"
+          : "Estudiante eliminado correctamente";
+        toast.success(message);
 
         // Refresh students
         const studentsData = await getStudents();
@@ -266,6 +284,33 @@ const EstudiantesView = () => {
   const getClassName = (classId: number) => {
     const cls = classes.find((c) => c.id === classId);
     return cls ? cls.name : "Sin clase";
+  };
+
+  // Handle import completion
+  const handleImportComplete = async () => {
+    // Refresh students after import
+    const studentsData = await getStudents();
+    const studentsWithAttendance = await Promise.all(
+      studentsData.map(async (student) => {
+        const attendancePercentage = await calculateStudentAttendance(
+          student.id
+        );
+        return {
+          ...student,
+          attendancePercentage,
+        };
+      })
+    );
+    setStudents(studentsWithAttendance as ExtendedStudent[]);
+  };
+
+  // Handle export to Excel
+  const handleExportExcel = () => {
+    const className = classFilter
+      ? classes.find((c) => c.id === parseInt(classFilter))?.name
+      : undefined;
+    exportStudentsToExcel(filteredStudents, className);
+    toast.success("Lista de estudiantes exportada correctamente");
   };
 
   // Student editing view
@@ -436,7 +481,30 @@ const EstudiantesView = () => {
   // Students list view
   return (
     <div className="p-4">
-      <h1 className="text-xl font-bold mb-4">Estudiantes</h1>
+      <div className="flex justify-between items-center mb-4">
+        <h1 className="text-xl font-bold">Estudiantes</h1>
+        <div className="flex gap-2">
+          <Button
+            onClick={() => setShowImportDialog(true)}
+            variant="outline"
+            size="sm"
+            className="flex items-center gap-1"
+          >
+            <Upload size={16} />
+            Importar
+          </Button>
+          <Button
+            onClick={handleExportExcel}
+            variant="outline"
+            size="sm"
+            className="flex items-center gap-1"
+            disabled={filteredStudents.length === 0}
+          >
+            <Download size={16} />
+            Exportar
+          </Button>
+        </div>
+      </div>
 
       {/* Search and Filters */}
       <div className="mb-4 relative">
@@ -553,9 +621,18 @@ const EstudiantesView = () => {
             >
               <CardContent className="p-4 flex justify-between items-center">
                 <div>
-                  <h3 className="font-medium">
-                    {student.firstName} {student.lastName}
-                  </h3>
+                  <div className="flex items-center gap-2">
+                    <h3 className="font-medium">
+                      {student.firstName} {student.lastName}
+                    </h3>
+                    {(student.attendancePercentage || 0) < 70 && (
+                      <AlertTriangle
+                        size={16}
+                        className="text-orange-500"
+                        aria-label="Asistencia baja"
+                      />
+                    )}
+                  </div>
                   <p className="text-sm text-gray-500">
                     {student.age} años ·{" "}
                     {student.gender === "M" ? "Masculino" : "Femenino"}
@@ -590,6 +667,14 @@ const EstudiantesView = () => {
       >
         <Plus size={24} />
       </Button>
+
+      {/* Import Students Dialog */}
+      <ImportStudentsDialog
+        open={showImportDialog}
+        onOpenChange={setShowImportDialog}
+        classes={classes}
+        onImportComplete={handleImportComplete}
+      />
     </div>
   );
 };

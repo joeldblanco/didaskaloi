@@ -33,12 +33,14 @@ import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import {
   calculateStudentAttendance,
-  createStudent,
-  deleteStudent,
   getClasses,
   getStudents,
-  updateStudent,
 } from "@/lib/actions";
+import {
+  offlineCreateStudent,
+  offlineUpdateStudent,
+  offlineDeleteStudent,
+} from "@/lib/offline-actions";
 import { studentSchema, type StudentFormValues } from "@/lib/validations";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Class, Student } from "@prisma/client";
@@ -51,6 +53,7 @@ import {
   Search,
   Trash,
   X,
+  AlertTriangle,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { use, useEffect, useState } from "react";
@@ -152,10 +155,13 @@ const ClassDetailPage = ({ params }: Props) => {
   // Handle adding a new student
   const onSubmitAddStudent = async (data: StudentFormValues) => {
     try {
-      const result = await createStudent(data);
+      const result = await offlineCreateStudent(data);
 
       if (result.success) {
-        toast.success("Estudiante creado correctamente");
+        const message = (result as { offline?: boolean }).offline
+          ? "Estudiante creado (se sincronizará cuando haya conexión)"
+          : "Estudiante creado correctamente";
+        toast.success(message);
         setShowAddStudentDialog(false);
 
         // Refresh students
@@ -185,7 +191,8 @@ const ClassDetailPage = ({ params }: Props) => {
           classId: classId,
         });
       } else {
-        toast.error(result.error || "Error al crear el estudiante");
+        const errorMessage = !result.success && "error" in result ? result.error : "Error al crear el estudiante";
+        toast.error(errorMessage);
       }
     } catch (error) {
       console.error("Error creating student:", error);
@@ -196,10 +203,13 @@ const ClassDetailPage = ({ params }: Props) => {
   // Handle editing a student
   const onSubmitEditStudent = async (data: StudentFormValues) => {
     try {
-      const result = await updateStudent(data);
+      const result = await offlineUpdateStudent(data);
 
       if (result.success) {
-        toast.success("Estudiante actualizado correctamente");
+        const message = (result as { offline?: boolean }).offline
+          ? "Estudiante actualizado (se sincronizará cuando haya conexión)"
+          : "Estudiante actualizado correctamente";
+        toast.success(message);
         setIsEditMode(false);
         setStudentToEdit(null);
 
@@ -221,7 +231,8 @@ const ClassDetailPage = ({ params }: Props) => {
 
         setStudents(studentsWithAttendance as ExtendedStudent[]);
       } else {
-        toast.error(result.error || "Error al actualizar el estudiante");
+        const errorMessage = !result.success && "error" in result ? result.error : "Error al actualizar el estudiante";
+        toast.error(errorMessage);
       }
     } catch (error) {
       console.error("Error updating student:", error);
@@ -258,10 +269,13 @@ const ClassDetailPage = ({ params }: Props) => {
     if (!selectedStudentId) return;
 
     try {
-      const result = await deleteStudent(selectedStudentId);
+      const result = await offlineDeleteStudent(selectedStudentId);
 
       if (result.success) {
-        toast.success("Estudiante eliminado correctamente");
+        const message = (result as { offline?: boolean }).offline
+          ? "Estudiante eliminado (se sincronizará cuando haya conexión)"
+          : "Estudiante eliminado correctamente";
+        toast.success(message);
 
         // Refresh students
         const studentsData = await getStudents({ classId });
@@ -283,7 +297,8 @@ const ClassDetailPage = ({ params }: Props) => {
         setIsEditMode(false);
         setStudentToEdit(null);
       } else {
-        toast.error(result.error || "Error al eliminar el estudiante");
+        const errorMessage = !result.success && "error" in result ? result.error : "Error al eliminar el estudiante";
+        toast.error(errorMessage);
       }
     } catch (error) {
       console.error("Error deleting student:", error);
@@ -631,9 +646,18 @@ const ClassDetailPage = ({ params }: Props) => {
               <CardContent className="p-4">
                 <div className="flex justify-between mb-2">
                   <div>
-                    <h3 className="font-medium">
-                      {student.firstName} {student.lastName}
-                    </h3>
+                    <div className="flex items-center gap-2">
+                      <h3 className="font-medium">
+                        {student.firstName} {student.lastName}
+                      </h3>
+                      {(student.attendancePercentage || 0) < 70 && (
+                        <AlertTriangle
+                          size={16}
+                          className="text-orange-500"
+                          aria-label="Asistencia baja"
+                        />
+                      )}
+                    </div>
                     <p className="text-sm text-gray-500">
                       {student.age} años ·{" "}
                       {student.gender === "M" ? "Masculino" : "Femenino"}
