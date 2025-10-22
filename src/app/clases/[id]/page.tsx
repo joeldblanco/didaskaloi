@@ -41,6 +41,7 @@ import {
   offlineUpdateStudent,
   offlineDeleteStudent,
 } from "@/lib/offline-actions";
+import { getCachedData } from "@/lib/offline-storage";
 import { studentSchema, type StudentFormValues } from "@/lib/validations";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Class, Student } from "@prisma/client";
@@ -103,6 +104,49 @@ const ClassDetailPage = ({ params }: Props) => {
     },
   });
 
+  // Helper function to refresh students (works both online and offline)
+  const refreshStudents = async () => {
+    try {
+      // Try to get fresh data from server
+      const studentsData = await getStudents({ classId });
+
+      // Calculate attendance percentages
+      const studentsWithAttendance = await Promise.all(
+        studentsData.map(async (student) => {
+          const attendancePercentage = await calculateStudentAttendance(
+            student.id
+          );
+          return {
+            ...student,
+            attendancePercentage,
+          };
+        })
+      );
+
+      setStudents(studentsWithAttendance as ExtendedStudent[]);
+    } catch (error) {
+      // If offline, use cached data
+      console.log("Using cached data (offline mode)");
+      try {
+        const cachedStudents = await getCachedData("students");
+        const classStudents = cachedStudents
+          .filter((s) => s.classId === classId)
+          .map((student) => {
+            // Try to preserve attendance percentage, but default to 0 if not available
+            const existingStudent = students.find((s) => s.id === student.id);
+            return {
+              ...student,
+              attendancePercentage: existingStudent?.attendancePercentage || 0,
+            };
+          });
+        setStudents(classStudents as ExtendedStudent[]);
+      } catch (cacheError) {
+        console.error("Error loading cached students:", cacheError);
+        toast.error("Error al cargar los estudiantes");
+      }
+    }
+  };
+
   // Load class and student data
   useEffect(() => {
     const loadData = async () => {
@@ -164,23 +208,8 @@ const ClassDetailPage = ({ params }: Props) => {
         toast.success(message);
         setShowAddStudentDialog(false);
 
-        // Refresh students
-        const studentsData = await getStudents({ classId });
-
-        // Calculate attendance percentages
-        const studentsWithAttendance = await Promise.all(
-          studentsData.map(async (student) => {
-            const attendancePercentage = await calculateStudentAttendance(
-              student.id
-            );
-            return {
-              ...student,
-              attendancePercentage,
-            };
-          })
-        );
-
-        setStudents(studentsWithAttendance as ExtendedStudent[]);
+        // Refresh students using helper function
+        await refreshStudents();
 
         // Reset form
         form.reset({
@@ -213,23 +242,8 @@ const ClassDetailPage = ({ params }: Props) => {
         setIsEditMode(false);
         setStudentToEdit(null);
 
-        // Refresh students
-        const studentsData = await getStudents({ classId });
-
-        // Calculate attendance percentages
-        const studentsWithAttendance = await Promise.all(
-          studentsData.map(async (student) => {
-            const attendancePercentage = await calculateStudentAttendance(
-              student.id
-            );
-            return {
-              ...student,
-              attendancePercentage,
-            };
-          })
-        );
-
-        setStudents(studentsWithAttendance as ExtendedStudent[]);
+        // Refresh students using helper function
+        await refreshStudents();
       } else {
         const errorMessage = !result.success && "error" in result ? result.error : "Error al actualizar el estudiante";
         toast.error(errorMessage);
@@ -277,23 +291,8 @@ const ClassDetailPage = ({ params }: Props) => {
           : "Estudiante eliminado correctamente";
         toast.success(message);
 
-        // Refresh students
-        const studentsData = await getStudents({ classId });
-
-        // Calculate attendance percentages
-        const studentsWithAttendance = await Promise.all(
-          studentsData.map(async (student) => {
-            const attendancePercentage = await calculateStudentAttendance(
-              student.id
-            );
-            return {
-              ...student,
-              attendancePercentage,
-            };
-          })
-        );
-
-        setStudents(studentsWithAttendance as ExtendedStudent[]);
+        // Refresh students using helper function
+        await refreshStudents();
         setIsEditMode(false);
         setStudentToEdit(null);
       } else {
