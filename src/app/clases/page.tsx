@@ -219,9 +219,15 @@ const ClasesView = () => {
 
       {!activeProjectId ? (
         <div className="text-center py-8">
-          <p className="text-gray-500">
+          <p className="text-gray-500 mb-4">
             Selecciona un proyecto para ver las clases
           </p>
+          <Button
+            onClick={() => router.push("/proyectos")}
+            variant="outline"
+          >
+            Ir a Proyectos
+          </Button>
         </div>
       ) : (
         <>

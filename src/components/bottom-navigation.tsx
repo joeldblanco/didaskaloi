@@ -3,6 +3,7 @@
 import React from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useProject } from "@/contexts/project-context";
 
 interface NavItem {
   name: string;
@@ -12,6 +13,7 @@ interface NavItem {
 
 const BottomNavigation = () => {
   const pathname = usePathname();
+  const { activeProjectId } = useProject();
 
   const navItems: NavItem[] = [
     {
@@ -121,8 +123,8 @@ const BottomNavigation = () => {
     },
   ];
 
-  // Don't show bottom navigation on auth pages
-  if (pathname.startsWith("/auth")) {
+  // Don't show bottom navigation on auth pages or when no project is selected
+  if (pathname.startsWith("/auth") || !activeProjectId) {
     return null;
   }
 

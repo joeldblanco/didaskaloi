@@ -537,9 +537,15 @@ const EstudiantesView = () => {
 
       {!activeProjectId ? (
         <div className="text-center py-8">
-          <p className="text-gray-500">
+          <p className="text-gray-500 mb-4">
             Selecciona un proyecto para ver los estudiantes
           </p>
+          <Button
+            onClick={() => window.location.href = "/proyectos"}
+            variant="outline"
+          >
+            Ir a Proyectos
+          </Button>
         </div>
       ) : (
         <>
