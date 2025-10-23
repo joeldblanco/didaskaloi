@@ -9,17 +9,29 @@ Una aplicación móvil optimizada en Next.js para gestionar clases, estudiantes 
 
 ## 🚀 Características
 
+### Autenticación y Colaboración
+- ✅ Sistema de autenticación completo con NextAuth v5
+- ✅ Registro e inicio de sesión con email/password
+- ✅ Gestión de proyectos colaborativos
+- ✅ Sistema de roles (Admin, Editor, Viewer)
+- ✅ Códigos de invitación para compartir proyectos
+- ✅ Sesiones seguras con JWT
+
+### Gestión Académica
 - ✅ Gestión completa de clases y estudiantes
 - ✅ Registro de asistencia intuitivo con interfaz tipo swipe
 - ✅ Reportes estadísticos detallados con gráficos interactivos
 - ✅ Filtros avanzados por clase, género y búsqueda
 - ✅ Exportación de reportes a PDF y Excel
 - ✅ Importación masiva de estudiantes desde CSV
+- ✅ Validación de datos duplicados
+- ✅ Notificaciones de asistencia baja
+
+### Experiencia de Usuario
 - ✅ Modo oscuro/claro
 - ✅ PWA - Funciona sin conexión
 - ✅ Interfaz optimizada para dispositivos móviles
-- ✅ Validación de datos duplicados
-- ✅ Notificaciones de asistencia baja
+- ✅ Sincronización offline con IndexedDB
 
 ## 📱 Vistas Principales
 
@@ -43,6 +55,8 @@ Una aplicación móvil optimizada en Next.js para gestionar clases, estudiantes 
 ### Backend & Base de Datos
 - **Prisma 6.6** - ORM para PostgreSQL
 - **PostgreSQL** - Base de datos relacional (Neon)
+- **NextAuth v5** - Autenticación completa
+- **bcryptjs** - Hash de contraseñas
 - **Server Actions** - API serverless de Next.js
 
 ### Validación & Formularios
@@ -97,8 +111,10 @@ Crea un archivo `.env` en la raíz del proyecto con las siguientes variables:
 # Base de datos PostgreSQL
 DATABASE_URL="postgresql://user:password@host:port/database?sslmode=require"
 
-# Contraseña de acceso a la aplicación
-NEXT_PUBLIC_PASSWORD="tu_contraseña_segura"
+# NextAuth Configuration
+# Genera un secret con: openssl rand -base64 32
+NEXTAUTH_SECRET="tu_secret_aleatorio_aqui"
+NEXTAUTH_URL="http://localhost:3000"
 ```
 
 ## 📝 Scripts Disponibles
@@ -121,22 +137,34 @@ didaskaloi/
 ├── public/                    # Archivos estáticos
 ├── src/
 │   ├── app/                   # App Router de Next.js
+│   │   ├── api/
+│   │   │   └── auth/         # API routes de NextAuth
+│   │   ├── auth/
+│   │   │   ├── login/        # Página de inicio de sesión
+│   │   │   └── register/     # Página de registro
 │   │   ├── asistencia/       # Página de registro de asistencia
 │   │   ├── clases/           # Gestión de clases
 │   │   ├── configuracion/    # Configuración de la app
 │   │   ├── estudiantes/      # Gestión de estudiantes
+│   │   ├── proyectos/        # Gestión de proyectos
 │   │   ├── reportes/         # Reportes y estadísticas
 │   │   ├── layout.tsx        # Layout principal
 │   │   └── page.tsx          # Página de inicio
 │   ├── components/
 │   │   ├── ui/               # Componentes de shadcn/ui
 │   │   ├── bottom-navigation.tsx
-│   │   └── protected-layout.tsx
+│   │   └── offline-sync-provider.tsx
+│   ├── contexts/
+│   │   └── project-context.tsx
 │   └── lib/
 │       ├── actions.ts        # Server Actions
+│       ├── auth.ts           # Configuración de NextAuth
+│       ├── auth-actions.ts   # Acciones de autenticación
+│       ├── auth-utils.ts     # Utilidades de auth
 │       ├── prisma.ts         # Cliente de Prisma
 │       ├── utils.ts          # Utilidades
 │       └── validations.ts    # Esquemas de Zod
+├── middleware.ts             # Middleware de NextAuth
 ├── .env.example              # Plantilla de variables de entorno
 ├── package.json
 └── README.md
@@ -145,9 +173,44 @@ didaskaloi/
 ## 📊 Modelo de Datos
 
 ```prisma
+User (Usuario)
+  ├── id: Int
+  ├── email: String (unique)
+  ├── password: String (bcrypt hash)
+  ├── name: String
+  ├── ownedProjects: Project[]
+  └── projectMemberships: ProjectMember[]
+
+Project (Proyecto)
+  ├── id: Int
+  ├── name: String
+  ├── accessCode: String (unique)
+  ├── password: String (bcrypt hash)
+  ├── ownerId: Int
+  ├── members: ProjectMember[]
+  ├── inviteCodes: InviteCode[]
+  ├── classes: Class[]
+  └── ageRanges: AgeRange[]
+
+ProjectMember (Miembro de Proyecto)
+  ├── id: Int
+  ├── userId: Int
+  ├── projectId: Int
+  └── role: Role (ADMIN/EDITOR/VIEWER)
+
+InviteCode (Código de Invitación)
+  ├── id: Int
+  ├── code: String (unique)
+  ├── projectId: Int
+  ├── role: Role
+  ├── expiresAt: DateTime?
+  ├── maxUses: Int?
+  └── usedCount: Int
+
 Class (Clase)
   ├── id: Int
   ├── name: String
+  ├── projectId: Int
   ├── students: Student[]
   └── attendances: Attendance[]
 
@@ -176,47 +239,61 @@ AgeRange (Rango de Edad)
   ├── id: Int
   ├── label: String
   ├── minAge: Int
-  └── maxAge: Int
+  ├── maxAge: Int
+  └── projectId: Int
 ```
 
 ## 🎯 Uso de la Aplicación
 
-### 1. Acceso Inicial
-- Ingresa la contraseña configurada en `NEXT_PUBLIC_PASSWORD`
-- La sesión se guarda en localStorage
+### 1. Registro e Inicio de Sesión
+- **Primera vez**: Regístrate en `/auth/register` con email, nombre y contraseña
+- **Usuarios existentes**: Inicia sesión en `/auth/login`
+- Las sesiones son seguras con JWT y duran 30 días
+- El middleware protege automáticamente todas las rutas
 
-### 2. Gestión de Clases
+### 2. Gestión de Proyectos
+- Crea proyectos nuevos o únete a proyectos existentes
+- Cada proyecto tiene un código único y contraseña
+- Invita colaboradores con códigos de invitación
+- Define roles: Admin (control total), Editor (editar), Viewer (solo ver)
+
+### 3. Gestión de Clases
 - Crea clases desde el botón flotante (+)
 - Edita o elimina clases existentes
 - Haz clic en una clase para ver sus estudiantes
 
-### 3. Gestión de Estudiantes
+### 4. Gestión de Estudiantes
 - Agrega estudiantes individualmente o importa desde CSV
 - Filtra por clase, género o búsqueda de texto
 - Visualiza el porcentaje de asistencia de cada estudiante
 
-### 4. Registro de Asistencia
+### 5. Registro de Asistencia
 - Selecciona una clase
 - Crea un nuevo registro para la fecha actual
 - Marca presente (✓) o ausente (✗) para cada estudiante
 - Navega entre estudiantes con las flechas
 
-### 5. Reportes
+### 6. Reportes
 - Visualiza reportes generales o por clase específica
 - Gráficos de distribución por género y edad
 - Mejores asistencias por categoría
 - Exporta reportes a PDF o Excel
 
-### 6. Configuración
+### 7. Configuración
 - Define rangos de edad personalizados
 - Los rangos se usan para agrupar estudiantes en reportes
 
 ## 🔒 Seguridad
 
-- ⚠️ **Importante**: La autenticación actual es básica (solo contraseña)
-- Para producción, se recomienda implementar NextAuth.js o similar
-- Las credenciales de base de datos están en `.env` (no commitear)
-- Usa HTTPS en producción
+- ✅ **NextAuth v5** implementado con autenticación completa
+- ✅ Contraseñas hasheadas con **bcryptjs** (12 rounds)
+- ✅ Sesiones seguras con **JWT**
+- ✅ Middleware protege todas las rutas automáticamente
+- ✅ Sistema de roles para control de acceso
+- ✅ Validación de datos con **Zod**
+- ⚠️ Las credenciales de base de datos están en `.env` (no commitear)
+- ⚠️ Usa HTTPS en producción
+- ⚠️ Genera un `NEXTAUTH_SECRET` único y seguro
 
 ## 🚀 Despliegue
 
@@ -230,7 +307,7 @@ npm i -g vercel
 vercel
 
 # 3. Configurar variables de entorno en Vercel Dashboard
-# DATABASE_URL y NEXT_PUBLIC_PASSWORD
+# DATABASE_URL, NEXTAUTH_SECRET y NEXTAUTH_URL
 ```
 
 ### Docker
@@ -255,14 +332,16 @@ Las contribuciones son bienvenidas. Por favor:
 
 ## 📝 Roadmap
 
-- [ ] Sistema de autenticación robusto con roles
+- [x] Sistema de autenticación robusto con roles
+- [x] Sistema de proyectos colaborativos
+- [x] Modo offline con sincronización
 - [ ] Sincronización multi-dispositivo en tiempo real
 - [ ] Notificaciones push
 - [ ] Integración con Google Classroom
 - [ ] App móvil nativa (React Native)
 - [ ] Dashboard para administradores
 - [ ] Análisis predictivo de asistencia
-- [ ] Modo offline completo con sincronización
+- [ ] OAuth con Google/Microsoft
 
 ## 🐛 Reporte de Bugs
 

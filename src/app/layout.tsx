@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import BottomNavigation from "@/components/bottom-navigation";
-import ProtectedLayout from "@/components/protected-layout";
+import { SessionProvider } from "next-auth/react";
 import { ThemeProvider } from "@/components/theme-provider";
 import { Toaster } from "sonner";
 import { OfflineIndicator } from "@/components/offline-indicator";
@@ -55,23 +55,23 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased bg-gray-50 dark:bg-gray-900 max-w-md mx-auto`}
       >
-        <ThemeProvider
-          attribute="class"
-          defaultTheme="system"
-          enableSystem
-          disableTransitionOnChange
-        >
-          <ProjectProvider>
-            <OfflineSyncProvider>
-              <OfflineIndicator />
-              <ProtectedLayout>
+        <SessionProvider>
+          <ThemeProvider
+            attribute="class"
+            defaultTheme="system"
+            enableSystem
+            disableTransitionOnChange
+          >
+            <ProjectProvider>
+              <OfflineSyncProvider>
+                <OfflineIndicator />
                 <main className="pb-16 h-full">{children}</main>
                 <BottomNavigation />
-              </ProtectedLayout>
-              <Toaster position="top-center" richColors />
-            </OfflineSyncProvider>
-          </ProjectProvider>
-        </ThemeProvider>
+                <Toaster position="top-center" richColors />
+              </OfflineSyncProvider>
+            </ProjectProvider>
+          </ThemeProvider>
+        </SessionProvider>
       </body>
     </html>
   );
