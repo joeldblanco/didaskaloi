@@ -121,6 +121,11 @@ const BottomNavigation = () => {
     },
   ];
 
+  // Don't show bottom navigation on auth pages
+  if (pathname.startsWith("/auth")) {
+    return null;
+  }
+
   return (
     <div className="fixed bottom-0 left-0 right-0 z-50 bg-white border-t border-gray-200 shadow-lg">
       <div className="flex justify-around items-center h-16">
