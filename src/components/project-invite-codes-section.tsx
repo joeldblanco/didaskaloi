@@ -7,6 +7,7 @@ import { createInviteCodeAction, deactivateInviteCode } from "@/lib/project-acti
 import { Role } from "@prisma/client";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
+import { Input } from "@/components/ui/input";
 import {
   Select,
   SelectContent,
@@ -15,7 +16,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { toast } from "sonner";
-import { Plus, Copy, Check, XCircle, Edit, Eye } from "lucide-react";
+import { Plus, Copy, Check, XCircle, Edit, Eye, Lock } from "lucide-react";
 
 type InviteCode = {
   id: number;
@@ -38,19 +39,28 @@ export function ProjectInviteCodesSection({ projectId, inviteCodes }: Props) {
   const [isCreating, setIsCreating] = useState(false);
   const [copiedCode, setCopiedCode] = useState<string | null>(null);
   const [selectedRole, setSelectedRole] = useState<"EDITOR" | "VIEWER">("VIEWER");
+  const [password, setPassword] = useState("");
 
   const handleCreateInviteCode = async () => {
+    // Validate password for EDITOR role
+    if (selectedRole === "EDITOR" && !password) {
+      toast.error("La contraseña es obligatoria para códigos de Editor");
+      return;
+    }
+
     setIsCreating(true);
     try {
       const data: CreateInviteCodeFormValues = {
         projectId,
         role: selectedRole,
+        password: password || undefined,
       };
 
       const result = await createInviteCodeAction(data);
 
       if (result.success && result.inviteCode) {
         toast.success("Código de invitación creado");
+        setPassword(""); // Reset password field
         router.refresh();
       } else {
         toast.error(result.error || "Error al crear el código");
@@ -93,30 +103,59 @@ export function ProjectInviteCodesSection({ projectId, inviteCodes }: Props) {
         <h3 className="font-semibold text-gray-900 dark:text-white mb-4">
           Generar Nuevo Código de Invitación
         </h3>
-        <div className="flex items-end gap-4">
-          <div className="flex-1">
-            <Label htmlFor="role">Rol para el código</Label>
-            <Select value={selectedRole} onValueChange={(value) => setSelectedRole(value as "EDITOR" | "VIEWER")}>
-              <SelectTrigger id="role" className="mt-1">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="EDITOR">
-                  <div className="flex items-center gap-2">
-                    <Edit className="h-4 w-4" />
-                    Editor (puede crear y modificar)
-                  </div>
-                </SelectItem>
-                <SelectItem value="VIEWER">
-                  <div className="flex items-center gap-2">
-                    <Eye className="h-4 w-4" />
-                    Visualizador (solo lectura)
-                  </div>
-                </SelectItem>
-              </SelectContent>
-            </Select>
+        <div className="space-y-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <Label htmlFor="role">Rol para el código</Label>
+              <Select value={selectedRole} onValueChange={(value) => setSelectedRole(value as "EDITOR" | "VIEWER")}>
+                <SelectTrigger id="role" className="mt-1">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="EDITOR">
+                    <div className="flex items-center gap-2">
+                      <Edit className="h-4 w-4" />
+                      Editor (puede crear y modificar)
+                    </div>
+                  </SelectItem>
+                  <SelectItem value="VIEWER">
+                    <div className="flex items-center gap-2">
+                      <Eye className="h-4 w-4" />
+                      Visualizador (solo lectura)
+                    </div>
+                  </SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div>
+              <Label htmlFor="password">
+                Contraseña del código
+                {selectedRole === "EDITOR" && (
+                  <span className="text-red-500 ml-1">*</span>
+                )}
+                {selectedRole === "VIEWER" && (
+                  <span className="text-gray-500 text-xs ml-1">(opcional)</span>
+                )}
+              </Label>
+              <div className="relative mt-1">
+                <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+                <Input
+                  id="password"
+                  type="password"
+                  placeholder={selectedRole === "EDITOR" ? "Obligatoria" : "Opcional"}
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  className="pl-10"
+                />
+              </div>
+              {selectedRole === "EDITOR" && (
+                <p className="text-xs text-gray-600 dark:text-gray-400 mt-1">
+                  Los usuarios necesitarán esta contraseña para unirse con este código
+                </p>
+              )}
+            </div>
           </div>
-          <Button onClick={handleCreateInviteCode} disabled={isCreating}>
+          <Button onClick={handleCreateInviteCode} disabled={isCreating} className="w-full md:w-auto">
             <Plus className="mr-2 h-4 w-4" />
             {isCreating ? "Generando..." : "Generar Código"}
           </Button>

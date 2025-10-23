@@ -64,7 +64,7 @@ export default function UnirseInvitacionPage() {
               Unirse con Código de Invitación
             </h1>
             <p className="text-gray-600 dark:text-gray-400 mt-2">
-              Usa el código de invitación que recibiste
+              Esta es la única manera de unirse a un proyecto
             </p>
           </div>
 
@@ -74,7 +74,7 @@ export default function UnirseInvitacionPage() {
               <Input
                 id="inviteCode"
                 type="text"
-                placeholder="XXXX-XXXX-EDIT o XXXX-XXXX-VIEW"
+                placeholder="XXXX-XXXX-XXXX"
                 {...register("inviteCode")}
                 disabled={isLoading}
                 className="mt-1 font-mono text-lg"
@@ -85,31 +85,37 @@ export default function UnirseInvitacionPage() {
                 </p>
               )}
               <p className="text-xs text-gray-500 mt-1">
-                El código de invitación termina en EDIT (Editor) o VIEW (Visualizador)
+                Formato: 12 caracteres separados por guiones
               </p>
             </div>
 
             <div>
-              <Label htmlFor="projectPassword">Contraseña del Proyecto</Label>
+              <Label htmlFor="password">
+                Contraseña del Código
+                <span className="text-gray-500 text-xs ml-1">(si aplica)</span>
+              </Label>
               <Input
-                id="projectPassword"
+                id="password"
                 type="password"
                 placeholder="••••••••"
-                {...register("projectPassword")}
+                {...register("password")}
                 disabled={isLoading}
                 className="mt-1"
               />
-              {errors.projectPassword && (
+              {errors.password && (
                 <p className="text-sm text-red-600 mt-1">
-                  {errors.projectPassword.message}
+                  {errors.password.message}
                 </p>
               )}
+              <p className="text-xs text-gray-500 mt-1">
+                Algunos códigos pueden requerir contraseña, especialmente los de Editor
+              </p>
             </div>
 
             <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4">
               <p className="text-sm text-blue-800 dark:text-blue-200">
-                <strong>Ventaja:</strong> Al usar un código de invitación, obtendrás el rol específico 
-                (Editor o Visualizador) asignado por el administrador, sin necesidad de esperar a que te lo otorgue.
+                <strong>Nota:</strong> Al unirte con un código de invitación, recibirás automáticamente el rol
+                (Editor o Visualizador) configurado por el administrador del proyecto.
               </p>
             </div>
 
@@ -127,18 +133,6 @@ export default function UnirseInvitacionPage() {
               )}
             </Button>
           </form>
-
-          <div className="mt-6 text-center">
-            <p className="text-sm text-gray-600 dark:text-gray-400">
-              ¿Solo tienes el código de acceso?{" "}
-              <Link
-                href="/proyectos/unirse"
-                className="text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300 font-medium"
-              >
-                Úsalo aquí
-              </Link>
-            </p>
-          </div>
         </div>
       </div>
     </div>

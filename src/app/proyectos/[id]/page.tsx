@@ -45,10 +45,7 @@ export default async function ProyectoDetallesPage({
               <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
                 {project.name}
               </h1>
-              <p className="text-gray-600 dark:text-gray-400 mt-2">
-                Código de acceso: <code className="font-mono bg-gray-100 dark:bg-gray-700 px-2 py-1 rounded">{project.accessCode}</code>
-              </p>
-              <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
+              <p className="text-sm text-gray-500 dark:text-gray-400 mt-2">
                 Propietario: {project.owner.name}
               </p>
             </div>

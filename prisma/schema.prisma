@@ -31,8 +31,6 @@ model User {
 model Project {
   id          Int      @id @default(autoincrement())
   name        String
-  accessCode  String   @unique // Código único del proyecto (ej: PROJ-A1B2C3)
-  password    String   // bcrypt hash - password del proyecto
   ownerId     Int
   owner       User     @relation("ProjectOwner", fields: [ownerId], references: [id], onDelete: Cascade)
   createdAt   DateTime @default(now())
@@ -65,6 +63,7 @@ model InviteCode {
   projectId Int
   project   Project   @relation(fields: [projectId], references: [id], onDelete: Cascade)
   role      Role      // Rol que se asignará al unirse
+  password  String?   // bcrypt hash - password del código (obligatorio para EDITOR, opcional para VIEWER)
   expiresAt DateTime? // Fecha de expiración (opcional)
   maxUses   Int?      // Número máximo de usos (opcional)
   usedCount Int       @default(0)

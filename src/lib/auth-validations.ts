@@ -19,34 +19,25 @@ export const registerSchema = z.object({
 // Project schemas
 export const createProjectSchema = z.object({
   name: z.string().min(2, "El nombre debe tener al menos 2 caracteres"),
-  password: z
-    .string()
-    .min(6, "La contraseña del proyecto debe tener al menos 6 caracteres"),
 });
 
-export const joinProjectSchema = z.object({
-  accessCode: z.string().min(1, "El código de acceso es requerido"),
-  password: z.string().min(1, "La contraseña es requerida"),
-});
+// Removed: joinProjectSchema - no longer using access codes
 
 export const joinWithInviteSchema = z.object({
   inviteCode: z.string().min(1, "El código de invitación es requerido"),
-  projectPassword: z.string().min(1, "La contraseña del proyecto es requerida"),
+  password: z.string().optional(), // Password is optional (required for EDITOR, optional for VIEWER)
 });
 
 export const updateProjectSchema = z.object({
   id: z.number(),
   name: z.string().min(2, "El nombre debe tener al menos 2 caracteres").optional(),
-  password: z
-    .string()
-    .min(6, "La contraseña del proyecto debe tener al menos 6 caracteres")
-    .optional(),
 });
 
 // Invite code schemas
 export const createInviteCodeSchema = z.object({
   projectId: z.number(),
   role: z.enum(["EDITOR", "VIEWER"]),
+  password: z.string().optional(), // Validated separately: required for EDITOR, optional for VIEWER
   expiresAt: z.date().optional(),
   maxUses: z.number().positive().optional(),
 });
@@ -66,7 +57,6 @@ export const removeMemberSchema = z.object({
 export type LoginFormValues = z.infer<typeof loginSchema>;
 export type RegisterFormValues = z.infer<typeof registerSchema>;
 export type CreateProjectFormValues = z.infer<typeof createProjectSchema>;
-export type JoinProjectFormValues = z.infer<typeof joinProjectSchema>;
 export type JoinWithInviteFormValues = z.infer<typeof joinWithInviteSchema>;
 export type UpdateProjectFormValues = z.infer<typeof updateProjectSchema>;
 export type CreateInviteCodeFormValues = z.infer<typeof createInviteCodeSchema>;

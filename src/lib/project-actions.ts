@@ -11,14 +11,12 @@ import {
 } from "@/lib/auth-utils";
 import {
   createProjectSchema,
-  joinProjectSchema,
   joinWithInviteSchema,
   updateProjectSchema,
   createInviteCodeSchema,
   updateMemberRoleSchema,
   removeMemberSchema,
   type CreateProjectFormValues,
-  type JoinProjectFormValues,
   type JoinWithInviteFormValues,
   type UpdateProjectFormValues,
   type CreateInviteCodeFormValues,
@@ -46,14 +44,9 @@ export async function createProject(data: CreateProjectFormValues) {
     const user = await getCurrentUser();
     const validatedData = createProjectSchema.parse(data);
 
-    const accessCode = generateProjectCode();
-    const hashedPassword = await hashPassword(validatedData.password);
-
     const project = await prisma.project.create({
       data: {
         name: validatedData.name,
-        accessCode,
-        password: hashedPassword,
         ownerId: user.id,
         members: {
           create: {
@@ -73,71 +66,11 @@ export async function createProject(data: CreateProjectFormValues) {
       project: {
         id: project.id,
         name: project.name,
-        accessCode: project.accessCode,
       },
     };
   } catch (error) {
     console.error("Error creating project:", error);
     return { success: false, error: "Error al crear el proyecto" };
-  }
-}
-
-/**
- * Join a project using access code and password
- */
-export async function joinProject(data: JoinProjectFormValues) {
-  try {
-    const user = await getCurrentUser();
-    const validatedData = joinProjectSchema.parse(data);
-
-    const project = await prisma.project.findUnique({
-      where: { accessCode: validatedData.accessCode },
-      include: {
-        members: {
-          where: { userId: user.id },
-        },
-      },
-    });
-
-    if (!project) {
-      return { success: false, error: "Código de proyecto inválido" };
-    }
-
-    // Check if user is already a member
-    if (project.members.length > 0) {
-      return { success: false, error: "Ya eres miembro de este proyecto" };
-    }
-
-    // Verify project password
-    const isValidPassword = await verifyPassword(
-      validatedData.password,
-      project.password
-    );
-
-    if (!isValidPassword) {
-      return { success: false, error: "Contraseña incorrecta" };
-    }
-
-    // Add user as viewer by default when joining via access code
-    await prisma.projectMember.create({
-      data: {
-        userId: user.id,
-        projectId: project.id,
-        role: Role.VIEWER,
-      },
-    });
-
-    revalidatePath("/proyectos");
-    return {
-      success: true,
-      project: {
-        id: project.id,
-        name: project.name,
-      },
-    };
-  } catch (error) {
-    console.error("Error joining project:", error);
-    return { success: false, error: "Error al unirse al proyecto" };
   }
 }
 
@@ -184,14 +117,20 @@ export async function joinWithInviteCode(data: JoinWithInviteFormValues) {
       return { success: false, error: "Ya eres miembro de este proyecto" };
     }
 
-    // Verify project password
-    const isValidPassword = await verifyPassword(
-      validatedData.projectPassword,
-      inviteCode.project.password
-    );
+    // Verify invite code password if it has one
+    if (inviteCode.password) {
+      if (!validatedData.password) {
+        return { success: false, error: "Se requiere contraseña para este código de invitación" };
+      }
 
-    if (!isValidPassword) {
-      return { success: false, error: "Contraseña del proyecto incorrecta" };
+      const isValidPassword = await verifyPassword(
+        validatedData.password,
+        inviteCode.password
+      );
+
+      if (!isValidPassword) {
+        return { success: false, error: "Contraseña incorrecta" };
+      }
     }
 
     // Add user with the role specified in the invite code
@@ -423,6 +362,14 @@ export async function createInviteCodeAction(data: CreateInviteCodeFormValues) {
     const user = await getCurrentUser();
     const validatedData = createInviteCodeSchema.parse(data);
 
+    // Validate password requirement based on role
+    if (validatedData.role === "EDITOR" && !validatedData.password) {
+      return {
+        success: false,
+        error: "La contraseña es obligatoria para códigos de Editor",
+      };
+    }
+
     // Check if user is admin
     const member = await prisma.projectMember.findUnique({
       where: {
@@ -442,11 +389,18 @@ export async function createInviteCodeAction(data: CreateInviteCodeFormValues) {
 
     const code = generateInviteCode();
 
+    // Hash password if provided
+    let hashedPassword: string | null = null;
+    if (validatedData.password) {
+      hashedPassword = await hashPassword(validatedData.password);
+    }
+
     const inviteCode = await prisma.inviteCode.create({
       data: {
         code,
         projectId: validatedData.projectId,
         role: validatedData.role,
+        password: hashedPassword,
         expiresAt: validatedData.expiresAt,
         maxUses: validatedData.maxUses,
       },
@@ -459,6 +413,7 @@ export async function createInviteCodeAction(data: CreateInviteCodeFormValues) {
         id: inviteCode.id,
         code: inviteCode.code,
         role: inviteCode.role,
+        hasPassword: !!inviteCode.password,
         expiresAt: inviteCode.expiresAt,
         maxUses: inviteCode.maxUses,
       },

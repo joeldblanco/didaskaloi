@@ -10,7 +10,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
-import { Loader2, Plus, Copy, Check } from "lucide-react";
+import { Loader2, Plus, Check } from "lucide-react";
 
 export function CreateProjectForm() {
   const router = useRouter();
@@ -18,9 +18,7 @@ export function CreateProjectForm() {
   const [createdProject, setCreatedProject] = useState<{
     id: number;
     name: string;
-    accessCode: string;
   } | null>(null);
-  const [copied, setCopied] = useState(false);
 
   const {
     register,
@@ -49,15 +47,6 @@ export function CreateProjectForm() {
     }
   };
 
-  const copyAccessCode = () => {
-    if (createdProject) {
-      navigator.clipboard.writeText(createdProject.accessCode);
-      setCopied(true);
-      toast.success("Código copiado al portapapeles");
-      setTimeout(() => setCopied(false), 2000);
-    }
-  };
-
   if (createdProject) {
     return (
       <div className="space-y-6">
@@ -69,34 +58,16 @@ export function CreateProjectForm() {
             ¡Proyecto Creado!
           </h2>
           <p className="text-gray-600 dark:text-gray-400 mt-2">
-            Tu proyecto ha sido creado exitosamente
+            Tu proyecto <strong>{createdProject.name}</strong> ha sido creado exitosamente
           </p>
         </div>
 
         <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-6">
-          <h3 className="font-semibold text-gray-900 dark:text-white mb-4">
-            Código de Acceso del Proyecto
+          <h3 className="font-semibold text-gray-900 dark:text-white mb-2">
+            Siguiente paso: Compartir el proyecto
           </h3>
-          <div className="flex items-center gap-2">
-            <code className="flex-1 bg-white dark:bg-gray-800 px-4 py-3 rounded-lg text-2xl font-mono font-bold text-center">
-              {createdProject.accessCode}
-            </code>
-            <Button
-              onClick={copyAccessCode}
-              variant="outline"
-              size="icon"
-              className="h-12 w-12"
-            >
-              {copied ? (
-                <Check className="h-5 w-5 text-green-600" />
-              ) : (
-                <Copy className="h-5 w-5" />
-              )}
-            </Button>
-          </div>
-          <p className="text-sm text-gray-600 dark:text-gray-400 mt-4">
-            Comparte este código con otros usuarios para que puedan unirse a tu proyecto.
-            También necesitarán la contraseña que configuraste.
+          <p className="text-sm text-gray-600 dark:text-gray-400">
+            Para invitar a otros usuarios, ve a la página del proyecto y genera códigos de invitación con los roles apropiados (Editor o Visualizador).
           </p>
         </div>
 
@@ -134,23 +105,8 @@ export function CreateProjectForm() {
         {errors.name && (
           <p className="text-sm text-red-600 mt-1">{errors.name.message}</p>
         )}
-      </div>
-
-      <div>
-        <Label htmlFor="password">Contraseña del Proyecto</Label>
-        <Input
-          id="password"
-          type="password"
-          placeholder="••••••••"
-          {...register("password")}
-          disabled={isLoading}
-          className="mt-1"
-        />
-        {errors.password && (
-          <p className="text-sm text-red-600 mt-1">{errors.password.message}</p>
-        )}
         <p className="text-xs text-gray-500 mt-1">
-          Esta contraseña será requerida para que otros usuarios se unan al proyecto
+          Podrás compartir este proyecto generando códigos de invitación después de crearlo
         </p>
       </div>
 
