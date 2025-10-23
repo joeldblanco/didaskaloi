@@ -44,6 +44,9 @@ import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
+import { useProject } from "@/contexts/project-context";
+import { getUserProjects } from "@/lib/project-actions";
+import { ProjectSelector } from "@/components/project-selector";
 
 interface ClassWithStudentCount extends Class {
   _count: {
@@ -53,8 +56,9 @@ interface ClassWithStudentCount extends Class {
 
 const ClasesView = () => {
   const router = useRouter();
+  const { activeProjectId } = useProject();
   const [classes, setClasses] = useState<ClassWithStudentCount[]>([]);
-  // Removed currentClass state since we no longer need it
+  const [projects, setProjects] = useState<Array<{ id: number; name: string; role: string }>>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [showAddClassDialog, setShowAddClassDialog] = useState(false);
   const [showEditClassDialog, setShowEditClassDialog] = useState(false);
@@ -70,9 +74,29 @@ const ClasesView = () => {
     },
   });
 
-  // Load classes when component mounts
+  // Load projects when component mounts
+  useEffect(() => {
+    const loadProjects = async () => {
+      try {
+        const userProjects = await getUserProjects();
+        setProjects(userProjects.map(p => ({ id: p.id, name: p.name, role: p.role || "VIEWER" })));
+      } catch (error) {
+        console.error("Error loading projects:", error);
+      }
+    };
+
+    loadProjects();
+  }, []);
+
+  // Load classes when component mounts or project changes
   useEffect(() => {
     const loadClasses = async () => {
+      if (!activeProjectId) {
+        setClasses([]);
+        setIsLoading(false);
+        return;
+      }
+
       setIsLoading(true);
       try {
         const data = await offlineGetClasses();
@@ -86,7 +110,7 @@ const ClasesView = () => {
     };
 
     loadClasses();
-  }, []);
+  }, [activeProjectId]);
 
   // Filter classes based on search text
   const filteredClasses = classes.filter((cls) =>
@@ -118,8 +142,13 @@ const ClasesView = () => {
 
   // Submit handler for creating a class
   const onSubmitCreate = async (data: ClassFormValues) => {
+    if (!activeProjectId) {
+      toast.error("Selecciona un proyecto primero");
+      return;
+    }
+
     try {
-      const result = await createClass(data);
+      const result = await createClass(data, activeProjectId);
       if (result.success) {
         toast.success("Clase creada correctamente");
         setShowAddClassDialog(false);
@@ -182,21 +211,35 @@ const ClasesView = () => {
         <h1 className="text-xl font-bold">Mis Clases</h1>
       </div>
 
-      <div className="mb-4 relative">
-        <Search
-          className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"
-          size={18}
-        />
-        <Input
-          type="text"
-          placeholder="Buscar clases..."
-          value={searchText}
-          onChange={(e) => setSearchText(e.target.value)}
-          className="pl-10"
-        />
-      </div>
+      {projects.length > 0 && (
+        <div className="mb-4">
+          <ProjectSelector projects={projects} />
+        </div>
+      )}
 
-      {isLoading ? (
+      {!activeProjectId ? (
+        <div className="text-center py-8">
+          <p className="text-gray-500">
+            Selecciona un proyecto para ver las clases
+          </p>
+        </div>
+      ) : (
+        <>
+          <div className="mb-4 relative">
+            <Search
+              className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"
+              size={18}
+            />
+            <Input
+              type="text"
+              placeholder="Buscar clases..."
+              value={searchText}
+              onChange={(e) => setSearchText(e.target.value)}
+              className="pl-10"
+            />
+          </div>
+
+          {isLoading ? (
         <div className="flex justify-center items-center py-8">
           <Loader2 className="h-8 w-8 text-blue-500 animate-spin" />
         </div>
@@ -250,12 +293,14 @@ const ClasesView = () => {
         </div>
       )}
 
-      <Button
-        onClick={handleAddClassClick}
-        className="fixed right-4 bottom-20 bg-blue-500 text-white w-14 h-14 rounded-full flex items-center justify-center shadow-lg"
-      >
-        <Plus className="h-6 w-6" />
-      </Button>
+          <Button
+            onClick={handleAddClassClick}
+            className="fixed right-4 bottom-20 bg-blue-500 text-white w-14 h-14 rounded-full flex items-center justify-center shadow-lg"
+          >
+            <Plus className="h-6 w-6" />
+          </Button>
+        </>
+      )}
 
       {/* Add Class Dialog */}
       <Dialog open={showAddClassDialog} onOpenChange={setShowAddClassDialog}>

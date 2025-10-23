@@ -54,7 +54,7 @@ import {
   AlertTriangle,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { use, useEffect, useState } from "react";
+import { use, useCallback, useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 
@@ -102,7 +102,7 @@ const ClassDetailPage = ({ params }: Props) => {
   });
 
   // Helper function to refresh students (works both online and offline)
-  const refreshStudents = async () => {
+  const refreshStudents = useCallback(async () => {
     try {
       // Get students with offline fallback
       const studentsData = await offlineGetStudents({ classId });
@@ -125,7 +125,7 @@ const ClassDetailPage = ({ params }: Props) => {
       console.error("Error loading students:", error);
       toast.error("Error al cargar los estudiantes");
     }
-  };
+  }, [classId]);
 
   // Load class and student data
   useEffect(() => {
@@ -159,7 +159,7 @@ const ClassDetailPage = ({ params }: Props) => {
     } else {
       router.push("/clases");
     }
-  }, [classId, router]);
+  }, [classId, router, refreshStudents]);
 
   // Handle adding a new student
   const onSubmitAddStudent = async (data: StudentFormValues) => {

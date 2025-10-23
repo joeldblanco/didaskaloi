@@ -41,8 +41,13 @@ import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { ThemeToggle } from "@/components/theme-toggle";
+import { useProject } from "@/contexts/project-context";
+import { getUserProjects } from "@/lib/project-actions";
+import { ProjectSelector } from "@/components/project-selector";
 
 const ConfiguracionView = () => {
+  const { activeProjectId } = useProject();
+  const [projects, setProjects] = useState<Array<{ id: number; name: string; role: string }>>([]);
   const [ageRanges, setAgeRanges] = useState<AgeRange[]>([]);
   const [editingRangeId, setEditingRangeId] = useState<number | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -59,9 +64,28 @@ const ConfiguracionView = () => {
     },
   });
 
-  // Load age ranges when component mounts
+  // Load projects when component mounts
+  useEffect(() => {
+    const loadProjects = async () => {
+      try {
+        const userProjects = await getUserProjects();
+        setProjects(userProjects.map(p => ({ id: p.id, name: p.name, role: p.role || "VIEWER" })));
+      } catch (error) {
+        console.error("Error loading projects:", error);
+      }
+    };
+    loadProjects();
+  }, []);
+
+  // Load age ranges when component mounts or project changes
   useEffect(() => {
     const loadAgeRanges = async () => {
+      if (!activeProjectId) {
+        setAgeRanges([]);
+        setIsLoading(false);
+        return;
+      }
+
       setIsLoading(true);
       try {
         const data = await getAgeRanges();
@@ -75,7 +99,7 @@ const ConfiguracionView = () => {
     };
 
     loadAgeRanges();
-  }, []);
+  }, [activeProjectId]);
 
   // Start editing a range
   const startEditing = (range: AgeRange) => {
@@ -177,6 +201,20 @@ const ConfiguracionView = () => {
     <div className="p-4">
       <h1 className="text-xl font-bold mb-4">Configuración</h1>
 
+      {projects.length > 0 && (
+        <div className="mb-4">
+          <ProjectSelector projects={projects} />
+        </div>
+      )}
+
+      {!activeProjectId ? (
+        <div className="text-center py-8">
+          <p className="text-gray-500">
+            Selecciona un proyecto para ver la configuración
+          </p>
+        </div>
+      ) : (
+        <>
       {/* Age Ranges Section */}
       <Card className="mb-4">
         <CardHeader>
@@ -481,6 +519,8 @@ const ConfiguracionView = () => {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+        </>
+      )}
     </div>
   );
 };

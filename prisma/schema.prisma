@@ -10,9 +10,83 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+// ============ USER & AUTHENTICATION ============
+
+model User {
+  id        Int      @id @default(autoincrement())
+  email     String   @unique
+  password  String   // bcrypt hash
+  name      String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  ownedProjects      Project[]        @relation("ProjectOwner")
+  projectMemberships ProjectMember[]
+
+  @@map("users")
+}
+
+// ============ PROJECTS & COLLABORATION ============
+
+model Project {
+  id          Int      @id @default(autoincrement())
+  name        String
+  accessCode  String   @unique // Código único del proyecto (ej: PROJ-A1B2C3)
+  password    String   // bcrypt hash - password del proyecto
+  ownerId     Int
+  owner       User     @relation("ProjectOwner", fields: [ownerId], references: [id], onDelete: Cascade)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  members     ProjectMember[]
+  inviteCodes InviteCode[]
+  classes     Class[]
+  ageRanges   AgeRange[]
+
+  @@map("projects")
+}
+
+model ProjectMember {
+  id        Int      @id @default(autoincrement())
+  userId    Int
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  projectId Int
+  project   Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  role      Role     @default(VIEWER)
+  joinedAt  DateTime @default(now())
+
+  @@unique([userId, projectId])
+  @@map("project_members")
+}
+
+model InviteCode {
+  id        Int       @id @default(autoincrement())
+  code      String    @unique // Código de invitación único
+  projectId Int
+  project   Project   @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  role      Role      // Rol que se asignará al unirse
+  expiresAt DateTime? // Fecha de expiración (opcional)
+  maxUses   Int?      // Número máximo de usos (opcional)
+  usedCount Int       @default(0)
+  isActive  Boolean   @default(true)
+  createdAt DateTime  @default(now())
+
+  @@map("invite_codes")
+}
+
+enum Role {
+  ADMIN
+  EDITOR
+  VIEWER
+}
+
+// ============ CORE MODELS (Updated with projectId) ============
+
 model Class {
   id          Int          @id @default(autoincrement())
   name        String
+  projectId   Int
+  project     Project      @relation(fields: [projectId], references: [id], onDelete: Cascade)
   students    Student[]
   attendances Attendance[]
   createdAt   DateTime     @default(now())
@@ -68,6 +142,8 @@ model AgeRange {
   label     String
   minAge    Int
   maxAge    Int
+  projectId Int
+  project   Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 

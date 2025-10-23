@@ -2,7 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { prisma } from "@/lib/prisma";
-import { Prisma } from "@prisma/client";
+import { Prisma, Role } from "@prisma/client";
 import {
   classSchema,
   studentSchema,
@@ -15,29 +15,54 @@ import {
   type AttendanceFormValues,
   type AttendanceRecordFormValues,
 } from "@/lib/validations";
+import {
+  getCurrentUser,
+  canEdit,
+  verifyClassAccess,
+  getActiveProjectId,
+} from "@/lib/permissions";
 
 // Class actions
-export async function createClass(data: ClassFormValues) {
+export async function createClass(data: ClassFormValues, projectId?: number) {
   const validatedData = classSchema.parse(data);
 
   try {
-    // Check for duplicate class name
+    const user = await getCurrentUser();
+    if (!user) {
+      return { success: false, error: "No autenticado" };
+    }
+
+    // Get active project if not provided
+    const activeProjectId = projectId || (await getActiveProjectId());
+    if (!activeProjectId) {
+      return { success: false, error: "No hay proyecto activo" };
+    }
+
+    // Check if user can edit
+    const hasEditPermission = await canEdit(user.id, activeProjectId);
+    if (!hasEditPermission) {
+      return { success: false, error: "No tienes permisos para crear clases" };
+    }
+
+    // Check for duplicate class name in the same project
     const existingClass = await prisma.class.findFirst({
       where: {
         name: {
           equals: validatedData.name,
           mode: "insensitive",
         },
+        projectId: activeProjectId,
       },
     });
 
     if (existingClass) {
-      return { success: false, error: "Ya existe una clase con este nombre" };
+      return { success: false, error: "Ya existe una clase con este nombre en este proyecto" };
     }
 
     await prisma.class.create({
       data: {
         name: validatedData.name,
+        projectId: activeProjectId,
       },
     });
 
@@ -62,6 +87,17 @@ export async function updateClass(data: ClassFormValues) {
   }
 
   try {
+    const user = await getCurrentUser();
+    if (!user) {
+      return { success: false, error: "No autenticado" };
+    }
+
+    // Verify access to this class
+    const { hasAccess, projectId } = await verifyClassAccess(user.id, validatedData.id, Role.EDITOR);
+    if (!hasAccess || !projectId) {
+      return { success: false, error: "No tienes permisos para actualizar esta clase" };
+    }
+
     // Check for duplicate class name (excluding current class)
     const existingClass = await prisma.class.findFirst({
       where: {
@@ -69,6 +105,7 @@ export async function updateClass(data: ClassFormValues) {
           equals: validatedData.name,
           mode: "insensitive",
         },
+        projectId,
         id: {
           not: validatedData.id,
         },
@@ -104,6 +141,17 @@ export async function updateClass(data: ClassFormValues) {
 
 export async function deleteClass(id: number) {
   try {
+    const user = await getCurrentUser();
+    if (!user) {
+      return { success: false, error: "No autenticado" };
+    }
+
+    // Verify access to this class
+    const { hasAccess } = await verifyClassAccess(user.id, id, Role.EDITOR);
+    if (!hasAccess) {
+      return { success: false, error: "No tienes permisos para eliminar esta clase" };
+    }
+
     await prisma.class.delete({
       where: { id },
     });
@@ -126,6 +174,17 @@ export async function createStudent(data: StudentFormValues) {
   const validatedData = studentSchema.parse(data);
 
   try {
+    const user = await getCurrentUser();
+    if (!user) {
+      return { success: false, error: "No autenticado" };
+    }
+
+    // Verify access to the class
+    const { hasAccess } = await verifyClassAccess(user.id, validatedData.classId, Role.EDITOR);
+    if (!hasAccess) {
+      return { success: false, error: "No tienes permisos para crear estudiantes en esta clase" };
+    }
+
     // Check for duplicate student in the same class
     const existingStudent = await prisma.student.findFirst({
       where: {
@@ -180,6 +239,17 @@ export async function updateStudent(data: StudentFormValues) {
   }
 
   try {
+    const user = await getCurrentUser();
+    if (!user) {
+      return { success: false, error: "No autenticado" };
+    }
+
+    // Verify access to the class
+    const { hasAccess } = await verifyClassAccess(user.id, validatedData.classId, Role.EDITOR);
+    if (!hasAccess) {
+      return { success: false, error: "No tienes permisos para actualizar estudiantes en esta clase" };
+    }
+
     // Check for duplicate student in the same class (excluding current student)
     const existingStudent = await prisma.student.findFirst({
       where: {
@@ -235,6 +305,27 @@ export async function updateStudent(data: StudentFormValues) {
 
 export async function deleteStudent(id: number) {
   try {
+    const user = await getCurrentUser();
+    if (!user) {
+      return { success: false, error: "No autenticado" };
+    }
+
+    // Get student to verify class access
+    const student = await prisma.student.findUnique({
+      where: { id },
+      select: { classId: true },
+    });
+
+    if (!student) {
+      return { success: false, error: "Estudiante no encontrado" };
+    }
+
+    // Verify access to the class
+    const { hasAccess } = await verifyClassAccess(user.id, student.classId, Role.EDITOR);
+    if (!hasAccess) {
+      return { success: false, error: "No tienes permisos para eliminar estudiantes en esta clase" };
+    }
+
     await prisma.student.delete({
       where: { id },
     });
@@ -254,15 +345,33 @@ export async function deleteStudent(id: number) {
 }
 
 // Age Range actions
-export async function createAgeRange(data: AgeRangeFormValues) {
+export async function createAgeRange(data: AgeRangeFormValues, projectId?: number) {
   const validatedData = ageRangeSchema.parse(data);
 
   try {
+    const user = await getCurrentUser();
+    if (!user) {
+      return { success: false, error: "No autenticado" };
+    }
+
+    // Get active project if not provided
+    const activeProjectId = projectId || (await getActiveProjectId());
+    if (!activeProjectId) {
+      return { success: false, error: "No hay proyecto activo" };
+    }
+
+    // Check if user can edit
+    const hasEditPermission = await canEdit(user.id, activeProjectId);
+    if (!hasEditPermission) {
+      return { success: false, error: "No tienes permisos para crear rangos de edad" };
+    }
+
     await prisma.ageRange.create({
       data: {
         label: validatedData.label,
         minAge: validatedData.minAge,
         maxAge: validatedData.maxAge,
+        projectId: activeProjectId,
       },
     });
 
@@ -282,6 +391,27 @@ export async function updateAgeRange(data: AgeRangeFormValues) {
   }
 
   try {
+    const user = await getCurrentUser();
+    if (!user) {
+      return { success: false, error: "No autenticado" };
+    }
+
+    // Get age range to verify project access
+    const ageRange = await prisma.ageRange.findUnique({
+      where: { id: validatedData.id },
+      select: { projectId: true },
+    });
+
+    if (!ageRange) {
+      return { success: false, error: "Rango de edad no encontrado" };
+    }
+
+    // Check if user can edit
+    const hasEditPermission = await canEdit(user.id, ageRange.projectId);
+    if (!hasEditPermission) {
+      return { success: false, error: "No tienes permisos para actualizar este rango de edad" };
+    }
+
     await prisma.ageRange.update({
       where: { id: validatedData.id },
       data: {
@@ -301,6 +431,27 @@ export async function updateAgeRange(data: AgeRangeFormValues) {
 
 export async function deleteAgeRange(id: number) {
   try {
+    const user = await getCurrentUser();
+    if (!user) {
+      return { success: false, error: "No autenticado" };
+    }
+
+    // Get age range to verify project access
+    const ageRange = await prisma.ageRange.findUnique({
+      where: { id },
+      select: { projectId: true },
+    });
+
+    if (!ageRange) {
+      return { success: false, error: "Rango de edad no encontrado" };
+    }
+
+    // Check if user can edit
+    const hasEditPermission = await canEdit(user.id, ageRange.projectId);
+    if (!hasEditPermission) {
+      return { success: false, error: "No tienes permisos para eliminar este rango de edad" };
+    }
+
     await prisma.ageRange.delete({
       where: { id },
     });
@@ -323,6 +474,17 @@ export async function createAttendance(data: AttendanceFormValues) {
   const validatedData = attendanceSchema.parse(data);
 
   try {
+    const user = await getCurrentUser();
+    if (!user) {
+      return { success: false, error: "No autenticado" };
+    }
+
+    // Verify access to the class
+    const { hasAccess } = await verifyClassAccess(user.id, validatedData.classId, Role.EDITOR);
+    if (!hasAccess) {
+      return { success: false, error: "No tienes permisos para crear asistencia en esta clase" };
+    }
+
     // Check for duplicate attendance (same date and class)
     const existingAttendance = await prisma.attendance.findFirst({
       where: {
@@ -388,6 +550,27 @@ export async function updateAttendanceRecord(data: AttendanceRecordFormValues) {
   const validatedData = attendanceRecordSchema.parse(data);
 
   try {
+    const user = await getCurrentUser();
+    if (!user) {
+      return { success: false, error: "No autenticado" };
+    }
+
+    // Get attendance to verify class access
+    const attendance = await prisma.attendance.findUnique({
+      where: { id: validatedData.attendanceId },
+      select: { classId: true },
+    });
+
+    if (!attendance) {
+      return { success: false, error: "Registro de asistencia no encontrado" };
+    }
+
+    // Verify access to the class
+    const { hasAccess } = await verifyClassAccess(user.id, attendance.classId, Role.EDITOR);
+    if (!hasAccess) {
+      return { success: false, error: "No tienes permisos para actualizar la asistencia en esta clase" };
+    }
+
     await prisma.attendanceRecord.upsert({
       where: {
         studentId_attendanceId: {
@@ -418,6 +601,27 @@ export async function updateAttendanceRecord(data: AttendanceRecordFormValues) {
 
 export async function deleteAttendance(id: number) {
   try {
+    const user = await getCurrentUser();
+    if (!user) {
+      return { success: false, error: "No autenticado" };
+    }
+
+    // Get attendance to verify class access
+    const attendance = await prisma.attendance.findUnique({
+      where: { id },
+      select: { classId: true },
+    });
+
+    if (!attendance) {
+      return { success: false, error: "Registro de asistencia no encontrado" };
+    }
+
+    // Verify access to the class
+    const { hasAccess } = await verifyClassAccess(user.id, attendance.classId, Role.EDITOR);
+    if (!hasAccess) {
+      return { success: false, error: "No tienes permisos para eliminar la asistencia en esta clase" };
+    }
+
     await prisma.attendance.delete({
       where: { id },
     });
@@ -436,9 +640,23 @@ export async function deleteAttendance(id: number) {
 }
 
 // Data Fetching Functions
-export async function getClasses() {
+export async function getClasses(projectId?: number) {
   try {
+    const user = await getCurrentUser();
+    if (!user) {
+      return [];
+    }
+
+    // Get active project if not provided
+    const activeProjectId = projectId || (await getActiveProjectId());
+    if (!activeProjectId) {
+      return [];
+    }
+
     return await prisma.class.findMany({
+      where: {
+        projectId: activeProjectId,
+      },
       include: {
         _count: {
           select: {
@@ -460,10 +678,26 @@ export async function getStudents(filters?: {
   classId?: number;
   gender?: "M" | "F";
   searchTerm?: string;
+  projectId?: number;
 }) {
   try {
+    const user = await getCurrentUser();
+    if (!user) {
+      return [];
+    }
+
+    // Get active project if not provided
+    const activeProjectId = filters?.projectId || (await getActiveProjectId());
+    if (!activeProjectId) {
+      return [];
+    }
+
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const where: any = {};
+    const where: any = {
+      class: {
+        projectId: activeProjectId,
+      },
+    };
 
     if (filters?.classId) {
       where.classId = filters.classId;
@@ -496,9 +730,23 @@ export async function getStudents(filters?: {
   }
 }
 
-export async function getAgeRanges() {
+export async function getAgeRanges(projectId?: number) {
   try {
+    const user = await getCurrentUser();
+    if (!user) {
+      return [];
+    }
+
+    // Get active project if not provided
+    const activeProjectId = projectId || (await getActiveProjectId());
+    if (!activeProjectId) {
+      return [];
+    }
+
     return await prisma.ageRange.findMany({
+      where: {
+        projectId: activeProjectId,
+      },
       orderBy: {
         minAge: "asc",
       },
@@ -509,9 +757,29 @@ export async function getAgeRanges() {
   }
 }
 
-export async function getAttendances(classId?: number) {
+export async function getAttendances(classId?: number, projectId?: number) {
   try {
-    const where = classId ? { classId } : {};
+    const user = await getCurrentUser();
+    if (!user) {
+      return [];
+    }
+
+    // Get active project if not provided
+    const activeProjectId = projectId || (await getActiveProjectId());
+    if (!activeProjectId) {
+      return [];
+    }
+
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const where: any = {
+      class: {
+        projectId: activeProjectId,
+      },
+    };
+
+    if (classId) {
+      where.classId = classId;
+    }
 
     return await prisma.attendance.findMany({
       where,
@@ -535,12 +803,18 @@ export async function getAttendances(classId?: number) {
 
 export async function getAttendance(id: number) {
   try {
-    return await prisma.attendance.findUnique({
+    const user = await getCurrentUser();
+    if (!user) {
+      return null;
+    }
+
+    const attendance = await prisma.attendance.findUnique({
       where: { id },
       include: {
         class: {
           include: {
             students: true,
+            project: true,
           },
         },
         records: {
@@ -550,6 +824,18 @@ export async function getAttendance(id: number) {
         },
       },
     });
+
+    if (!attendance) {
+      return null;
+    }
+
+    // Verify user has access to this project
+    const hasEditPermission = await canEdit(user.id, attendance.class.projectId);
+    if (!hasEditPermission) {
+      return null;
+    }
+
+    return attendance;
   } catch (error) {
     console.error("Error fetching attendance:", error);
     return null;

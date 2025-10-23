@@ -7,6 +7,7 @@ import { ThemeProvider } from "@/components/theme-provider";
 import { Toaster } from "sonner";
 import { OfflineIndicator } from "@/components/offline-indicator";
 import { OfflineSyncProvider } from "@/components/offline-sync-provider";
+import { ProjectProvider } from "@/contexts/project-context";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -60,14 +61,16 @@ export default function RootLayout({
           enableSystem
           disableTransitionOnChange
         >
-          <OfflineSyncProvider>
-            <OfflineIndicator />
-            <ProtectedLayout>
-              <main className="pb-16 h-full">{children}</main>
-              <BottomNavigation />
-            </ProtectedLayout>
-            <Toaster position="top-center" richColors />
-          </OfflineSyncProvider>
+          <ProjectProvider>
+            <OfflineSyncProvider>
+              <OfflineIndicator />
+              <ProtectedLayout>
+                <main className="pb-16 h-full">{children}</main>
+                <BottomNavigation />
+              </ProtectedLayout>
+              <Toaster position="top-center" richColors />
+            </OfflineSyncProvider>
+          </ProjectProvider>
         </ThemeProvider>
       </body>
     </html>

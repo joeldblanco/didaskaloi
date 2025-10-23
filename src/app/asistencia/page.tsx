@@ -56,6 +56,9 @@ import {
 import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
+import { useProject } from "@/contexts/project-context";
+import { getUserProjects } from "@/lib/project-actions";
+import { ProjectSelector } from "@/components/project-selector";
 
 // Extended types for our data with relations
 interface ClassWithCount extends Class {
@@ -74,6 +77,8 @@ interface StudentAttendanceData extends Student {
 }
 
 const AsistenciaView = () => {
+  const { activeProjectId } = useProject();
+  const [projects, setProjects] = useState<Array<{ id: number; name: string; role: string }>>([]);
   const [classes, setClasses] = useState<ClassWithCount[]>([]);
   const [attendances, setAttendances] = useState<AttendanceWithRelations[]>([]);
   const [selectedClass, setSelectedClass] = useState<Class | null>(null);
@@ -104,9 +109,28 @@ const AsistenciaView = () => {
     },
   });
 
-  // Load classes when component mounts
+  // Load projects when component mounts
+  useEffect(() => {
+    const loadProjects = async () => {
+      try {
+        const userProjects = await getUserProjects();
+        setProjects(userProjects.map(p => ({ id: p.id, name: p.name, role: p.role || "VIEWER" })));
+      } catch (error) {
+        console.error("Error loading projects:", error);
+      }
+    };
+    loadProjects();
+  }, []);
+
+  // Load classes when component mounts or project changes
   useEffect(() => {
     const loadClasses = async () => {
+      if (!activeProjectId) {
+        setClasses([]);
+        setIsLoading(false);
+        return;
+      }
+
       setIsLoading(true);
       try {
         const data = await getClasses();
@@ -120,7 +144,7 @@ const AsistenciaView = () => {
     };
 
     loadClasses();
-  }, []);
+  }, [activeProjectId]);
 
   // Load attendances when a class is selected
   useEffect(() => {
@@ -641,7 +665,19 @@ const AsistenciaView = () => {
     <div className="p-4">
       <h1 className="text-xl font-bold mb-4">Registro de Asistencia</h1>
 
-      {isLoading ? (
+      {projects.length > 0 && (
+        <div className="mb-4">
+          <ProjectSelector projects={projects} />
+        </div>
+      )}
+
+      {!activeProjectId ? (
+        <div className="text-center py-8">
+          <p className="text-gray-500">
+            Selecciona un proyecto para ver la asistencia
+          </p>
+        </div>
+      ) : isLoading ? (
         <div className="flex justify-center items-center py-8">
           <Loader2 className="h-8 w-8 text-blue-500 animate-spin" />
         </div>

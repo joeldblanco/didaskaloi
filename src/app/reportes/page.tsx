@@ -14,6 +14,9 @@ import { AgeRange, Class, Student } from "@prisma/client";
 import { ChevronLeft, Loader2, LayoutGrid, User, Users, Download, FileSpreadsheet } from "lucide-react";
 import { useEffect, useState, useCallback } from "react";
 import { exportReportToPDF, exportReportToExcel } from "@/lib/export-utils";
+import { useProject } from "@/contexts/project-context";
+import { getUserProjects } from "@/lib/project-actions";
+import { ProjectSelector } from "@/components/project-selector";
 import {
   Bar,
   BarChart,
@@ -73,6 +76,8 @@ interface ReportData {
 }
 
 const ReportesView = () => {
+  const { activeProjectId } = useProject();
+  const [projects, setProjects] = useState<Array<{ id: number; name: string; role: string }>>([]);
   const [classes, setClasses] = useState<ClassWithCount[]>([]);
   const [students, setStudents] = useState<ExtendedStudent[]>([]);
   const [ageRanges, setAgeRanges] = useState<AgeRange[]>([]);
@@ -81,9 +86,30 @@ const ReportesView = () => {
   const [reportData, setReportData] = useState<ReportData | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
-  // Load initial data when component mounts
+  // Load projects when component mounts
+  useEffect(() => {
+    const loadProjects = async () => {
+      try {
+        const userProjects = await getUserProjects();
+        setProjects(userProjects.map(p => ({ id: p.id, name: p.name, role: p.role || "VIEWER" })));
+      } catch (error) {
+        console.error("Error loading projects:", error);
+      }
+    };
+    loadProjects();
+  }, []);
+
+  // Load initial data when component mounts or project changes
   useEffect(() => {
     const loadData = async () => {
+      if (!activeProjectId) {
+        setClasses([]);
+        setStudents([]);
+        setAgeRanges([]);
+        setIsLoading(false);
+        return;
+      }
+
       setIsLoading(true);
       try {
         const [classesData, studentsData, ageRangesData] = await Promise.all([
@@ -124,7 +150,7 @@ const ReportesView = () => {
     };
 
     loadData();
-  }, []);
+  }, [activeProjectId]);
 
   // Generate report data - using useCallback to memoize the function
   const generateReportData = useCallback(() => {
@@ -735,12 +761,26 @@ const ReportesView = () => {
     <div className="p-4">
       <h1 className="text-xl font-bold mb-4">Reportes</h1>
 
-      <p className="text-gray-500 mb-4">
-        Selecciona una clase para ver sus reportes detallados o genera un
-        reporte general.
-      </p>
+      {projects.length > 0 && (
+        <div className="mb-4">
+          <ProjectSelector projects={projects} />
+        </div>
+      )}
 
-      {isLoading ? (
+      {!activeProjectId ? (
+        <div className="text-center py-8">
+          <p className="text-gray-500">
+            Selecciona un proyecto para ver los reportes
+          </p>
+        </div>
+      ) : (
+        <>
+          <p className="text-gray-500 mb-4">
+            Selecciona una clase para ver sus reportes detallados o genera un
+            reporte general.
+          </p>
+
+          {isLoading ? (
         <div className="flex justify-center items-center py-8">
           <Loader2 className="h-8 w-8 text-blue-500 animate-spin" />
         </div>
@@ -792,6 +832,8 @@ const ReportesView = () => {
               </Card>
             ))}
         </div>
+      )}
+        </>
       )}
     </div>
   );

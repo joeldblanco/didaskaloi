@@ -60,6 +60,9 @@ import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import ImportStudentsDialog from "@/components/import-students-dialog";
 import { exportStudentsToExcel } from "@/lib/export-utils";
+import { useProject } from "@/contexts/project-context";
+import { getUserProjects } from "@/lib/project-actions";
+import { ProjectSelector } from "@/components/project-selector";
 
 interface ClassWithCount extends Class {
   _count: {
@@ -73,6 +76,8 @@ interface ExtendedStudent extends Student {
 }
 
 const EstudiantesView = () => {
+  const { activeProjectId } = useProject();
+  const [projects, setProjects] = useState<Array<{ id: number; name: string; role: string }>>([]);
   const [students, setStudents] = useState<ExtendedStudent[]>([]);
   const [classes, setClasses] = useState<ClassWithCount[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -98,9 +103,29 @@ const EstudiantesView = () => {
     },
   });
 
-  // Load data when component mounts
+  // Load projects when component mounts
+  useEffect(() => {
+    const loadProjects = async () => {
+      try {
+        const userProjects = await getUserProjects();
+        setProjects(userProjects.map(p => ({ id: p.id, name: p.name, role: p.role || "VIEWER" })));
+      } catch (error) {
+        console.error("Error loading projects:", error);
+      }
+    };
+    loadProjects();
+  }, []);
+
+  // Load data when component mounts or project changes
   useEffect(() => {
     const loadData = async () => {
+      if (!activeProjectId) {
+        setStudents([]);
+        setClasses([]);
+        setIsLoading(false);
+        return;
+      }
+
       setIsLoading(true);
       try {
         const classesData = await offlineGetClasses();
@@ -131,7 +156,7 @@ const EstudiantesView = () => {
     };
 
     loadData();
-  }, []);
+  }, [activeProjectId]);
 
   // Filter students based on search and filters
   const filteredStudents = students.filter((student) => {
@@ -504,6 +529,21 @@ const EstudiantesView = () => {
         </div>
       </div>
 
+      {projects.length > 0 && (
+        <div className="mb-4">
+          <ProjectSelector projects={projects} />
+        </div>
+      )}
+
+      {!activeProjectId ? (
+        <div className="text-center py-8">
+          <p className="text-gray-500">
+            Selecciona un proyecto para ver los estudiantes
+          </p>
+        </div>
+      ) : (
+        <>
+
       {/* Search and Filters */}
       <div className="mb-4 relative">
         <Search
@@ -673,6 +713,8 @@ const EstudiantesView = () => {
         classes={classes}
         onImportComplete={handleImportComplete}
       />
+        </>
+      )}
     </div>
   );
 };
