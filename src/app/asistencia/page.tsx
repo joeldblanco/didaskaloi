@@ -390,6 +390,7 @@ const AsistenciaView = () => {
   const [exitDirection, setExitDirection] = useState<"left" | "right" | "up" | "down" | null>(null);
   const [edgeFlash, setEdgeFlash] = useState<"green" | "red" | null>(null);
   const dragStart = useRef<{ x: number; y: number; time: number } | null>(null);
+  const skipTransition = useRef(false);
 
   const SWIPE_THRESHOLD = 80;
 
@@ -480,9 +481,17 @@ const AsistenciaView = () => {
   );
 
   const resetCard = useCallback(() => {
+    // Suppress transition so the new card doesn't animate into place
+    skipTransition.current = true;
     setExitDirection(null);
     setEdgeFlash(null);
     setSwipeOffset({ x: 0, y: 0 });
+    // Re-enable transitions after the card has rendered in place
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        skipTransition.current = false;
+      });
+    });
   }, []);
 
   // Clear edge flash after animation
@@ -515,7 +524,7 @@ const AsistenciaView = () => {
     }
     return {
       transform: "translate(0, 0) rotate(0deg)",
-      transition: "transform 0.35s ease-out",
+      transition: skipTransition.current ? "none" : "transform 0.35s ease-out",
     };
   };
 
