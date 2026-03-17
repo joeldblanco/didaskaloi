@@ -19,8 +19,7 @@ export default async function ProyectoDetallesPage({
   }
 
   const { id } = await params;
-  const projectId = parseInt(id);
-  const project = await getProjectDetails(projectId);
+  const project = await getProjectDetails(id);
 
   if (!project) {
     redirect("/proyectos");

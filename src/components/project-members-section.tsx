@@ -25,9 +25,9 @@ import { toast } from "sonner";
 import { UserMinus, Shield, Edit, Eye } from "lucide-react";
 
 type Member = {
-  id: number;
+  id: string;
   user: {
-    id: number;
+    id: string;
     name: string;
     email: string;
   };
@@ -36,18 +36,18 @@ type Member = {
 };
 
 type Props = {
-  projectId: number;
+  projectId: string;
   members: Member[];
   isAdmin: boolean;
-  ownerId: number;
+  ownerId: string;
 };
 
 export function ProjectMembersSection({ projectId, members, isAdmin, ownerId }: Props) {
   const router = useRouter();
-  const [removingMemberId, setRemovingMemberId] = useState<number | null>(null);
+  const [removingMemberId, setRemovingMemberId] = useState<string | null>(null);
   const [isRemoving, setIsRemoving] = useState(false);
 
-  const handleRoleChange = async (userId: number, newRole: "ADMIN" | "EDITOR" | "VIEWER") => {
+  const handleRoleChange = async (userId: string, newRole: "ADMIN" | "EDITOR" | "VIEWER") => {
     try {
       const result = await updateMemberRole({
         projectId,

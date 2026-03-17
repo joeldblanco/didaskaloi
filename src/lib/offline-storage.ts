@@ -11,7 +11,7 @@ interface PendingAction {
 }
 
 interface CachedData {
-  id: number;
+  id: string;
   [key: string]: unknown;
 }
 
@@ -25,19 +25,19 @@ interface DidaskaloidDB extends DBSchema {
     };
   };
   classes: {
-    key: number;
+    key: string;
     value: CachedData;
   };
   students: {
-    key: number;
+    key: string;
     value: CachedData;
   };
   attendances: {
-    key: number;
+    key: string;
     value: CachedData;
   };
   ageRanges: {
-    key: number;
+    key: string;
     value: CachedData;
   };
 }

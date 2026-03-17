@@ -19,8 +19,8 @@ export async function getCurrentUser() {
  * Get user's role in a project
  */
 export async function getUserProjectRole(
-  userId: number,
-  projectId: number
+  userId: string,
+  projectId: string
 ): Promise<Role | null> {
   const member = await prisma.projectMember.findUnique({
     where: {
@@ -41,8 +41,8 @@ export async function getUserProjectRole(
  * Check if user has permission to perform an action
  */
 export async function hasPermission(
-  userId: number,
-  projectId: number,
+  userId: string,
+  projectId: string,
   requiredRole: Role
 ): Promise<boolean> {
   const userRole = await getUserProjectRole(userId, projectId);
@@ -63,8 +63,8 @@ export async function hasPermission(
  * Check if user can view (any role)
  */
 export async function canView(
-  userId: number,
-  projectId: number
+  userId: string,
+  projectId: string
 ): Promise<boolean> {
   return hasPermission(userId, projectId, Role.VIEWER);
 }
@@ -73,8 +73,8 @@ export async function canView(
  * Check if user can edit (EDITOR or ADMIN)
  */
 export async function canEdit(
-  userId: number,
-  projectId: number
+  userId: string,
+  projectId: string
 ): Promise<boolean> {
   return hasPermission(userId, projectId, Role.EDITOR);
 }
@@ -83,8 +83,8 @@ export async function canEdit(
  * Check if user is admin
  */
 export async function isAdmin(
-  userId: number,
-  projectId: number
+  userId: string,
+  projectId: string
 ): Promise<boolean> {
   return hasPermission(userId, projectId, Role.ADMIN);
 }
@@ -93,8 +93,8 @@ export async function isAdmin(
  * Get project ID from class ID
  */
 export async function getProjectIdFromClass(
-  classId: number
-): Promise<number | null> {
+  classId: string
+): Promise<string | null> {
   const classData = await prisma.class.findUnique({
     where: { id: classId },
     select: { projectId: true },
@@ -107,10 +107,10 @@ export async function getProjectIdFromClass(
  * Verify user has access to a class
  */
 export async function verifyClassAccess(
-  userId: number,
-  classId: number,
+  userId: string,
+  classId: string,
   requiredRole: Role = Role.VIEWER
-): Promise<{ hasAccess: boolean; projectId?: number }> {
+): Promise<{ hasAccess: boolean; projectId?: string }> {
   const projectId = await getProjectIdFromClass(classId);
 
   if (!projectId) {
@@ -126,7 +126,7 @@ export async function verifyClassAccess(
  * Get active project ID from cookies/session
  * This will be used to track which project the user is currently working on
  */
-export async function getActiveProjectId(): Promise<number | null> {
+export async function getActiveProjectId(): Promise<string | null> {
   // For now, we'll get the first project the user has access to
   // In a real implementation, this would come from cookies or session storage
   const user = await getCurrentUser();

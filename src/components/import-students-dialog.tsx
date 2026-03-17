@@ -149,7 +149,7 @@ export default function ImportStudentsDialog({
               lastName: row.Apellidos.trim(),
               gender: gender as "M" | "F",
               age: age,
-              classId: parseInt(selectedClassId),
+              classId: selectedClassId,
             });
 
             if (result.success) {

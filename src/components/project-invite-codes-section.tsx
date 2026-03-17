@@ -18,7 +18,7 @@ import { toast } from "sonner";
 import { Plus, Copy, Check, XCircle, Edit, Eye } from "lucide-react";
 
 type InviteCode = {
-  id: number;
+  id: string;
   code: string;
   role: Role;
   expiresAt: Date | null;
@@ -29,7 +29,7 @@ type InviteCode = {
 };
 
 type Props = {
-  projectId: number;
+  projectId: string;
   inviteCodes: InviteCode[];
 };
 
@@ -63,7 +63,7 @@ export function ProjectInviteCodesSection({ projectId, inviteCodes }: Props) {
     }
   };
 
-  const handleDeactivate = async (inviteCodeId: number) => {
+  const handleDeactivate = async (inviteCodeId: string) => {
     try {
       const result = await deactivateInviteCode(inviteCodeId);
 

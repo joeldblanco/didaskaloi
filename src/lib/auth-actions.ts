@@ -73,7 +73,7 @@ export async function loginUser(email: string, password: string) {
  * Change user password
  */
 export async function changePassword(
-  userId: number,
+  userId: string,
   currentPassword: string,
   newPassword: string
 ) {

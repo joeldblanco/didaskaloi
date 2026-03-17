@@ -125,24 +125,24 @@ export class SyncManager {
       case "class":
         if (actionType === "create") await createClass(data as Parameters<typeof createClass>[0]);
         else if (actionType === "update") await updateClass(data as Parameters<typeof updateClass>[0]);
-        else if (actionType === "delete") await deleteClass(data.id as number);
+        else if (actionType === "delete") await deleteClass(data.id as string);
         break;
 
       case "student":
         if (actionType === "create") await createStudent(data as Parameters<typeof createStudent>[0]);
         else if (actionType === "update") await updateStudent(data as Parameters<typeof updateStudent>[0]);
-        else if (actionType === "delete") await deleteStudent(data.id as number);
+        else if (actionType === "delete") await deleteStudent(data.id as string);
         break;
 
       case "ageRange":
         if (actionType === "create") await createAgeRange(data as Parameters<typeof createAgeRange>[0]);
         else if (actionType === "update") await updateAgeRange(data as Parameters<typeof updateAgeRange>[0]);
-        else if (actionType === "delete") await deleteAgeRange(data.id as number);
+        else if (actionType === "delete") await deleteAgeRange(data.id as string);
         break;
 
       case "attendance":
         if (actionType === "create") await createAttendance(data as Parameters<typeof createAttendance>[0]);
-        else if (actionType === "delete") await deleteAttendance(data.id as number);
+        else if (actionType === "delete") await deleteAttendance(data.id as string);
         break;
 
       case "attendanceRecord":

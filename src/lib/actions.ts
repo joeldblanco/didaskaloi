@@ -23,7 +23,7 @@ import {
 } from "@/lib/permissions";
 
 // Class actions
-export async function createClass(data: ClassFormValues, projectId?: number) {
+export async function createClass(data: ClassFormValues, projectId?: string) {
   const validatedData = classSchema.parse(data);
 
   try {
@@ -139,7 +139,7 @@ export async function updateClass(data: ClassFormValues) {
   }
 }
 
-export async function deleteClass(id: number) {
+export async function deleteClass(id: string) {
   try {
     const user = await getCurrentUser();
     if (!user) {
@@ -303,7 +303,7 @@ export async function updateStudent(data: StudentFormValues) {
   }
 }
 
-export async function deleteStudent(id: number) {
+export async function deleteStudent(id: string) {
   try {
     const user = await getCurrentUser();
     if (!user) {
@@ -345,7 +345,7 @@ export async function deleteStudent(id: number) {
 }
 
 // Age Range actions
-export async function createAgeRange(data: AgeRangeFormValues, projectId?: number) {
+export async function createAgeRange(data: AgeRangeFormValues, projectId?: string) {
   const validatedData = ageRangeSchema.parse(data);
 
   try {
@@ -429,7 +429,7 @@ export async function updateAgeRange(data: AgeRangeFormValues) {
   }
 }
 
-export async function deleteAgeRange(id: number) {
+export async function deleteAgeRange(id: string) {
   try {
     const user = await getCurrentUser();
     if (!user) {
@@ -599,7 +599,7 @@ export async function updateAttendanceRecord(data: AttendanceRecordFormValues) {
   }
 }
 
-export async function deleteAttendance(id: number) {
+export async function deleteAttendance(id: string) {
   try {
     const user = await getCurrentUser();
     if (!user) {
@@ -640,7 +640,7 @@ export async function deleteAttendance(id: number) {
 }
 
 // Data Fetching Functions
-export async function getClasses(projectId?: number) {
+export async function getClasses(projectId?: string) {
   try {
     const user = await getCurrentUser();
     if (!user) {
@@ -675,10 +675,10 @@ export async function getClasses(projectId?: number) {
 }
 
 export async function getStudents(filters?: {
-  classId?: number;
+  classId?: string;
   gender?: "M" | "F";
   searchTerm?: string;
-  projectId?: number;
+  projectId?: string;
 }) {
   try {
     const user = await getCurrentUser();
@@ -730,7 +730,7 @@ export async function getStudents(filters?: {
   }
 }
 
-export async function getAgeRanges(projectId?: number) {
+export async function getAgeRanges(projectId?: string) {
   try {
     const user = await getCurrentUser();
     if (!user) {
@@ -757,7 +757,7 @@ export async function getAgeRanges(projectId?: number) {
   }
 }
 
-export async function getAttendances(classId?: number, projectId?: number) {
+export async function getAttendances(classId?: string, projectId?: string) {
   try {
     const user = await getCurrentUser();
     if (!user) {
@@ -801,7 +801,7 @@ export async function getAttendances(classId?: number, projectId?: number) {
   }
 }
 
-export async function getAttendance(id: number) {
+export async function getAttendance(id: string) {
   try {
     const user = await getCurrentUser();
     if (!user) {
@@ -843,7 +843,7 @@ export async function getAttendance(id: number) {
 }
 
 // Calculate attendance percentage for a student
-export async function calculateStudentAttendance(studentId: number) {
+export async function calculateStudentAttendance(studentId: string) {
   try {
     const records = await prisma.attendanceRecord.findMany({
       where: {

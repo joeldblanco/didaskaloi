@@ -30,7 +30,7 @@ import {
 
 // Tipo de retorno para acciones offline
 export type OfflineActionResult = 
-  | { success: true; offline?: boolean; attendanceId?: number }
+  | { success: true; offline?: boolean; attendanceId?: string }
   | { success: false; error: string };
 
 // Verificar si estamos online
@@ -39,8 +39,8 @@ function isOnline(): boolean {
 }
 
 // Generar ID temporal para nuevos registros offline
-function generateTempId(): number {
-  return -Date.now(); // IDs negativos para registros temporales
+function generateTempId(): string {
+  return `temp_${Date.now()}_${Math.random().toString(36).slice(2, 9)}`;
 }
 
 // ============ CLASS ACTIONS ============
@@ -99,7 +99,7 @@ export async function offlineUpdateClass(data: ClassFormValues): Promise<Offline
   return { success: true, offline: true };
 }
 
-export async function offlineDeleteClass(id: number): Promise<OfflineActionResult> {
+export async function offlineDeleteClass(id: string): Promise<OfflineActionResult> {
   // Siempre eliminar del caché local primero
   const cachedClasses = await getCachedData("classes");
   const filteredClasses = cachedClasses.filter((c) => c.id !== id);
@@ -203,7 +203,7 @@ export async function offlineUpdateStudent(data: StudentFormValues): Promise<Off
   return { success: true, offline: true };
 }
 
-export async function offlineDeleteStudent(id: number): Promise<OfflineActionResult> {
+export async function offlineDeleteStudent(id: string): Promise<OfflineActionResult> {
   // Siempre eliminar del caché local primero
   const cachedStudents = await getCachedData("students");
   const filteredStudents = cachedStudents.filter((s) => s.id !== id);
@@ -289,7 +289,7 @@ export async function offlineUpdateAgeRange(data: AgeRangeFormValues): Promise<O
   return { success: true, offline: true };
 }
 
-export async function offlineDeleteAgeRange(id: number): Promise<OfflineActionResult> {
+export async function offlineDeleteAgeRange(id: string): Promise<OfflineActionResult> {
   const cachedAgeRanges = await getCachedData("ageRanges");
   const filteredAgeRanges = cachedAgeRanges.filter((ar) => ar.id !== id);
   await cacheData("ageRanges", filteredAgeRanges);
@@ -354,7 +354,7 @@ export async function offlineUpdateAttendanceRecord(
   return { success: true, offline: true };
 }
 
-export async function offlineDeleteAttendance(id: number): Promise<OfflineActionResult> {
+export async function offlineDeleteAttendance(id: string): Promise<OfflineActionResult> {
   const cachedAttendances = await getCachedData("attendances");
   const filteredAttendances = cachedAttendances.filter((a) => a.id !== id);
   await cacheData("attendances", filteredAttendances);
@@ -392,10 +392,10 @@ export async function initializeCache() {
         ]);
 
         await Promise.all([
-          cacheData("classes", classes as unknown as { id: number; [key: string]: unknown }[]),
-          cacheData("students", students as unknown as { id: number; [key: string]: unknown }[]),
-          cacheData("ageRanges", ageRanges as unknown as { id: number; [key: string]: unknown }[]),
-          cacheData("attendances", attendances as unknown as { id: number; [key: string]: unknown }[]),
+          cacheData("classes", classes as unknown as { id: string; [key: string]: unknown }[]),
+          cacheData("students", students as unknown as { id: string; [key: string]: unknown }[]),
+          cacheData("ageRanges", ageRanges as unknown as { id: string; [key: string]: unknown }[]),
+          cacheData("attendances", attendances as unknown as { id: string; [key: string]: unknown }[]),
         ]);
       } catch (error) {
         console.error("Error loading fresh data:", error);
@@ -420,7 +420,7 @@ export async function offlineGetClasses() {
     const classes = await getClasses();
 
     // Update cache with fresh data
-    await cacheData("classes", classes as unknown as { id: number; [key: string]: unknown }[]);
+    await cacheData("classes", classes as unknown as { id: string; [key: string]: unknown }[]);
 
     return classes;
   } catch {
@@ -436,7 +436,7 @@ export async function offlineGetClasses() {
  * Supports optional filters for classId, gender, and searchTerm
  */
 export async function offlineGetStudents(filters?: {
-  classId?: number;
+  classId?: string;
   gender?: "M" | "F";
   searchTerm?: string;
 }) {
@@ -446,7 +446,7 @@ export async function offlineGetStudents(filters?: {
     const students = await getStudents(filters);
 
     // Update cache with fresh data
-    await cacheData("students", students as unknown as { id: number; [key: string]: unknown }[]);
+    await cacheData("students", students as unknown as { id: string; [key: string]: unknown }[]);
 
     return students;
   } catch {
@@ -485,7 +485,7 @@ export async function offlineGetAgeRanges() {
     const ageRanges = await getAgeRanges();
 
     // Update cache with fresh data
-    await cacheData("ageRanges", ageRanges as unknown as { id: number; [key: string]: unknown }[]);
+    await cacheData("ageRanges", ageRanges as unknown as { id: string; [key: string]: unknown }[]);
 
     return ageRanges;
   } catch {
@@ -499,14 +499,14 @@ export async function offlineGetAgeRanges() {
 /**
  * Get attendances with offline fallback
  */
-export async function offlineGetAttendances(classId?: number) {
+export async function offlineGetAttendances(classId?: string) {
   try {
     // Try to get fresh data from server
     const { getAttendances } = await import("./actions");
     const attendances = await getAttendances(classId);
 
     // Update cache with fresh data
-    await cacheData("attendances", attendances as unknown as { id: number; [key: string]: unknown }[]);
+    await cacheData("attendances", attendances as unknown as { id: string; [key: string]: unknown }[]);
 
     return attendances;
   } catch {
@@ -526,7 +526,7 @@ export async function offlineGetAttendances(classId?: number) {
  * Calculate student attendance percentage with offline fallback
  * When offline, calculates from cached attendance records
  */
-export async function offlineCalculateStudentAttendance(studentId: number): Promise<number> {
+export async function offlineCalculateStudentAttendance(studentId: string): Promise<number> {
   try {
     // Try to calculate from server
     const { calculateStudentAttendance } = await import("./actions");

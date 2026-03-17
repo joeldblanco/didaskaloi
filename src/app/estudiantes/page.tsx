@@ -77,7 +77,7 @@ interface ExtendedStudent extends Student {
 
 const EstudiantesView = () => {
   const { activeProjectId } = useProject();
-  const [projects, setProjects] = useState<Array<{ id: number; name: string; role: string }>>([]);
+  const [projects, setProjects] = useState<Array<{ id: string; name: string; role: string }>>([]);
   const [students, setStudents] = useState<ExtendedStudent[]>([]);
   const [classes, setClasses] = useState<ClassWithCount[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -165,7 +165,7 @@ const EstudiantesView = () => {
       .includes(searchText.toLowerCase());
 
     const matchesClass = classFilter
-      ? student.classId === parseInt(classFilter)
+      ? student.classId === classFilter
       : true;
 
     const matchesGender = genderFilter ? student.gender === genderFilter : true;
@@ -304,7 +304,7 @@ const EstudiantesView = () => {
   };
 
   // Get class name by ID
-  const getClassName = (classId: number) => {
+  const getClassName = (classId: string) => {
     const cls = classes.find((c) => c.id === classId);
     return cls ? cls.name : "Sin clase";
   };
@@ -330,7 +330,7 @@ const EstudiantesView = () => {
   // Handle export to Excel
   const handleExportExcel = () => {
     const className = classFilter
-      ? classes.find((c) => c.id === parseInt(classFilter))?.name
+      ? classes.find((c) => c.id === classFilter)?.name
       : undefined;
     exportStudentsToExcel(filteredStudents, className);
     toast.success("Lista de estudiantes exportada correctamente");
@@ -390,8 +390,8 @@ const EstudiantesView = () => {
                 <FormItem>
                   <FormLabel>Clase</FormLabel>
                   <Select
-                    onValueChange={(value) => field.onChange(parseInt(value))}
-                    defaultValue={field.value?.toString()}
+                    onValueChange={(value) => field.onChange(value)}
+                    defaultValue={field.value}
                   >
                     <FormControl>
                       <SelectTrigger>

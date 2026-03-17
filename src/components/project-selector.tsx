@@ -13,7 +13,7 @@ import {
 import { FolderOpen } from "lucide-react";
 
 type Project = {
-  id: number;
+  id: string;
   name: string;
   role: string;
 };
@@ -36,11 +36,10 @@ export function ProjectSelector({ projects }: Props) {
   }, [projects, activeProjectId, setActiveProjectId, setActiveProjectName]);
 
   const handleProjectChange = (projectId: string) => {
-    const id = parseInt(projectId);
-    const project = projects.find((p) => p.id === id);
+    const project = projects.find((p) => p.id === projectId);
     
     if (project) {
-      setActiveProjectId(id);
+      setActiveProjectId(projectId);
       setActiveProjectName(project.name);
       router.refresh();
     }
@@ -52,7 +51,7 @@ export function ProjectSelector({ projects }: Props) {
 
   return (
     <Select
-      value={activeProjectId?.toString() || ""}
+      value={activeProjectId || ""}
       onValueChange={handleProjectChange}
     >
       <SelectTrigger className="w-64">
@@ -63,7 +62,7 @@ export function ProjectSelector({ projects }: Props) {
       </SelectTrigger>
       <SelectContent>
         {projects.map((project) => (
-          <SelectItem key={project.id} value={project.id.toString()}>
+          <SelectItem key={project.id} value={project.id}>
             <div className="flex items-center justify-between w-full gap-4">
               <span>{project.name}</span>
               <span className="text-xs text-gray-500">

@@ -78,7 +78,7 @@ interface StudentAttendanceData extends Student {
 
 const AsistenciaView = () => {
   const { activeProjectId } = useProject();
-  const [projects, setProjects] = useState<Array<{ id: number; name: string; role: string }>>([]);
+  const [projects, setProjects] = useState<Array<{ id: string; name: string; role: string }>>([]);
   const [classes, setClasses] = useState<ClassWithCount[]>([]);
   const [attendances, setAttendances] = useState<AttendanceWithRelations[]>([]);
   const [selectedClass, setSelectedClass] = useState<Class | null>(null);
@@ -89,7 +89,7 @@ const AsistenciaView = () => {
     StudentAttendanceData[]
   >([]);
   const [currentAttendanceRecords, setCurrentAttendanceRecords] = useState<
-    Record<number, boolean>
+    Record<string, boolean>
   >({});
   const [isCompletionShown, setIsCompletionShown] = useState(false);
   const [showAddAttendanceDialog, setShowAddAttendanceDialog] = useState(false);
@@ -206,7 +206,7 @@ const AsistenciaView = () => {
         setStudentsOrdered(studentsOrdered);
 
         // Initialize currentAttendanceRecords with existing data
-        const records: Record<number, boolean> = {};
+        const records: Record<string, boolean> = {};
         studentsOrdered.forEach((student) => {
           if (student.present !== undefined) {
             records[student.id] = student.present;
@@ -228,7 +228,7 @@ const AsistenciaView = () => {
   }, [selectedAttendance]);
 
   // Handle attendance records
-  const recordAttendance = async (studentId: number, present: boolean) => {
+  const recordAttendance = async (studentId: string, present: boolean) => {
     if (!selectedAttendance) return;
 
     try {

@@ -13,7 +13,7 @@ datasource db {
 // ============ USER & AUTHENTICATION ============
 
 model User {
-  id        Int      @id @default(autoincrement())
+  id        String   @id @default(cuid())
   email     String   @unique
   password  String   // bcrypt hash
   name      String
@@ -29,11 +29,11 @@ model User {
 // ============ PROJECTS & COLLABORATION ============
 
 model Project {
-  id          Int      @id @default(autoincrement())
+  id          String   @id @default(cuid())
   name        String
   accessCode  String   @unique // Código único del proyecto (ej: PROJ-A1B2C3)
   password    String   // bcrypt hash - password del proyecto
-  ownerId     Int
+  ownerId     String
   owner       User     @relation("ProjectOwner", fields: [ownerId], references: [id], onDelete: Cascade)
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
@@ -47,10 +47,10 @@ model Project {
 }
 
 model ProjectMember {
-  id        Int      @id @default(autoincrement())
-  userId    Int
+  id        String   @id @default(cuid())
+  userId    String
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  projectId Int
+  projectId String
   project   Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
   role      Role     @default(VIEWER)
   joinedAt  DateTime @default(now())
@@ -60,9 +60,9 @@ model ProjectMember {
 }
 
 model InviteCode {
-  id        Int       @id @default(autoincrement())
+  id        String    @id @default(cuid())
   code      String    @unique // Código de invitación único
-  projectId Int
+  projectId String
   project   Project   @relation(fields: [projectId], references: [id], onDelete: Cascade)
   role      Role      // Rol que se asignará al unirse
   expiresAt DateTime? // Fecha de expiración (opcional)
@@ -83,9 +83,9 @@ enum Role {
 // ============ CORE MODELS (Updated with projectId) ============
 
 model Class {
-  id          Int          @id @default(autoincrement())
+  id          String       @id @default(cuid())
   name        String
-  projectId   Int
+  projectId   String
   project     Project      @relation(fields: [projectId], references: [id], onDelete: Cascade)
   students    Student[]
   attendances Attendance[]
@@ -96,12 +96,12 @@ model Class {
 }
 
 model Student {
-  id                Int                @id @default(autoincrement())
+  id                String             @id @default(cuid())
   firstName         String
   lastName          String
   gender            Gender
   age               Int
-  classId           Int
+  classId           String
   class             Class              @relation(fields: [classId], references: [id], onDelete: Cascade)
   attendanceRecords AttendanceRecord[]
   createdAt         DateTime           @default(now())
@@ -111,9 +111,9 @@ model Student {
 }
 
 model Attendance {
-  id        Int                @id @default(autoincrement())
+  id        String             @id @default(cuid())
   date      DateTime           @db.Date
-  classId   Int
+  classId   String
   class     Class              @relation(fields: [classId], references: [id], onDelete: Cascade)
   records   AttendanceRecord[]
   createdAt DateTime           @default(now())
@@ -124,11 +124,11 @@ model Attendance {
 }
 
 model AttendanceRecord {
-  id           Int        @id @default(autoincrement())
+  id           String     @id @default(cuid())
   present      Boolean
-  studentId    Int
+  studentId    String
   student      Student    @relation(fields: [studentId], references: [id], onDelete: Cascade)
-  attendanceId Int
+  attendanceId String
   attendance   Attendance @relation(fields: [attendanceId], references: [id], onDelete: Cascade)
   createdAt    DateTime   @default(now())
   updatedAt    DateTime   @updatedAt
@@ -138,11 +138,11 @@ model AttendanceRecord {
 }
 
 model AgeRange {
-  id        Int      @id @default(autoincrement())
+  id        String   @id @default(cuid())
   label     String
   minAge    Int
   maxAge    Int
-  projectId Int
+  projectId String
   project   Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt

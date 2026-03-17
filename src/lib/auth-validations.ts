@@ -35,7 +35,7 @@ export const joinWithInviteSchema = z.object({
 });
 
 export const updateProjectSchema = z.object({
-  id: z.number(),
+  id: z.string(),
   name: z.string().min(2, "El nombre debe tener al menos 2 caracteres").optional(),
   password: z
     .string()
@@ -45,21 +45,21 @@ export const updateProjectSchema = z.object({
 
 // Invite code schemas
 export const createInviteCodeSchema = z.object({
-  projectId: z.number(),
+  projectId: z.string(),
   role: z.enum(["EDITOR", "VIEWER"]),
   expiresAt: z.date().optional(),
   maxUses: z.number().positive().optional(),
 });
 
 export const updateMemberRoleSchema = z.object({
-  projectId: z.number(),
-  userId: z.number(),
+  projectId: z.string(),
+  userId: z.string(),
   role: z.enum(["ADMIN", "EDITOR", "VIEWER"]),
 });
 
 export const removeMemberSchema = z.object({
-  projectId: z.number(),
-  userId: z.number(),
+  projectId: z.string(),
+  userId: z.string(),
 });
 
 // Type exports

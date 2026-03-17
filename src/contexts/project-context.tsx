@@ -3,8 +3,8 @@
 import { createContext, useContext, useState, useEffect, ReactNode } from "react";
 
 type ProjectContextType = {
-  activeProjectId: number | null;
-  setActiveProjectId: (id: number | null) => void;
+  activeProjectId: string | null;
+  setActiveProjectId: (id: string | null) => void;
   activeProjectName: string | null;
   setActiveProjectName: (name: string | null) => void;
 };
@@ -12,7 +12,7 @@ type ProjectContextType = {
 const ProjectContext = createContext<ProjectContextType | undefined>(undefined);
 
 export function ProjectProvider({ children }: { children: ReactNode }) {
-  const [activeProjectId, setActiveProjectIdState] = useState<number | null>(null);
+  const [activeProjectId, setActiveProjectIdState] = useState<string | null>(null);
   const [activeProjectName, setActiveProjectNameState] = useState<string | null>(null);
 
   useEffect(() => {
@@ -22,7 +22,7 @@ export function ProjectProvider({ children }: { children: ReactNode }) {
       const storedName = localStorage.getItem("activeProjectName");
       
       if (storedId) {
-        setActiveProjectIdState(parseInt(storedId));
+        setActiveProjectIdState(storedId);
       }
       if (storedName) {
         setActiveProjectNameState(storedName);
@@ -30,11 +30,11 @@ export function ProjectProvider({ children }: { children: ReactNode }) {
     }
   }, []);
 
-  const setActiveProjectId = (id: number | null) => {
+  const setActiveProjectId = (id: string | null) => {
     setActiveProjectIdState(id);
     if (typeof window !== "undefined") {
       if (id !== null) {
-        localStorage.setItem("activeProjectId", id.toString());
+        localStorage.setItem("activeProjectId", id);
       } else {
         localStorage.removeItem("activeProjectId");
       }

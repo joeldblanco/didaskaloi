@@ -1,12 +1,12 @@
 import { z } from "zod";
 
 export const classSchema = z.object({
-  id: z.number().optional(),
+  id: z.string().optional(),
   name: z.string().min(3, "El nombre debe tener al menos 3 caracteres"),
 });
 
 export const studentSchema = z.object({
-  id: z.number().optional(),
+  id: z.string().optional(),
   firstName: z.string().min(2, "El nombre debe tener al menos 2 caracteres"),
   lastName: z
     .string()
@@ -18,14 +18,14 @@ export const studentSchema = z.object({
     .number()
     .min(1, "La edad mínima es 1 año")
     .max(100, "La edad máxima es 100 años"),
-  classId: z.coerce.number({
+  classId: z.string({
     required_error: "La clase es obligatoria",
   }),
 });
 
 export const ageRangeSchema = z
   .object({
-    id: z.number().optional(),
+    id: z.string().optional(),
     label: z.string().min(3, "La etiqueta debe tener al menos 3 caracteres"),
     minAge: z.coerce.number().min(1, "La edad mínima es 1 año"),
     maxAge: z.coerce.number().max(100, "La edad máxima es 100 años"),
@@ -36,19 +36,19 @@ export const ageRangeSchema = z
   });
 
 export const attendanceSchema = z.object({
-  id: z.number().optional(),
+  id: z.string().optional(),
   date: z.date({
     required_error: "La fecha es obligatoria",
   }),
-  classId: z.coerce.number({
+  classId: z.string({
     required_error: "La clase es obligatoria",
   }),
 });
 
 export const attendanceRecordSchema = z.object({
-  id: z.number().optional(),
-  studentId: z.number(),
-  attendanceId: z.number(),
+  id: z.string().optional(),
+  studentId: z.string(),
+  attendanceId: z.string(),
   present: z.boolean(),
 });
 

@@ -77,7 +77,7 @@ const ClassDetailPage = ({ params }: Props) => {
   const [sortCriteria, setSortCriteria] = useState<string>("firstName");
   const [sortDirection, setSortDirection] = useState<"asc" | "desc">("asc");
   const [isLoading, setIsLoading] = useState(true);
-  const [selectedStudentId, setSelectedStudentId] = useState<number | null>(
+  const [selectedStudentId, setSelectedStudentId] = useState<string | null>(
     null
   );
   const [showDeleteAlert, setShowDeleteAlert] = useState(false);
@@ -87,7 +87,7 @@ const ClassDetailPage = ({ params }: Props) => {
     null
   );
 
-  const classId = parseInt(pageParams.id);
+  const classId = pageParams.id;
 
   // Form for creating or editing a student
   const form = useForm<StudentFormValues>({

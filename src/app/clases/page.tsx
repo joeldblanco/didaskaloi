@@ -58,12 +58,12 @@ const ClasesView = () => {
   const router = useRouter();
   const { activeProjectId } = useProject();
   const [classes, setClasses] = useState<ClassWithStudentCount[]>([]);
-  const [projects, setProjects] = useState<Array<{ id: number; name: string; role: string }>>([]);
+  const [projects, setProjects] = useState<Array<{ id: string; name: string; role: string }>>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [showAddClassDialog, setShowAddClassDialog] = useState(false);
   const [showEditClassDialog, setShowEditClassDialog] = useState(false);
   const [showDeleteAlert, setShowDeleteAlert] = useState(false);
-  const [classToDelete, setClassToDelete] = useState<number | null>(null);
+  const [classToDelete, setClassToDelete] = useState<string | null>(null);
   const [searchText, setSearchText] = useState("");
 
   // Form for creating or editing a class
@@ -135,7 +135,7 @@ const ClasesView = () => {
   };
 
   // Open delete confirmation
-  const handleDeleteClick = (id: number) => {
+  const handleDeleteClick = (id: string) => {
     setClassToDelete(id);
     setShowDeleteAlert(true);
   };

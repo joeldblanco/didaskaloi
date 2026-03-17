@@ -286,7 +286,7 @@ export async function getUserProjects() {
 /**
  * Get project details with members
  */
-export async function getProjectDetails(projectId: number) {
+export async function getProjectDetails(projectId: string) {
   try {
     const user = await getCurrentUser();
 
@@ -472,7 +472,7 @@ export async function createInviteCodeAction(data: CreateInviteCodeFormValues) {
 /**
  * Deactivate invite code
  */
-export async function deactivateInviteCode(inviteCodeId: number) {
+export async function deactivateInviteCode(inviteCodeId: string) {
   try {
     const user = await getCurrentUser();
 
@@ -626,7 +626,7 @@ export async function removeMember(data: RemoveMemberFormValues) {
 /**
  * Leave project
  */
-export async function leaveProject(projectId: number) {
+export async function leaveProject(projectId: string) {
   try {
     const user = await getCurrentUser();
 
@@ -663,7 +663,7 @@ export async function leaveProject(projectId: number) {
 /**
  * Delete project (owner only)
  */
-export async function deleteProject(projectId: number) {
+export async function deleteProject(projectId: string) {
   try {
     const user = await getCurrentUser();
 

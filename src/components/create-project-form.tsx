@@ -16,7 +16,7 @@ export function CreateProjectForm() {
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
   const [createdProject, setCreatedProject] = useState<{
-    id: number;
+    id: string;
     name: string;
     accessCode: string;
   } | null>(null);

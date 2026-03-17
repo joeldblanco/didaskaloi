@@ -12,7 +12,7 @@ type Props = {
 
 export function ProjectPageWrapper({ children, title }: Props) {
   const { activeProjectId } = useProject();
-  const [projects, setProjects] = useState<Array<{ id: number; name: string; role: string }>>([]);
+  const [projects, setProjects] = useState<Array<{ id: string; name: string; role: string }>>([]);
 
   useEffect(() => {
     const loadProjects = async () => {

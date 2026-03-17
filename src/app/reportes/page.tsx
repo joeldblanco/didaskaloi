@@ -42,12 +42,12 @@ interface ExtendedStudent extends Student {
   class: Class;
   attendancePercentage: number;
   attendanceRecords: {
-    id: number;
+    id: string;
     createdAt: Date;
     updatedAt: Date;
     present: boolean;
-    studentId: number;
-    attendanceId: number;
+    studentId: string;
+    attendanceId: string;
     attendance?: {
       date: Date;
     };
@@ -77,7 +77,7 @@ interface ReportData {
 
 const ReportesView = () => {
   const { activeProjectId } = useProject();
-  const [projects, setProjects] = useState<Array<{ id: number; name: string; role: string }>>([]);
+  const [projects, setProjects] = useState<Array<{ id: string; name: string; role: string }>>([]);
   const [classes, setClasses] = useState<ClassWithCount[]>([]);
   const [students, setStudents] = useState<ExtendedStudent[]>([]);
   const [ageRanges, setAgeRanges] = useState<AgeRange[]>([]);

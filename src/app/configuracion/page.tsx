@@ -47,12 +47,12 @@ import { ProjectSelector } from "@/components/project-selector";
 
 const ConfiguracionView = () => {
   const { activeProjectId } = useProject();
-  const [projects, setProjects] = useState<Array<{ id: number; name: string; role: string }>>([]);
+  const [projects, setProjects] = useState<Array<{ id: string; name: string; role: string }>>([]);
   const [ageRanges, setAgeRanges] = useState<AgeRange[]>([]);
-  const [editingRangeId, setEditingRangeId] = useState<number | null>(null);
+  const [editingRangeId, setEditingRangeId] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
-  const [showDeleteAlert, setShowDeleteAlert] = useState<number | null>(null);
+  const [showDeleteAlert, setShowDeleteAlert] = useState<string | null>(null);
 
   // Form for creating or editing age ranges
   const form = useForm<AgeRangeFormValues>({
@@ -165,7 +165,7 @@ const ConfiguracionView = () => {
   };
 
   // Handle deleting a range
-  const handleDeleteRange = async (id: number) => {
+  const handleDeleteRange = async (id: string) => {
     try {
       const result = await deleteAgeRange(id);
 
