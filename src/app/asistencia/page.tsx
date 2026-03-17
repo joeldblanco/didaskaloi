@@ -391,6 +391,7 @@ const AsistenciaView = () => {
   const [edgeFlash, setEdgeFlash] = useState<"green" | "red" | null>(null);
   const dragStart = useRef<{ x: number; y: number; time: number } | null>(null);
   const skipTransition = useRef(false);
+  const [enterFromTop, setEnterFromTop] = useState(false);
 
   const SWIPE_THRESHOLD = 80;
 
@@ -473,12 +474,20 @@ const AsistenciaView = () => {
             resetCard();
           }, 300);
         } else {
-          // Up = previous
-          setExitDirection("up");
-          setTimeout(() => {
+          // Up = previous: animate new card IN from top
+          if (currentStudentIndex > 0) {
+            // Snap current card back, change index, and animate entry
+            setSwipeOffset({ x: 0, y: 0 });
             navigateStudent("previous");
-            resetCard();
-          }, 300);
+            setEnterFromTop(true);
+            requestAnimationFrame(() => {
+              requestAnimationFrame(() => {
+                setEnterFromTop(false);
+              });
+            });
+          } else {
+            setSwipeOffset({ x: 0, y: 0 });
+          }
         }
       }
 
@@ -522,6 +531,12 @@ const AsistenciaView = () => {
       return {
         transform: exits[exitDirection],
         transition: "transform 0.3s ease-out",
+      };
+    }
+    if (enterFromTop) {
+      return {
+        transform: "translateY(-150vh)",
+        transition: "none",
       };
     }
     if (isDragging) {
