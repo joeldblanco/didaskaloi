@@ -36,14 +36,16 @@ import {
 import { ageRangeSchema, type AgeRangeFormValues } from "@/lib/validations";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { AgeRange } from "@prisma/client";
-import { CheckCircle, Edit, Loader2, Plus, Save, Trash } from "lucide-react";
+import { CheckCircle, Edit, Loader2, Plus, Save, Trash, Users, KeyRound } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { useProject } from "@/contexts/project-context";
-import { getUserProjects } from "@/lib/project-actions";
+import { getUserProjects, getProjectDetails } from "@/lib/project-actions";
 import { ProjectSelector } from "@/components/project-selector";
+import { ProjectMembersSection } from "@/components/project-members-section";
+import { ProjectInviteCodesSection } from "@/components/project-invite-codes-section";
 
 const ConfiguracionView = () => {
   const { activeProjectId } = useProject();
@@ -53,6 +55,8 @@ const ConfiguracionView = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [showDeleteAlert, setShowDeleteAlert] = useState<string | null>(null);
+  const [projectDetails, setProjectDetails] = useState<Awaited<ReturnType<typeof getProjectDetails>>>(null);
+  const [isLoadingProject, setIsLoadingProject] = useState(false);
 
   // Form for creating or editing age ranges
   const form = useForm<AgeRangeFormValues>({
@@ -77,28 +81,35 @@ const ConfiguracionView = () => {
     loadProjects();
   }, []);
 
-  // Load age ranges when component mounts or project changes
+  // Load age ranges and project details when component mounts or project changes
   useEffect(() => {
-    const loadAgeRanges = async () => {
+    const loadData = async () => {
       if (!activeProjectId) {
         setAgeRanges([]);
+        setProjectDetails(null);
         setIsLoading(false);
         return;
       }
 
       setIsLoading(true);
+      setIsLoadingProject(true);
       try {
-        const data = await getAgeRanges();
-        setAgeRanges(data);
+        const [ageData, details] = await Promise.all([
+          getAgeRanges(),
+          getProjectDetails(activeProjectId),
+        ]);
+        setAgeRanges(ageData);
+        setProjectDetails(details);
       } catch (error) {
-        console.error("Error loading age ranges:", error);
-        toast.error("Error al cargar los rangos de edad");
+        console.error("Error loading data:", error);
+        toast.error("Error al cargar los datos");
       } finally {
         setIsLoading(false);
+        setIsLoadingProject(false);
       }
     };
 
-    loadAgeRanges();
+    loadData();
   }, [activeProjectId]);
 
   // Start editing a range
@@ -459,6 +470,56 @@ const ConfiguracionView = () => {
           )}
         </CardFooter>
       </Card>
+
+      {/* Project Members Section */}
+      {projectDetails && (
+        <Card className="mb-4">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Users size={20} />
+              Miembros del Proyecto
+            </CardTitle>
+            <p className="text-sm text-gray-500">
+              Gestiona los miembros y sus roles en el proyecto
+            </p>
+          </CardHeader>
+          <CardContent>
+            {isLoadingProject ? (
+              <div className="flex justify-center py-4">
+                <Loader2 className="h-8 w-8 text-blue-500 animate-spin" />
+              </div>
+            ) : (
+              <ProjectMembersSection
+                projectId={projectDetails.id}
+                members={projectDetails.members}
+                isAdmin={projectDetails.userRole === "ADMIN"}
+                ownerId={projectDetails.owner.id}
+              />
+            )}
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Invite Codes Section (Admin Only) */}
+      {projectDetails && projectDetails.userRole === "ADMIN" && (
+        <Card className="mb-4">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <KeyRound size={20} />
+              Códigos de Invitación
+            </CardTitle>
+            <p className="text-sm text-gray-500">
+              Genera y gestiona códigos de invitación para el proyecto
+            </p>
+          </CardHeader>
+          <CardContent>
+            <ProjectInviteCodesSection
+              projectId={projectDetails.id}
+              inviteCodes={projectDetails.inviteCodes.filter(code => code.role === "EDITOR" || code.role === "VIEWER")}
+            />
+          </CardContent>
+        </Card>
+      )}
 
       {/* Appearance Settings */}
       <Card className="mb-4">

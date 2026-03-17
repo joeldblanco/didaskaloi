@@ -407,7 +407,7 @@ export async function updateProject(data: UpdateProjectFormValues) {
     });
 
     revalidatePath("/proyectos");
-    revalidatePath(`/proyectos/${validatedData.id}`);
+    revalidatePath("/configuracion");
     return { success: true };
   } catch (error) {
     console.error("Error updating project:", error);
@@ -452,7 +452,7 @@ export async function createInviteCodeAction(data: CreateInviteCodeFormValues) {
       },
     });
 
-    revalidatePath(`/proyectos/${validatedData.projectId}`);
+    revalidatePath("/configuracion");
     return {
       success: true,
       inviteCode: {
@@ -504,7 +504,7 @@ export async function deactivateInviteCode(inviteCodeId: string) {
       data: { isActive: false },
     });
 
-    revalidatePath(`/proyectos/${inviteCode.projectId}`);
+    revalidatePath("/configuracion");
     return { success: true };
   } catch (error) {
     console.error("Error deactivating invite code:", error);
@@ -561,7 +561,7 @@ export async function updateMemberRole(data: UpdateMemberRoleFormValues) {
       },
     });
 
-    revalidatePath(`/proyectos/${validatedData.projectId}`);
+    revalidatePath("/configuracion");
     return { success: true };
   } catch (error) {
     console.error("Error updating member role:", error);
@@ -615,7 +615,7 @@ export async function removeMember(data: RemoveMemberFormValues) {
       },
     });
 
-    revalidatePath(`/proyectos/${validatedData.projectId}`);
+    revalidatePath("/configuracion");
     return { success: true };
   } catch (error) {
     console.error("Error removing member:", error);

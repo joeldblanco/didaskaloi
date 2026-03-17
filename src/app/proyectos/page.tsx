@@ -79,7 +79,7 @@ export default async function ProyectosPage() {
             {projects.map((project) => (
               <Link
                 key={project.id}
-                href={`/proyectos/${project.id}`}
+                href={`/clases?projectId=${project.id}`}
                 className="block"
               >
                 <div className="bg-white dark:bg-gray-800 rounded-lg shadow hover:shadow-lg transition-shadow p-6">

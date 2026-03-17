@@ -102,7 +102,7 @@ export function CreateProjectForm() {
 
         <div className="flex gap-4">
           <Button
-            onClick={() => router.push(`/proyectos/${createdProject.id}`)}
+            onClick={() => router.push(`/clases?projectId=${createdProject.id}`)}
             className="flex-1"
           >
             Ir al Proyecto
