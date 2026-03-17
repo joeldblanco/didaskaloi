@@ -133,9 +133,9 @@ export default function ImportStudentsDialog({
               continue;
             }
 
-            // Validate age
-            const age = parseInt(row.Edad);
-            if (isNaN(age) || age < 1 || age > 100) {
+            // Validate age (optional)
+            const rawAge = row.Edad ? parseInt(row.Edad) : null;
+            if (rawAge !== null && (isNaN(rawAge) || rawAge < 1 || rawAge > 100)) {
               errors.push(
                 `${row.Nombre} ${row.Apellidos}: Edad inválida (debe ser entre 1 y 100)`
               );
@@ -148,7 +148,7 @@ export default function ImportStudentsDialog({
               firstName: row.Nombre.trim(),
               lastName: row.Apellidos.trim(),
               gender: gender as "M" | "F",
-              age: age,
+              age: rawAge ?? "",
               classId: selectedClassId,
             });
 

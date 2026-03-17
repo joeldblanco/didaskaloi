@@ -9,7 +9,7 @@ interface Student {
   lastName: string;
   attendancePercentage?: number;
   gender?: string;
-  age?: number;
+  age?: number | null;
   class?: { name: string };
 }
 

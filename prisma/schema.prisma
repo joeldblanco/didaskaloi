@@ -100,7 +100,7 @@ model Student {
   firstName         String
   lastName          String
   gender            Gender
-  age               Int
+  age               Int?
   classId           String
   class             Class              @relation(fields: [classId], references: [id], onDelete: Cascade)
   attendanceRecords AttendanceRecord[]

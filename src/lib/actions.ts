@@ -212,7 +212,7 @@ export async function createStudent(data: StudentFormValues) {
         firstName: validatedData.firstName,
         lastName: validatedData.lastName,
         gender: validatedData.gender,
-        age: validatedData.age,
+        age: validatedData.age === "" ? null : (validatedData.age ?? null),
         classId: validatedData.classId,
       },
     });
@@ -281,7 +281,7 @@ export async function updateStudent(data: StudentFormValues) {
         firstName: validatedData.firstName,
         lastName: validatedData.lastName,
         gender: validatedData.gender,
-        age: validatedData.age,
+        age: validatedData.age === "" ? null : (validatedData.age ?? null),
         classId: validatedData.classId,
       },
     });

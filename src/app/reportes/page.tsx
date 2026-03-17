@@ -177,7 +177,7 @@ const ReportesView = () => {
       // 3. Students by age range
       const studentsByAgeRange = ageRanges.map((range) => {
         const count = studentsToInclude.filter(
-          (s) => s.age >= range.minAge && s.age <= range.maxAge
+          (s) => s.age != null && s.age >= range.minAge && s.age <= range.maxAge
         ).length;
 
         return {
@@ -189,7 +189,7 @@ const ReportesView = () => {
       // 4. Average attendance by age range
       const attendanceByAgeRange = ageRanges.map((range) => {
         const rangeStudents = studentsToInclude.filter(
-          (s) => s.age >= range.minAge && s.age <= range.maxAge
+          (s) => s.age != null && s.age >= range.minAge && s.age <= range.maxAge
         );
 
         const average =
@@ -209,7 +209,7 @@ const ReportesView = () => {
       // 5. NEW: Students by age range and gender
       const studentsByAgeRangeAndGender = ageRanges.map((range) => {
         const rangeStudents = studentsToInclude.filter(
-          (s) => s.age >= range.minAge && s.age <= range.maxAge
+          (s) => s.age != null && s.age >= range.minAge && s.age <= range.maxAge
         );
 
         const maleStudents = rangeStudents.filter(

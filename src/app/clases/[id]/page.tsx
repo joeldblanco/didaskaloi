@@ -96,7 +96,7 @@ const ClassDetailPage = ({ params }: Props) => {
       firstName: "",
       lastName: "",
       gender: "M",
-      age: 10,
+      age: undefined,
       classId: classId,
     },
   });
@@ -181,7 +181,7 @@ const ClassDetailPage = ({ params }: Props) => {
           firstName: "",
           lastName: "",
           gender: "M",
-          age: 10,
+          age: undefined,
           classId: classId,
         });
       } else {
@@ -237,7 +237,7 @@ const ClassDetailPage = ({ params }: Props) => {
       firstName: student.firstName,
       lastName: student.lastName,
       gender: student.gender,
-      age: student.age,
+      age: student.age ?? undefined,
       classId: classId,
     });
     setIsEditMode(true);
@@ -292,7 +292,7 @@ const ClassDetailPage = ({ params }: Props) => {
           ? a.lastName.localeCompare(b.lastName)
           : b.lastName.localeCompare(a.lastName);
       } else if (sortCriteria === "age") {
-        return sortDirection === "asc" ? a.age - b.age : b.age - a.age;
+        return sortDirection === "asc" ? (a.age ?? 0) - (b.age ?? 0) : (b.age ?? 0) - (a.age ?? 0);
       } else if (sortCriteria === "gender") {
         return sortDirection === "asc"
           ? a.gender.localeCompare(b.gender)
@@ -399,7 +399,7 @@ const ClassDetailPage = ({ params }: Props) => {
             <FormField
               control={form.control}
               name="age"
-              render={({ field }) => (
+              render={({ field: { value, ...fieldRest } }) => (
                 <FormItem>
                   <FormLabel>Edad</FormLabel>
                   <FormControl>
@@ -407,14 +407,12 @@ const ClassDetailPage = ({ params }: Props) => {
                       type="number"
                       min={1}
                       max={100}
-                      {...field}
+                      placeholder="Edad del estudiante"
+                      {...fieldRest}
+                      value={value ?? ""}
                       onChange={(e) => {
-                        const value = e.target.value;
-                        // Si el campo está vacío, pasamos un valor vacío
-                        // Si tiene un valor, lo convertimos a entero
-                        field.onChange(
-                          value === "" ? "" : parseInt(value) || ""
-                        );
+                        const val = e.target.value;
+                        fieldRest.onChange(val === "" ? "" : parseInt(val) || "");
                       }}
                     />
                   </FormControl>
@@ -623,7 +621,7 @@ const ClassDetailPage = ({ params }: Props) => {
                       )}
                     </div>
                     <p className="text-sm text-gray-500">
-                      {student.age} años ·{" "}
+                      {student.age != null ? `${student.age} años` : "Sin edad"} ·{" "}
                       {student.gender === "M" ? "Masculino" : "Femenino"}
                     </p>
                   </div>
@@ -768,7 +766,7 @@ const ClassDetailPage = ({ params }: Props) => {
               <FormField
                 control={form.control}
                 name="age"
-                render={({ field }) => (
+                render={({ field: { value, ...fieldRest } }) => (
                   <FormItem>
                     <FormLabel>Edad</FormLabel>
                     <FormControl>
@@ -776,14 +774,12 @@ const ClassDetailPage = ({ params }: Props) => {
                         type="number"
                         min={1}
                         max={100}
-                        {...field}
+                        placeholder="Edad del estudiante"
+                        {...fieldRest}
+                        value={value ?? ""}
                         onChange={(e) => {
-                          const value = e.target.value;
-                          // Si el campo está vacío, pasamos un valor vacío
-                          // Si tiene un valor, lo convertimos a entero
-                          field.onChange(
-                            value === "" ? "" : parseInt(value) || ""
-                          );
+                          const val = e.target.value;
+                          fieldRest.onChange(val === "" ? "" : parseInt(val) || "");
                         }}
                       />
                     </FormControl>

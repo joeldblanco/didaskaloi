@@ -429,7 +429,7 @@ const AsistenciaView = () => {
                 {student.firstName} {student.lastName}
               </h2>
               <p className="text-gray-500">
-                {student.age} años ·{" "}
+                {student.age != null ? `${student.age} años` : "Sin edad"} ·{" "}
                 {student.gender === "M" ? "Masculino" : "Femenino"}
               </p>
             </div>

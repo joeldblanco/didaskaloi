@@ -17,7 +17,10 @@ export const studentSchema = z.object({
   age: z.coerce
     .number()
     .min(1, "La edad mínima es 1 año")
-    .max(100, "La edad máxima es 100 años"),
+    .max(100, "La edad máxima es 100 años")
+    .nullable()
+    .optional()
+    .or(z.literal("")),
   classId: z.string({
     required_error: "La clase es obligatoria",
   }),
