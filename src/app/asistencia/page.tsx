@@ -388,6 +388,7 @@ const AsistenciaView = () => {
   const [swipeOffset, setSwipeOffset] = useState({ x: 0, y: 0 });
   const [isDragging, setIsDragging] = useState(false);
   const [exitDirection, setExitDirection] = useState<"left" | "right" | "up" | "down" | null>(null);
+  const [enterDirection, setEnterDirection] = useState<"left" | "right" | "up" | "down" | null>(null);
   const [edgeFlash, setEdgeFlash] = useState<"green" | "red" | null>(null);
   const dragStart = useRef<{ x: number; y: number; time: number } | null>(null);
 
@@ -443,7 +444,7 @@ const AsistenciaView = () => {
           setEdgeFlash("green");
           setTimeout(() => {
             recordAttendance(student.id, true);
-            resetCard();
+            resetCard("right");
           }, 300);
         } else {
           // Left = absent
@@ -451,7 +452,7 @@ const AsistenciaView = () => {
           setEdgeFlash("red");
           setTimeout(() => {
             recordAttendance(student.id, false);
-            resetCard();
+            resetCard("left");
           }, 300);
         }
       } else {
@@ -461,14 +462,14 @@ const AsistenciaView = () => {
           setExitDirection("down");
           setTimeout(() => {
             navigateStudent("next");
-            resetCard();
+            resetCard("down");
           }, 300);
         } else {
           // Up = previous
           setExitDirection("up");
           setTimeout(() => {
             navigateStudent("previous");
-            resetCard();
+            resetCard("up");
           }, 300);
         }
       }
@@ -479,10 +480,17 @@ const AsistenciaView = () => {
     [isDragging, studentsOrdered, currentStudentIndex, recordAttendance]
   );
 
-  const resetCard = useCallback(() => {
+  const resetCard = useCallback((fromDirection: "left" | "right" | "up" | "down") => {
     setExitDirection(null);
-    setEdgeFlash(null);
     setSwipeOffset({ x: 0, y: 0 });
+    // Start the new card offscreen at the same edge
+    setEnterDirection(fromDirection);
+    // After a frame, animate it to center
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        setEnterDirection(null);
+      });
+    });
   }, []);
 
   // Clear edge flash after animation
@@ -507,6 +515,18 @@ const AsistenciaView = () => {
         transition: "transform 0.3s ease-out",
       };
     }
+    if (enterDirection) {
+      const enters: Record<string, string> = {
+        left: "translateX(-150vw)",
+        right: "translateX(150vw)",
+        up: "translateY(-150vh)",
+        down: "translateY(150vh)",
+      };
+      return {
+        transform: enters[enterDirection],
+        transition: "none",
+      };
+    }
     if (isDragging) {
       return {
         transform: `translate(${swipeOffset.x}px, ${swipeOffset.y}px) rotate(${swipeOffset.x * 0.05}deg)`,
@@ -515,7 +535,7 @@ const AsistenciaView = () => {
     }
     return {
       transform: "translate(0, 0) rotate(0deg)",
-      transition: "transform 0.3s ease-out",
+      transition: "transform 0.35s ease-out",
     };
   };
 
@@ -580,24 +600,38 @@ const AsistenciaView = () => {
         {/* Swipeable stacked cards area */}
         <div className="flex-1 flex flex-col items-center justify-center p-4">
           <div className="relative w-full max-w-sm" style={{ height: 220 }}>
-            {/* Background stacked cards (up to 3 behind) */}
+            {/* Background stacked cards (up to 3 behind) with student data */}
             {[3, 2, 1].map((offset) => {
               const bgIndex = currentStudentIndex + offset;
               if (bgIndex >= studentsOrdered.length) return null;
+              const bgStudent = studentsOrdered[bgIndex];
               // Deterministic pseudo-random rotation per student
-              const seed = studentsOrdered[bgIndex].id.charCodeAt(0) + offset;
-              const rotation = ((seed % 7) - 3) * 1.5; // range roughly -4.5 to 4.5 deg
-              const translateX = ((seed % 5) - 2) * 3; // range roughly -6 to 6 px
+              const seed = bgStudent.id.charCodeAt(0) + offset;
+              const rotation = ((seed % 7) - 3) * 1.5;
+              const translateX = ((seed % 5) - 2) * 3;
               return (
                 <div
-                  key={studentsOrdered[bgIndex].id}
-                  className="absolute inset-0 rounded-2xl bg-card border border-border shadow-md"
+                  key={bgStudent.id}
+                  className="absolute inset-0 rounded-2xl bg-card border border-border shadow-md p-8 overflow-hidden"
                   style={{
                     transform: `rotate(${rotation}deg) translateX(${translateX}px)`,
                     zIndex: 10 - offset,
                     opacity: 1 - offset * 0.15,
                   }}
-                />
+                >
+                  <div className="text-center">
+                    <p className="text-sm text-muted-foreground mb-3">
+                      {bgIndex + 1} de {studentsOrdered.length}
+                    </p>
+                    <h2 className="text-2xl font-bold mb-1 text-foreground">
+                      {bgStudent.firstName} {bgStudent.lastName}
+                    </h2>
+                    <p className="text-muted-foreground">
+                      {bgStudent.age != null ? `${bgStudent.age} años` : "Sin edad"} ·{" "}
+                      {bgStudent.gender === "M" ? "Masculino" : "Femenino"}
+                    </p>
+                  </div>
+                </div>
               );
             })}
 
