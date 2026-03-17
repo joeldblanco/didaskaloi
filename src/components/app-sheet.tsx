@@ -78,7 +78,7 @@ export function AppSheet({ open, onOpenChange }: AppSheetProps) {
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
-      <SheetContent side="left" className="flex flex-col">
+      <SheetContent side="right" className="flex flex-col">
         <SheetHeader>
           <SheetTitle>Didaskaloi</SheetTitle>
           <SheetDescription>Gestión de proyectos y cuenta</SheetDescription>

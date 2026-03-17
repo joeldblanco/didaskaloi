@@ -48,16 +48,16 @@ import {
   Calendar,
   Check,
   ChevronLeft,
-  ChevronRight,
   Loader2,
   Plus,
   X,
 } from "lucide-react";
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef, useCallback } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { useProject } from "@/contexts/project-context";
+import confetti from "canvas-confetti";
 
 // Extended types for our data with relations
 interface ClassWithCount extends Class {
@@ -212,27 +212,25 @@ const AsistenciaView = () => {
     }
   }, [selectedAttendance]);
 
-  // Handle attendance records
-  const recordAttendance = async (studentId: string, present: boolean) => {
-    if (!selectedAttendance) return;
+  // Handle attendance records — immediate UI update, async save
+  const recordAttendance = useCallback(
+    (studentId: string, present: boolean) => {
+      if (!selectedAttendance) return;
 
-    try {
-      // Update in UI first for responsiveness
+      // Update UI immediately
       setCurrentAttendanceRecords((prev) => ({
         ...prev,
         [studentId]: present,
       }));
 
-      // Save to database
-      const result = await updateAttendanceRecord({
+      // Save to DB asynchronously — fire and forget
+      updateAttendanceRecord({
         studentId,
         attendanceId: selectedAttendance.id,
         present,
-      });
-
-      if (!result.success) {
+      }).catch(() => {
         toast.error("Error al guardar el registro de asistencia");
-      }
+      });
 
       // Navigate to next student
       if (currentStudentIndex < studentsOrdered.length - 1) {
@@ -241,20 +239,40 @@ const AsistenciaView = () => {
         // Show completion screen
         setIsCompletionShown(true);
 
-        // Refresh attendance data before going back
-        await refreshAttendanceData();
+        // Fire confetti
+        const end = Date.now() + 1500;
+        const colors = ["#3b82f6", "#60a5fa", "#93c5fd", "#2563eb"];
+        (function frame() {
+          confetti({
+            particleCount: 4,
+            angle: 60,
+            spread: 55,
+            origin: { x: 0 },
+            colors,
+          });
+          confetti({
+            particleCount: 4,
+            angle: 120,
+            spread: 55,
+            origin: { x: 1 },
+            colors,
+          });
+          if (Date.now() < end) requestAnimationFrame(frame);
+        })();
 
-        // After 2 seconds, go back to attendances list
+        // Refresh attendance data asynchronously
+        refreshAttendanceData();
+
+        // After 2.5 seconds, go back to attendances list
         setTimeout(() => {
           setIsCompletionShown(false);
           goBackToAttendances();
-        }, 2000);
+        }, 2500);
       }
-    } catch (error) {
-      console.error("Error recording attendance:", error);
-      toast.error("Error al registrar la asistencia");
-    }
-  };
+    },
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [selectedAttendance, currentStudentIndex, studentsOrdered.length]
+  );
 
   const refreshAttendanceData = async () => {
     if (!selectedClass) return;
@@ -365,11 +383,147 @@ const AsistenciaView = () => {
     });
   };
 
+  // Swipe state for attendance-taking
+  const cardRef = useRef<HTMLDivElement>(null);
+  const [swipeOffset, setSwipeOffset] = useState({ x: 0, y: 0 });
+  const [isDragging, setIsDragging] = useState(false);
+  const [exitDirection, setExitDirection] = useState<"left" | "right" | "up" | "down" | null>(null);
+  const [edgeFlash, setEdgeFlash] = useState<"green" | "red" | null>(null);
+  const dragStart = useRef<{ x: number; y: number; time: number } | null>(null);
+
+  const SWIPE_THRESHOLD = 80;
+
+  const handlePointerDown = useCallback((e: React.PointerEvent) => {
+    dragStart.current = { x: e.clientX, y: e.clientY, time: Date.now() };
+    setIsDragging(true);
+    setSwipeOffset({ x: 0, y: 0 });
+    (e.target as HTMLElement).setPointerCapture(e.pointerId);
+  }, []);
+
+  const handlePointerMove = useCallback(
+    (e: React.PointerEvent) => {
+      if (!isDragging || !dragStart.current) return;
+      const dx = e.clientX - dragStart.current.x;
+      const dy = e.clientY - dragStart.current.y;
+      setSwipeOffset({ x: dx, y: dy });
+    },
+    [isDragging]
+  );
+
+  const handlePointerUp = useCallback(
+    (e: React.PointerEvent) => {
+      if (!isDragging || !dragStart.current) return;
+      setIsDragging(false);
+
+      const dx = e.clientX - dragStart.current.x;
+      const dy = e.clientY - dragStart.current.y;
+      const absDx = Math.abs(dx);
+      const absDy = Math.abs(dy);
+
+      const student = studentsOrdered[currentStudentIndex];
+      if (!student) {
+        dragStart.current = null;
+        setSwipeOffset({ x: 0, y: 0 });
+        return;
+      }
+
+      // Determine dominant direction
+      if (Math.max(absDx, absDy) < SWIPE_THRESHOLD) {
+        // Not enough movement — snap back
+        setSwipeOffset({ x: 0, y: 0 });
+        dragStart.current = null;
+        return;
+      }
+
+      if (absDx > absDy) {
+        // Horizontal swipe
+        if (dx > 0) {
+          // Right = present
+          setExitDirection("right");
+          setEdgeFlash("green");
+          setTimeout(() => {
+            recordAttendance(student.id, true);
+            resetCard();
+          }, 300);
+        } else {
+          // Left = absent
+          setExitDirection("left");
+          setEdgeFlash("red");
+          setTimeout(() => {
+            recordAttendance(student.id, false);
+            resetCard();
+          }, 300);
+        }
+      } else {
+        // Vertical swipe
+        if (dy > 0) {
+          // Down = skip
+          setExitDirection("down");
+          setTimeout(() => {
+            navigateStudent("next");
+            resetCard();
+          }, 300);
+        } else {
+          // Up = previous
+          setExitDirection("up");
+          setTimeout(() => {
+            navigateStudent("previous");
+            resetCard();
+          }, 300);
+        }
+      }
+
+      dragStart.current = null;
+    },
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [isDragging, studentsOrdered, currentStudentIndex, recordAttendance]
+  );
+
+  const resetCard = useCallback(() => {
+    setExitDirection(null);
+    setEdgeFlash(null);
+    setSwipeOffset({ x: 0, y: 0 });
+  }, []);
+
+  // Clear edge flash after animation
+  useEffect(() => {
+    if (edgeFlash) {
+      const t = setTimeout(() => setEdgeFlash(null), 500);
+      return () => clearTimeout(t);
+    }
+  }, [edgeFlash]);
+
+  // Compute card transform
+  const getCardStyle = (): React.CSSProperties => {
+    if (exitDirection) {
+      const exits: Record<string, string> = {
+        left: "translateX(-150vw)",
+        right: "translateX(150vw)",
+        up: "translateY(-150vh)",
+        down: "translateY(150vh)",
+      };
+      return {
+        transform: exits[exitDirection],
+        transition: "transform 0.3s ease-out",
+      };
+    }
+    if (isDragging) {
+      return {
+        transform: `translate(${swipeOffset.x}px, ${swipeOffset.y}px) rotate(${swipeOffset.x * 0.05}deg)`,
+        transition: "none",
+      };
+    }
+    return {
+      transform: "translate(0, 0) rotate(0deg)",
+      transition: "transform 0.3s ease-out",
+    };
+  };
+
   // Completion screen
   if (isCompletionShown) {
     return (
       <div className="flex h-screen items-center justify-center bg-blue-500">
-        <div className="text-center">
+        <div className="text-center animate-in zoom-in-50 duration-500">
           <div className="mb-4 inline-flex h-24 w-24 items-center justify-center rounded-full bg-white">
             <Check className="text-blue-500" size={48} />
           </div>
@@ -386,14 +540,22 @@ const AsistenciaView = () => {
     studentsOrdered.length > 0
   ) {
     const student = studentsOrdered[currentStudentIndex];
-    const attendanceStatus = currentAttendanceRecords[student.id];
 
     return (
-      <div className="flex flex-col h-full">
-        <div className="flex justify-between items-center p-4 border-b">
+      <div className="flex flex-col h-screen relative overflow-hidden select-none">
+        {/* Edge flash effects */}
+        {edgeFlash === "green" && (
+          <div className="absolute inset-y-0 right-0 w-16 z-50 pointer-events-none animate-in fade-in-0 fade-out-0 duration-500 bg-gradient-to-l from-green-400/60 to-transparent" />
+        )}
+        {edgeFlash === "red" && (
+          <div className="absolute inset-y-0 left-0 w-16 z-50 pointer-events-none animate-in fade-in-0 fade-out-0 duration-500 bg-gradient-to-r from-red-400/60 to-transparent" />
+        )}
+
+        {/* Header */}
+        <div className="flex justify-between items-center p-4 border-b border-border">
           <div>
             <h1 className="text-xl font-medium">{selectedClass?.name}</h1>
-            <p className="text-sm text-gray-500">
+            <p className="text-sm text-muted-foreground">
               {formatAttendanceDate(selectedAttendance.date)}
             </p>
           </div>
@@ -402,86 +564,66 @@ const AsistenciaView = () => {
           </Button>
         </div>
 
-        <div className="flex-1 flex flex-col items-center justify-center p-4">
-          <div className="w-full max-w-md mb-4 bg-gray-200 rounded-full h-2.5">
+        {/* Progress bar */}
+        <div className="px-4 pt-4">
+          <div className="w-full bg-muted rounded-full h-2.5">
             <div
-              className="bg-blue-600 h-2.5 rounded-full"
+              className="bg-blue-600 h-2.5 rounded-full transition-all duration-300"
               style={{ width: `${calculateAttendanceCompletion()}%` }}
-            ></div>
+            />
           </div>
+          <p className="text-xs text-muted-foreground text-center mt-1">
+            {Object.keys(currentAttendanceRecords).length} / {studentsOrdered.length}
+          </p>
+        </div>
 
+        {/* Swipeable card area */}
+        <div className="flex-1 flex flex-col items-center justify-center p-4">
           <div
-            className={`
-              w-full max-w-md rounded-xl shadow-lg p-6 mb-4 transition-colors
-              ${
-                attendanceStatus === true
-                  ? "bg-green-100"
-                  : attendanceStatus === false
-                  ? "bg-red-100"
-                  : "bg-white"
-              }
-            `}
+            ref={cardRef}
+            className="w-full max-w-sm rounded-2xl shadow-lg p-8 cursor-grab active:cursor-grabbing touch-none bg-card border border-border"
+            style={getCardStyle()}
+            onPointerDown={handlePointerDown}
+            onPointerMove={handlePointerMove}
+            onPointerUp={handlePointerUp}
           >
             <div className="text-center">
-              <p className="text-sm text-gray-500 mb-2">
+              <p className="text-sm text-muted-foreground mb-3">
                 {currentStudentIndex + 1} de {studentsOrdered.length}
               </p>
-              <h2 className="text-2xl font-bold mb-1">
+              <h2 className="text-2xl font-bold mb-1 text-foreground">
                 {student.firstName} {student.lastName}
               </h2>
-              <p className="text-gray-500">
+              <p className="text-muted-foreground">
                 {student.age != null ? `${student.age} años` : "Sin edad"} ·{" "}
                 {student.gender === "M" ? "Masculino" : "Femenino"}
               </p>
+              {currentAttendanceRecords[student.id] !== undefined && (
+                <div className="mt-3">
+                  <Badge
+                    className={
+                      currentAttendanceRecords[student.id]
+                        ? "bg-green-500"
+                        : "bg-red-500"
+                    }
+                  >
+                    {currentAttendanceRecords[student.id]
+                      ? "Presente"
+                      : "Ausente"}
+                  </Badge>
+                </div>
+              )}
             </div>
           </div>
 
-          <div className="flex justify-between w-full max-w-md">
-            <Button
-              onClick={() => navigateStudent("previous")}
-              variant="ghost"
-              size="icon"
-              disabled={currentStudentIndex === 0}
-            >
-              <ChevronLeft
-                size={24}
-                className={
-                  currentStudentIndex === 0 ? "text-gray-300" : "text-gray-700"
-                }
-              />
-            </Button>
-
-            <div className="flex space-x-4">
-              <Button
-                onClick={() => recordAttendance(student.id, false)}
-                className="bg-red-500 text-white w-32 h-32 flex items-center justify-center shadow-md hover:bg-red-600"
-              >
-                <X className="w-40" />
-              </Button>
-
-              <Button
-                onClick={() => recordAttendance(student.id, true)}
-                className="bg-green-500 text-white w-32 h-32 flex items-center justify-center shadow-md hover:bg-green-600"
-              >
-                <Check className="w-40" />
-              </Button>
-            </div>
-
-            <Button
-              onClick={() => navigateStudent("next")}
-              variant="ghost"
-              size="icon"
-              disabled={currentStudentIndex === studentsOrdered.length - 1}
-            >
-              <ChevronRight
-                size={24}
-                className={
-                  currentStudentIndex === studentsOrdered.length - 1
-                    ? "text-gray-300"
-                    : "text-gray-700"
-                }
-              />
-            </Button>
+          {/* Swipe hints */}
+          <div className="mt-6 text-center space-y-1">
+            <p className="text-xs text-muted-foreground">
+              ← Ausente · Presente →
+            </p>
+            <p className="text-xs text-muted-foreground">
+              ↓ Saltar · ↑ Anterior
+            </p>
           </div>
         </div>
       </div>
