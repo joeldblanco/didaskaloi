@@ -4,6 +4,8 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useSession, signOut } from "next-auth/react";
 import { useProject } from "@/contexts/project-context";
+import { useOnlineStatus } from "@/hooks/use-online-status";
+import { syncManager, SyncStatus } from "@/lib/sync-manager";
 import { getUserProjects } from "@/lib/project-actions";
 import {
   Sheet,
@@ -21,7 +23,16 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { FolderOpen, LogOut, Mail, User } from "lucide-react";
+import {
+  FolderOpen,
+  LogOut,
+  Mail,
+  User,
+  RefreshCw,
+  CheckCircle2,
+  XCircle,
+  WifiOff,
+} from "lucide-react";
 
 type Project = {
   id: string;
@@ -36,10 +47,30 @@ type AppSheetProps = {
 
 export function AppSheet({ open, onOpenChange }: AppSheetProps) {
   const router = useRouter();
-  const { data: session } = useSession();
+  const { data: session, status: sessionStatus } = useSession();
   const { activeProjectId, setActiveProjectId, setActiveProjectName } =
     useProject();
+  const { isOnline } = useOnlineStatus();
   const [projects, setProjects] = useState<Project[]>([]);
+  const [syncStatus, setSyncStatus] = useState<SyncStatus>({
+    syncing: false,
+    progress: 0,
+  });
+  const [lastSyncResult, setLastSyncResult] = useState<
+    "idle" | "success" | "error"
+  >("idle");
+
+  useEffect(() => {
+    const unsubscribe = syncManager.onSyncStatusChange((status) => {
+      setSyncStatus(status);
+      if (!status.syncing && status.progress === 100) {
+        setLastSyncResult("success");
+      } else if (!status.syncing && status.progress === 0 && lastSyncResult !== "idle") {
+        setLastSyncResult("error");
+      }
+    });
+    return unsubscribe;
+  }, [lastSyncResult]);
 
   useEffect(() => {
     const loadProjects = async () => {
@@ -85,6 +116,48 @@ export function AppSheet({ open, onOpenChange }: AppSheetProps) {
         </SheetHeader>
 
         <div className="flex-1 overflow-y-auto px-4 space-y-6">
+          {/* Sync Status Indicator */}
+          <div className="rounded-lg border bg-card p-3">
+            <div className="flex items-center gap-2 text-sm">
+              {!isOnline ? (
+                <>
+                  <WifiOff className="h-4 w-4 text-orange-500 shrink-0" />
+                  <span className="text-orange-500 font-medium">Sin conexi\u00f3n</span>
+                </>
+              ) : syncStatus.syncing ? (
+                <>
+                  <RefreshCw className="h-4 w-4 text-blue-500 animate-spin shrink-0" />
+                  <div className="flex-1 min-w-0">
+                    <span className="text-blue-500 font-medium">
+                      Sincronizando... {syncStatus.current}/{syncStatus.total}
+                    </span>
+                    <div className="w-full bg-blue-100 dark:bg-blue-900 h-1 mt-1 rounded-full overflow-hidden">
+                      <div
+                        className="bg-blue-500 h-full transition-all duration-300"
+                        style={{ width: `${syncStatus.progress}%` }}
+                      />
+                    </div>
+                  </div>
+                </>
+              ) : lastSyncResult === "error" ? (
+                <>
+                  <XCircle className="h-4 w-4 text-red-500 shrink-0" />
+                  <span className="text-red-500 font-medium">Error de sincronizaci\u00f3n</span>
+                </>
+              ) : lastSyncResult === "success" ? (
+                <>
+                  <CheckCircle2 className="h-4 w-4 text-green-500 shrink-0" />
+                  <span className="text-green-500 font-medium">Sincronizado</span>
+                </>
+              ) : (
+                <>
+                  <CheckCircle2 className="h-4 w-4 text-muted-foreground shrink-0" />
+                  <span className="text-muted-foreground">Conectado</span>
+                </>
+              )}
+            </div>
+          </div>
+
           {/* User Account Widget */}
           <div className="rounded-lg border bg-card p-4 space-y-3">
             <div className="flex items-center gap-3">
@@ -92,17 +165,26 @@ export function AppSheet({ open, onOpenChange }: AppSheetProps) {
                 <User className="h-5 w-5 text-primary" />
               </div>
               <div className="flex-1 min-w-0">
-                <p className="text-sm font-medium leading-none truncate">
-                  {session?.user?.name || "Usuario"}
-                </p>
+                {sessionStatus === "loading" ? (
+                  <div className="h-4 w-24 bg-muted animate-pulse rounded" />
+                ) : (
+                  <p className="text-sm font-medium leading-none truncate">
+                    {session?.user?.name || "Usuario"}
+                  </p>
+                )}
               </div>
             </div>
-            {session?.user?.email && (
+            {sessionStatus === "loading" ? (
+              <div className="flex items-center gap-2">
+                <Mail className="h-4 w-4 shrink-0 text-muted-foreground" />
+                <div className="h-3 w-32 bg-muted animate-pulse rounded" />
+              </div>
+            ) : session?.user?.email ? (
               <div className="flex items-center gap-2 text-sm text-muted-foreground">
                 <Mail className="h-4 w-4 shrink-0" />
                 <span className="truncate">{session.user.email}</span>
               </div>
-            )}
+            ) : null}
           </div>
 
           {/* Project Selector */}
@@ -116,9 +198,11 @@ export function AppSheet({ open, onOpenChange }: AppSheetProps) {
                 onValueChange={handleProjectChange}
               >
                 <SelectTrigger className="w-full">
-                  <div className="flex items-center gap-2">
-                    <FolderOpen className="h-4 w-4" />
-                    <SelectValue placeholder="Seleccionar proyecto" />
+                  <div className="flex items-center gap-2 overflow-hidden">
+                    <FolderOpen className="h-4 w-4 shrink-0" />
+                    <span className="truncate">
+                      <SelectValue placeholder="Seleccionar proyecto" />
+                    </span>
                   </div>
                 </SelectTrigger>
                 <SelectContent>

@@ -206,7 +206,7 @@ const ConfiguracionView = () => {
 
       {!activeProjectId ? (
         <div className="text-center py-8">
-          <p className="text-gray-500">
+          <p className="text-muted-foreground">
             Selecciona un proyecto para ver la configuración
           </p>
         </div>
@@ -216,7 +216,7 @@ const ConfiguracionView = () => {
       <Card className="mb-4">
         <CardHeader>
           <CardTitle>Rangos de Edad</CardTitle>
-          <p className="text-sm text-gray-500">
+          <p className="text-sm text-muted-foreground">
             Define los rangos de edad que se utilizarán para agrupar estudiantes
             en los reportes.
           </p>
@@ -322,7 +322,7 @@ const ConfiguracionView = () => {
                       <div className="flex justify-between items-center">
                         <div>
                           <h3 className="font-medium">{range.label}</h3>
-                          <p className="text-sm text-gray-500">
+                          <p className="text-sm text-muted-foreground">
                             Entre {range.minAge} y {range.maxAge} años
                           </p>
                         </div>
@@ -465,7 +465,7 @@ const ConfiguracionView = () => {
               <Users size={20} />
               Miembros del Proyecto
             </CardTitle>
-            <p className="text-sm text-gray-500">
+            <p className="text-sm text-muted-foreground">
               Gestiona los miembros y sus roles en el proyecto
             </p>
           </CardHeader>
@@ -494,7 +494,7 @@ const ConfiguracionView = () => {
               <KeyRound size={20} />
               Códigos de Invitación
             </CardTitle>
-            <p className="text-sm text-gray-500">
+            <p className="text-sm text-muted-foreground">
               Genera y gestiona códigos de invitación para el proyecto
             </p>
           </CardHeader>
@@ -511,7 +511,7 @@ const ConfiguracionView = () => {
       <Card className="mb-4">
         <CardHeader>
           <CardTitle>Apariencia</CardTitle>
-          <p className="text-sm text-gray-500">
+          <p className="text-sm text-muted-foreground">
             Personaliza la apariencia de la aplicación
           </p>
         </CardHeader>
@@ -519,7 +519,7 @@ const ConfiguracionView = () => {
           <div className="flex items-center justify-between">
             <div>
               <h3 className="font-medium">Tema</h3>
-              <p className="text-sm text-gray-500">
+              <p className="text-sm text-muted-foreground">
                 Cambia entre modo claro y oscuro
               </p>
             </div>
@@ -532,8 +532,8 @@ const ConfiguracionView = () => {
       <Card>
         <CardContent className="p-4">
           <h2 className="text-lg font-medium mb-2">Información</h2>
-          <p className="text-sm text-gray-500 mb-1">Versión: 1.0.0</p>
-          <p className="text-sm text-gray-500">© 2025 Didaskaloi</p>
+          <p className="text-sm text-muted-foreground mb-1">Versión: 1.0.0</p>
+          <p className="text-sm text-muted-foreground">© 2025 Didaskaloi</p>
         </CardContent>
       </Card>
 

@@ -114,11 +114,11 @@ export function ProjectMembersSection({ projectId, members, isAdmin, ownerId }: 
           return (
             <div
               key={member.id}
-              className="flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-700 rounded-lg"
+              className="flex items-center justify-between p-4 bg-muted rounded-lg"
             >
               <div className="flex-1">
                 <div className="flex items-center gap-2">
-                  <p className="font-medium text-gray-900 dark:text-white">
+                  <p className="font-medium">
                     {member.user.name}
                   </p>
                   {isOwner && (
@@ -127,10 +127,10 @@ export function ProjectMembersSection({ projectId, members, isAdmin, ownerId }: 
                     </span>
                   )}
                 </div>
-                <p className="text-sm text-gray-600 dark:text-gray-400">
+                <p className="text-sm text-muted-foreground">
                   {member.user.email}
                 </p>
-                <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                <p className="text-xs text-muted-foreground mt-1">
                   Se unió el {new Date(member.joinedAt).toLocaleDateString()}
                 </p>
               </div>
@@ -178,7 +178,7 @@ export function ProjectMembersSection({ projectId, members, isAdmin, ownerId }: 
                     </Button>
                   </>
                 ) : (
-                  <div className="flex items-center gap-2 px-3 py-2 bg-white dark:bg-gray-800 rounded-md">
+                  <div className="flex items-center gap-2 px-3 py-2 bg-background rounded-md">
                     {getRoleIcon(member.role)}
                     <span className="text-sm font-medium">
                       {member.role === "ADMIN"

@@ -89,11 +89,11 @@ export function ProjectInviteCodesSection({ projectId, inviteCodes }: Props) {
   return (
     <div className="space-y-6">
       {/* Create New Invite Code */}
-      <div className="bg-gray-50 dark:bg-gray-700 rounded-lg p-6">
-        <h3 className="font-semibold text-gray-900 dark:text-white mb-4">
+      <div className="bg-muted rounded-lg p-6">
+        <h3 className="font-semibold mb-4">
           Generar Nuevo Código de Invitación
         </h3>
-        <div className="flex items-end gap-4">
+        <div className="flex flex-col sm:flex-row sm:items-end gap-4">
           <div className="flex-1">
             <Label htmlFor="role">Rol para el código</Label>
             <Select value={selectedRole} onValueChange={(value) => setSelectedRole(value as "EDITOR" | "VIEWER")}>
@@ -125,11 +125,11 @@ export function ProjectInviteCodesSection({ projectId, inviteCodes }: Props) {
 
       {/* Active Invite Codes */}
       <div>
-        <h3 className="font-semibold text-gray-900 dark:text-white mb-4">
+        <h3 className="font-semibold mb-4">
           Códigos Activos
         </h3>
         {inviteCodes.length === 0 ? (
-          <p className="text-gray-600 dark:text-gray-400 text-center py-8">
+          <p className="text-muted-foreground text-center py-8">
             No hay códigos de invitación activos
           </p>
         ) : (
@@ -137,11 +137,11 @@ export function ProjectInviteCodesSection({ projectId, inviteCodes }: Props) {
             {inviteCodes.map((inviteCode) => (
               <div
                 key={inviteCode.id}
-                className="flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-700 rounded-lg"
+                className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-4 bg-muted rounded-lg"
               >
                 <div className="flex-1">
                   <div className="flex items-center gap-3">
-                    <code className="text-lg font-mono font-bold bg-white dark:bg-gray-800 px-3 py-1 rounded">
+                    <code className="text-lg font-mono font-bold bg-background px-3 py-1 rounded">
                       {inviteCode.code}
                     </code>
                     <Button
@@ -165,7 +165,7 @@ export function ProjectInviteCodesSection({ projectId, inviteCodes }: Props) {
                       {inviteCode.role === "EDITOR" ? "Editor" : "Visualizador"}
                     </span>
                   </div>
-                  <div className="flex items-center gap-4 mt-2 text-sm text-gray-600 dark:text-gray-400">
+                  <div className="flex items-center gap-4 mt-2 text-sm text-muted-foreground">
                     <span>Usos: {inviteCode.usedCount}{inviteCode.maxUses ? ` / ${inviteCode.maxUses}` : ""}</span>
                     {inviteCode.expiresAt && (
                       <span>

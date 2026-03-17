@@ -4,10 +4,9 @@ import { useEffect, useState } from "react";
 import { useOnlineStatus } from "@/hooks/use-online-status";
 import { syncManager, SyncStatus } from "@/lib/sync-manager";
 import { WifiOff, RefreshCw } from "lucide-react";
-import { toast } from "sonner";
 
 export function OfflineIndicator() {
-  const { isOnline, wasOffline } = useOnlineStatus();
+  const { isOnline } = useOnlineStatus();
   const [syncStatus, setSyncStatus] = useState<SyncStatus>({
     syncing: false,
     progress: 0,
@@ -18,26 +17,6 @@ export function OfflineIndicator() {
     const unsubscribe = syncManager.onSyncStatusChange(setSyncStatus);
     return unsubscribe;
   }, []);
-
-  useEffect(() => {
-    // Cuando se recupera la conexión, sincronizar automáticamente
-    if (isOnline && wasOffline) {
-      toast.info("Conexión restaurada. Sincronizando cambios...");
-      syncManager.syncAll().then((result) => {
-        if (result.success) {
-          if (result.synced > 0) {
-            toast.success(
-              `✅ ${result.synced} cambio(s) sincronizado(s) correctamente`
-            );
-          } else {
-            toast.success("✅ Todo está sincronizado");
-          }
-        } else {
-          toast.error(`❌ Error en sincronización: ${result.message}`);
-        }
-      });
-    }
-  }, [isOnline, wasOffline]);
 
   if (!isOnline) {
     return (
