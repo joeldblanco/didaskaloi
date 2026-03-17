@@ -728,9 +728,9 @@ const AsistenciaView = () => {
           </div>
         ) : attendances.length === 0 ? (
           <div className="text-center py-8">
-            <Calendar className="mx-auto h-12 w-12 text-gray-300 mb-2" />
-            <p className="text-gray-500">No hay registros de asistencia</p>
-            <p className="text-sm text-gray-400 mt-1">
+            <Calendar className="mx-auto h-12 w-12 text-muted-foreground mb-2" />
+            <p className="text-muted-foreground">No hay registros de asistencia</p>
+            <p className="text-sm text-muted-foreground mt-1">
               Crea un nuevo registro para comenzar
             </p>
           </div>
@@ -750,7 +750,7 @@ const AsistenciaView = () => {
               return (
                 <Card
                   key={attendance.id}
-                  className="cursor-pointer hover:bg-gray-50"
+                  className="cursor-pointer hover:bg-accent"
                   onClick={() => setSelectedAttendance(attendance)}
                 >
                   <CardContent className="p-4">
@@ -759,7 +759,7 @@ const AsistenciaView = () => {
                         <h3 className="font-medium">
                           {formatAttendanceDate(attendance.date)}
                         </h3>
-                        <p className="text-sm text-gray-500">
+                        <p className="text-sm text-muted-foreground">
                           {totalStudents} estudiantes
                         </p>
                       </div>
@@ -773,12 +773,12 @@ const AsistenciaView = () => {
                         >
                           {presentPercentage}% asistencia
                         </Badge>
-                        <p className="text-xs text-gray-500 mt-1">
+                        <p className="text-xs text-muted-foreground mt-1">
                           {presentStudents} presentes
                         </p>
                       </div>
                     </div>
-                    <div className="mt-2 w-full bg-gray-200 rounded-full h-1.5">
+                    <div className="mt-2 w-full bg-muted rounded-full h-1.5">
                       <div
                         className={`h-1.5 rounded-full ${
                           presentPercentage >= 70
@@ -863,7 +863,7 @@ const AsistenciaView = () => {
 
       {!activeProjectId ? (
         <div className="text-center py-8">
-          <p className="text-gray-500">
+          <p className="text-muted-foreground">
             Selecciona un proyecto para ver la asistencia
           </p>
         </div>
@@ -873,8 +873,8 @@ const AsistenciaView = () => {
         </div>
       ) : classes.length === 0 ? (
         <div className="text-center py-8">
-          <p className="text-gray-500">No hay clases disponibles</p>
-          <p className="text-sm text-gray-400 mt-1">
+          <p className="text-muted-foreground">No hay clases disponibles</p>
+          <p className="text-sm text-muted-foreground mt-1">
             Crea una clase primero en la sección de Clases
           </p>
         </div>
@@ -885,12 +885,12 @@ const AsistenciaView = () => {
             .map((cls) => (
               <Card
                 key={cls.id}
-                className="cursor-pointer hover:bg-gray-50"
+                className="cursor-pointer hover:bg-accent"
                 onClick={() => setSelectedClass(cls)}
               >
                 <CardContent className="p-4">
                   <h2 className="text-lg font-medium">{cls.name}</h2>
-                  <p className="text-sm text-gray-500">
+                  <p className="text-sm text-muted-foreground">
                     {cls._count.students} estudiantes
                   </p>
                 </CardContent>

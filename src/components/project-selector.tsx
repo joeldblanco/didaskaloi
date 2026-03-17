@@ -65,7 +65,7 @@ export function ProjectSelector({ projects }: Props) {
           <SelectItem key={project.id} value={project.id}>
             <div className="flex items-center justify-between w-full gap-4">
               <span>{project.name}</span>
-              <span className="text-xs text-gray-500">
+              <span className="text-xs text-muted-foreground">
                 {project.role === "ADMIN" ? "Admin" : project.role === "EDITOR" ? "Editor" : "Viewer"}
               </span>
             </div>

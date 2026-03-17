@@ -13,7 +13,7 @@ export default async function NuevoProyectoPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 py-8">
+    <div className="min-h-screen bg-background py-8">
       <div className="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8">
         <Link href="/proyectos">
           <Button variant="ghost" className="mb-6">
@@ -22,8 +22,8 @@ export default async function NuevoProyectoPage() {
           </Button>
         </Link>
 
-        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-xl p-8">
-          <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-6">
+        <div className="bg-card rounded-lg shadow-xl p-8">
+          <h1 className="text-3xl font-bold mb-6">
             Crear Nuevo Proyecto
           </h1>
           <CreateProjectForm />

@@ -433,7 +433,7 @@ const ClassDetailPage = ({ params }: Props) => {
               <Button
                 type="button"
                 variant="outline"
-                className="flex-1 border-red-500 text-red-500 hover:bg-red-50"
+                className="flex-1 border-red-500 text-red-500 hover:bg-red-50 dark:hover:bg-red-950"
                 onClick={() => {
                   setSelectedStudentId(studentToEdit.id);
                   setShowDeleteAlert(true);
@@ -495,7 +495,7 @@ const ClassDetailPage = ({ params }: Props) => {
 
       <div className="mb-4 relative">
         <Search
-          className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"
+          className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground"
           size={18}
         />
         <Input
@@ -592,7 +592,7 @@ const ClassDetailPage = ({ params }: Props) => {
         </div>
       ) : filteredAndSortedStudents.length === 0 ? (
         <div className="text-center py-8">
-          <p className="text-gray-500">
+          <p className="text-muted-foreground">
             No hay estudiantes en esta clase que cumplan los criterios de
             búsqueda.
           </p>
@@ -602,7 +602,7 @@ const ClassDetailPage = ({ params }: Props) => {
           {filteredAndSortedStudents.map((student) => (
             <Card
               key={student.id}
-              className="cursor-pointer hover:bg-gray-50"
+              className="cursor-pointer hover:bg-accent"
               onClick={() => handleStudentClick(student)}
             >
               <CardContent className="p-4">
@@ -620,7 +620,7 @@ const ClassDetailPage = ({ params }: Props) => {
                         />
                       )}
                     </div>
-                    <p className="text-sm text-gray-500">
+                    <p className="text-sm text-muted-foreground">
                       {student.age != null ? `${student.age} años` : "Sin edad"} ·{" "}
                       {student.gender === "M" ? "Masculino" : "Femenino"}
                     </p>
@@ -649,7 +649,7 @@ const ClassDetailPage = ({ params }: Props) => {
                     </Button>
                   </div>
                 </div>
-                <div className="w-full bg-gray-200 rounded-full h-2.5">
+                <div className="w-full bg-muted rounded-full h-2.5">
                   <div
                     className={`h-2.5 rounded-full ${
                       (student.attendancePercentage || 0) >= 70

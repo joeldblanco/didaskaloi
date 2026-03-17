@@ -457,7 +457,7 @@ const EstudiantesView = () => {
               <Button
                 type="button"
                 variant="outline"
-                className="w-full border-red-500 text-red-500 hover:bg-red-50"
+                className="w-full border-red-500 text-red-500 hover:bg-red-50 dark:hover:bg-red-950"
                 onClick={() => setShowDeleteAlert(true)}
               >
                 Eliminar
@@ -528,7 +528,7 @@ const EstudiantesView = () => {
 
       {!activeProjectId ? (
         <div className="text-center py-8">
-          <p className="text-gray-500">
+          <p className="text-muted-foreground">
             Selecciona un proyecto para ver los estudiantes
           </p>
         </div>
@@ -538,7 +538,7 @@ const EstudiantesView = () => {
       {/* Search and Filters */}
       <div className="mb-4 relative">
         <Search
-          className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"
+          className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground"
           size={18}
         />
         <Input
@@ -633,8 +633,8 @@ const EstudiantesView = () => {
         </div>
       ) : filteredStudents.length === 0 ? (
         <div className="text-center py-8">
-          <AlertCircle className="mx-auto h-12 w-12 text-gray-300 mb-2" />
-          <p className="text-gray-500">
+          <AlertCircle className="mx-auto h-12 w-12 text-muted-foreground mb-2" />
+          <p className="text-muted-foreground">
             {searchText || classFilter || genderFilter
               ? "No se encontraron estudiantes con los filtros seleccionados"
               : "No hay estudiantes registrados"}
@@ -645,7 +645,7 @@ const EstudiantesView = () => {
           {filteredStudents.map((student) => (
             <Card
               key={student.id}
-              className="cursor-pointer hover:bg-gray-50"
+              className="cursor-pointer hover:bg-accent"
               onClick={() => startEditing(student)}
             >
               <CardContent className="p-4 flex justify-between items-center">
@@ -662,11 +662,11 @@ const EstudiantesView = () => {
                       />
                     )}
                   </div>
-                  <p className="text-sm text-gray-500">
+                  <p className="text-sm text-muted-foreground">
                     {student.age != null ? `${student.age} años` : "Sin edad"} ·{" "}
                     {student.gender === "M" ? "Masculino" : "Femenino"}
                   </p>
-                  <div className="flex items-center text-xs text-gray-500 mt-1">
+                  <div className="flex items-center text-xs text-muted-foreground mt-1">
                     {getClassName(student.classId)}
                   </div>
                 </div>
@@ -681,7 +681,7 @@ const EstudiantesView = () => {
                   >
                     {student.attendancePercentage || 0}%
                   </Badge>
-                  <ChevronRight size={18} className="text-gray-400" />
+                  <ChevronRight size={18} className="text-muted-foreground" />
                 </div>
               </CardContent>
             </Card>

@@ -15,15 +15,15 @@ export default async function ProyectosPage() {
   const projects = await getUserProjects();
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
+    <div className="min-h-screen bg-background">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Header */}
         <div className="flex items-center justify-between mb-8">
           <div>
-            <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
+            <h1 className="text-3xl font-bold">
               Mis Proyectos
             </h1>
-            <p className="text-gray-600 dark:text-gray-400 mt-1">
+            <p className="text-muted-foreground mt-1">
               Bienvenido, {session.user.name}
             </p>
           </div>
@@ -53,12 +53,12 @@ export default async function ProyectosPage() {
 
         {/* Projects List */}
         {projects.length === 0 ? (
-          <div className="text-center py-12 bg-white dark:bg-gray-800 rounded-lg shadow">
-            <BookOpen className="mx-auto h-12 w-12 text-gray-400" />
-            <h3 className="mt-4 text-lg font-medium text-gray-900 dark:text-white">
+          <div className="text-center py-12 bg-card rounded-lg shadow">
+            <BookOpen className="mx-auto h-12 w-12 text-muted-foreground" />
+            <h3 className="mt-4 text-lg font-medium">
               No tienes proyectos
             </h3>
-            <p className="mt-2 text-gray-600 dark:text-gray-400">
+            <p className="mt-2 text-muted-foreground">
               Crea un nuevo proyecto o únete a uno existente para comenzar.
             </p>
           </div>
@@ -70,13 +70,13 @@ export default async function ProyectosPage() {
                 href={`/clases?projectId=${project.id}`}
                 className="block"
               >
-                <div className="bg-white dark:bg-gray-800 rounded-lg shadow hover:shadow-lg transition-shadow p-6">
+                <div className="bg-card rounded-lg shadow hover:shadow-lg transition-shadow p-6">
                   <div className="flex items-start justify-between mb-4">
                     <div className="flex-1">
-                      <h3 className="text-xl font-semibold text-gray-900 dark:text-white">
+                      <h3 className="text-xl font-semibold">
                         {project.name}
                       </h3>
-                      <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
+                      <p className="text-sm text-muted-foreground mt-1">
                         Código: {project.accessCode}
                       </p>
                     </div>
@@ -97,7 +97,7 @@ export default async function ProyectosPage() {
                     </span>
                   </div>
 
-                  <div className="flex items-center justify-between text-sm text-gray-600 dark:text-gray-400">
+                  <div className="flex items-center justify-between text-sm text-muted-foreground">
                     <div className="flex items-center">
                       <Users className="h-4 w-4 mr-1" />
                       <span>{project.memberCount} miembros</span>
@@ -108,8 +108,8 @@ export default async function ProyectosPage() {
                     </div>
                   </div>
 
-                  <div className="mt-4 pt-4 border-t border-gray-200 dark:border-gray-700">
-                    <p className="text-xs text-gray-500 dark:text-gray-400">
+                  <div className="mt-4 pt-4 border-t border-border">
+                    <p className="text-xs text-muted-foreground">
                       Propietario: {project.owner.name}
                     </p>
                   </div>

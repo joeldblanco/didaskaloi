@@ -65,20 +65,20 @@ export function CreateProjectForm() {
           <div className="inline-flex items-center justify-center w-16 h-16 bg-green-100 dark:bg-green-900 rounded-full mb-4">
             <Check className="w-8 h-8 text-green-600 dark:text-green-400" />
           </div>
-          <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
+          <h2 className="text-2xl font-bold">
             ¡Proyecto Creado!
           </h2>
-          <p className="text-gray-600 dark:text-gray-400 mt-2">
+          <p className="text-muted-foreground mt-2">
             Tu proyecto ha sido creado exitosamente
           </p>
         </div>
 
         <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-6">
-          <h3 className="font-semibold text-gray-900 dark:text-white mb-4">
+          <h3 className="font-semibold mb-4">
             Código de Acceso del Proyecto
           </h3>
           <div className="flex items-center gap-2">
-            <code className="flex-1 bg-white dark:bg-gray-800 px-4 py-3 rounded-lg text-2xl font-mono font-bold text-center">
+            <code className="flex-1 bg-background px-4 py-3 rounded-lg text-2xl font-mono font-bold text-center">
               {createdProject.accessCode}
             </code>
             <Button
@@ -94,7 +94,7 @@ export function CreateProjectForm() {
               )}
             </Button>
           </div>
-          <p className="text-sm text-gray-600 dark:text-gray-400 mt-4">
+          <p className="text-sm text-muted-foreground mt-4">
             Comparte este código con otros usuarios para que puedan unirse a tu proyecto.
             También necesitarán la contraseña que configuraste.
           </p>
@@ -149,7 +149,7 @@ export function CreateProjectForm() {
         {errors.password && (
           <p className="text-sm text-red-600 mt-1">{errors.password.message}</p>
         )}
-        <p className="text-xs text-gray-500 mt-1">
+        <p className="text-xs text-muted-foreground mt-1">
           Esta contraseña será requerida para que otros usuarios se unan al proyecto
         </p>
       </div>

@@ -228,14 +228,14 @@ export default function ImportStudentsDialog({
 
         <div className="space-y-4">
           {/* Download Template Button */}
-          <div className="flex items-center justify-between p-3 bg-blue-50 rounded-lg border border-blue-200">
+          <div className="flex items-center justify-between p-3 bg-blue-50 dark:bg-blue-950 rounded-lg border border-blue-200 dark:border-blue-800">
             <div className="flex items-center gap-2">
               <FileSpreadsheet className="h-5 w-5 text-blue-600" />
               <div>
-                <p className="text-sm font-medium text-blue-900">
+                <p className="text-sm font-medium text-blue-900 dark:text-blue-100">
                   ¿No tienes una plantilla?
                 </p>
-                <p className="text-xs text-blue-700">
+                <p className="text-xs text-blue-700 dark:text-blue-300">
                   Descarga nuestra plantilla CSV de ejemplo
                 </p>
               </div>
@@ -290,7 +290,7 @@ export default function ImportStudentsDialog({
               </Button>
             </div>
             {fileInputRef.current?.files?.[0] && (
-              <p className="text-sm text-gray-600">
+              <p className="text-sm text-muted-foreground">
                 Archivo seleccionado: {fileInputRef.current.files[0].name}
               </p>
             )}
@@ -302,7 +302,7 @@ export default function ImportStudentsDialog({
               <Label>Vista previa (primeras 5 filas)</Label>
               <div className="border rounded-lg overflow-hidden">
                 <table className="w-full text-sm">
-                  <thead className="bg-gray-100">
+                  <thead className="bg-muted">
                     <tr>
                       <th className="px-3 py-2 text-left">Nombre</th>
                       <th className="px-3 py-2 text-left">Apellidos</th>
@@ -326,9 +326,9 @@ export default function ImportStudentsDialog({
           )}
 
           {/* Warning */}
-          <div className="flex items-start gap-2 p-3 bg-yellow-50 rounded-lg border border-yellow-200">
-            <AlertCircle className="h-5 w-5 text-yellow-600 flex-shrink-0 mt-0.5" />
-            <div className="text-sm text-yellow-800">
+          <div className="flex items-start gap-2 p-3 bg-yellow-50 dark:bg-yellow-950 rounded-lg border border-yellow-200 dark:border-yellow-800">
+            <AlertCircle className="h-5 w-5 text-yellow-600 dark:text-yellow-400 flex-shrink-0 mt-0.5" />
+            <div className="text-sm text-yellow-800 dark:text-yellow-200">
               <p className="font-medium">Importante:</p>
               <ul className="list-disc list-inside mt-1 space-y-1">
                 <li>Los estudiantes duplicados no serán importados</li>

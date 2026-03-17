@@ -41,7 +41,7 @@ export function ProjectPageWrapper({ children, title }: Props) {
 
       {!activeProjectId ? (
         <div className="text-center py-8">
-          <p className="text-gray-500">
+          <p className="text-muted-foreground">
             Selecciona un proyecto para continuar
           </p>
         </div>

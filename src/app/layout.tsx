@@ -54,7 +54,7 @@ export default function RootLayout({
         <meta name="theme-color" content="#3b82f6" />
       </head>
       <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased bg-gray-50 dark:bg-gray-900 max-w-md mx-auto`}
+        className={`${geistSans.variable} ${geistMono.variable} antialiased bg-background max-w-md mx-auto`}
       >
         <SessionProvider>
           <ThemeProvider

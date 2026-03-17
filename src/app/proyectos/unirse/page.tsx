@@ -46,7 +46,7 @@ export default function UnirseProyectoPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 py-8">
+    <div className="min-h-screen bg-background py-8">
       <div className="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8">
         <Link href="/proyectos">
           <Button variant="ghost" className="mb-6">
@@ -55,15 +55,15 @@ export default function UnirseProyectoPage() {
           </Button>
         </Link>
 
-        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-xl p-8">
+        <div className="bg-card rounded-lg shadow-xl p-8">
           <div className="text-center mb-8">
             <div className="inline-flex items-center justify-center w-16 h-16 bg-blue-100 dark:bg-blue-900 rounded-full mb-4">
               <Users className="w-8 h-8 text-blue-600 dark:text-blue-400" />
             </div>
-            <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
+            <h1 className="text-3xl font-bold">
               Unirse a un Proyecto
             </h1>
-            <p className="text-gray-600 dark:text-gray-400 mt-2">
+            <p className="text-muted-foreground mt-2">
               Ingresa el código de acceso y la contraseña del proyecto
             </p>
           </div>
@@ -84,7 +84,7 @@ export default function UnirseProyectoPage() {
                   {errors.accessCode.message}
                 </p>
               )}
-              <p className="text-xs text-gray-500 mt-1">
+              <p className="text-xs text-muted-foreground mt-1">
                 El código de acceso del proyecto (ej: PROJ-A1B2C3)
               </p>
             </div>
@@ -104,7 +104,7 @@ export default function UnirseProyectoPage() {
                   {errors.password.message}
                 </p>
               )}
-              <p className="text-xs text-gray-500 mt-1">
+              <p className="text-xs text-muted-foreground mt-1">
                 La contraseña configurada por el administrador del proyecto
               </p>
             </div>
@@ -132,7 +132,7 @@ export default function UnirseProyectoPage() {
           </form>
 
           <div className="mt-6 text-center">
-            <p className="text-sm text-gray-600 dark:text-gray-400">
+            <p className="text-sm text-muted-foreground">
               ¿Tienes un código de invitación?{" "}
               <Link
                 href="/proyectos/unirse-invitacion"

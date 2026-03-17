@@ -46,7 +46,7 @@ export default function UnirseInvitacionPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 py-8">
+    <div className="min-h-screen bg-background py-8">
       <div className="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8">
         <Link href="/proyectos">
           <Button variant="ghost" className="mb-6">
@@ -55,15 +55,15 @@ export default function UnirseInvitacionPage() {
           </Button>
         </Link>
 
-        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-xl p-8">
+        <div className="bg-card rounded-lg shadow-xl p-8">
           <div className="text-center mb-8">
             <div className="inline-flex items-center justify-center w-16 h-16 bg-green-100 dark:bg-green-900 rounded-full mb-4">
               <Mail className="w-8 h-8 text-green-600 dark:text-green-400" />
             </div>
-            <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
+            <h1 className="text-3xl font-bold">
               Unirse con Código de Invitación
             </h1>
-            <p className="text-gray-600 dark:text-gray-400 mt-2">
+            <p className="text-muted-foreground mt-2">
               Usa el código de invitación que recibiste
             </p>
           </div>
@@ -84,7 +84,7 @@ export default function UnirseInvitacionPage() {
                   {errors.inviteCode.message}
                 </p>
               )}
-              <p className="text-xs text-gray-500 mt-1">
+              <p className="text-xs text-muted-foreground mt-1">
                 El código de invitación termina en EDIT (Editor) o VIEW (Visualizador)
               </p>
             </div>
@@ -129,7 +129,7 @@ export default function UnirseInvitacionPage() {
           </form>
 
           <div className="mt-6 text-center">
-            <p className="text-sm text-gray-600 dark:text-gray-400">
+            <p className="text-sm text-muted-foreground">
               ¿Solo tienes el código de acceso?{" "}
               <Link
                 href="/proyectos/unirse"

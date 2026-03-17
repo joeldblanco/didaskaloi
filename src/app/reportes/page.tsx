@@ -367,7 +367,7 @@ const ReportesView = () => {
             value="gender"
             className="border rounded-lg overflow-hidden"
           >
-            <AccordionTrigger className="px-4 py-3 hover:no-underline hover:bg-gray-50">
+            <AccordionTrigger className="px-4 py-3 hover:no-underline hover:bg-muted">
               <div className="flex items-center gap-2">
                 <Users className="h-5 w-5 text-blue-500" />
                 <span className="font-medium">Distribución por Género</span>
@@ -425,7 +425,7 @@ const ReportesView = () => {
             value="ageGender"
             className="border rounded-lg overflow-hidden"
           >
-            <AccordionTrigger className="px-4 py-3 hover:no-underline hover:bg-gray-50">
+            <AccordionTrigger className="px-4 py-3 hover:no-underline hover:bg-muted">
               <div className="flex items-center gap-2">
                 <Users className="h-5 w-5 text-teal-500" />
                 <span className="font-medium">
@@ -478,7 +478,7 @@ const ReportesView = () => {
             value="attendance"
             className="border rounded-lg overflow-hidden"
           >
-            <AccordionTrigger className="px-4 py-3 hover:no-underline hover:bg-gray-50">
+            <AccordionTrigger className="px-4 py-3 hover:no-underline hover:bg-muted">
               <div className="flex items-center gap-2">
                 <User className="h-5 w-5 text-green-500" />
                 <span className="font-medium">Mejores Asistencias</span>
@@ -487,7 +487,7 @@ const ReportesView = () => {
             <AccordionContent className="px-4 py-3 border-t">
               {reportData.bestAttendance.overall && (
                 <div className="mb-4">
-                  <h3 className="font-medium text-gray-500 mb-2">General</h3>
+                  <h3 className="font-medium text-muted-foreground mb-2">General</h3>
                   <Card>
                     <CardContent className="p-4">
                       <div className="flex justify-between items-center mb-1">
@@ -496,7 +496,7 @@ const ReportesView = () => {
                             {reportData.bestAttendance.overall.firstName}{" "}
                             {reportData.bestAttendance.overall.lastName}
                           </p>
-                          <p className="text-sm text-gray-500">
+                          <p className="text-sm text-muted-foreground">
                             {reportData.bestAttendance.overall.age} años ·{" "}
                             {reportData.bestAttendance.overall.gender === "M"
                               ? "Masculino"
@@ -527,14 +527,14 @@ const ReportesView = () => {
               <div className="grid grid-cols-2 gap-4">
                 {reportData.bestAttendance.male && (
                   <div>
-                    <h3 className="font-medium text-gray-500 mb-2">Varones</h3>
-                    <Card className="bg-blue-50">
+                    <h3 className="font-medium text-muted-foreground mb-2">Varones</h3>
+                    <Card className="bg-blue-50 dark:bg-blue-950">
                       <CardContent className="p-3">
                         <p className="font-medium">
                           {reportData.bestAttendance.male.firstName}{" "}
                           {reportData.bestAttendance.male.lastName}
                         </p>
-                        <p className="text-sm text-gray-500">
+                        <p className="text-sm text-muted-foreground">
                           {reportData.bestAttendance.male.age} años
                           {isGeneralReport &&
                             reportData.bestAttendance.male.class && (
@@ -554,14 +554,14 @@ const ReportesView = () => {
 
                 {reportData.bestAttendance.female && (
                   <div>
-                    <h3 className="font-medium text-gray-500 mb-2">Mujeres</h3>
-                    <Card className="bg-pink-50">
+                    <h3 className="font-medium text-muted-foreground mb-2">Mujeres</h3>
+                    <Card className="bg-pink-50 dark:bg-pink-950">
                       <CardContent className="p-3">
                         <p className="font-medium">
                           {reportData.bestAttendance.female.firstName}{" "}
                           {reportData.bestAttendance.female.lastName}
                         </p>
-                        <p className="text-sm text-gray-500">
+                        <p className="text-sm text-muted-foreground">
                           {reportData.bestAttendance.female.age} años
                           {isGeneralReport &&
                             reportData.bestAttendance.female.class && (
@@ -591,7 +591,7 @@ const ReportesView = () => {
             value="age"
             className="border rounded-lg overflow-hidden"
           >
-            <AccordionTrigger className="px-4 py-3 hover:no-underline hover:bg-gray-50">
+            <AccordionTrigger className="px-4 py-3 hover:no-underline hover:bg-muted">
               <div className="flex items-center gap-2">
                 <Users className="h-5 w-5 text-purple-500" />
                 <span className="font-medium">Distribución por Edad</span>
@@ -630,7 +630,7 @@ const ReportesView = () => {
             value="attendanceByAge"
             className="border rounded-lg overflow-hidden"
           >
-            <AccordionTrigger className="px-4 py-3 hover:no-underline hover:bg-gray-50">
+            <AccordionTrigger className="px-4 py-3 hover:no-underline hover:bg-muted">
               <div className="flex items-center gap-2">
                 <Users className="h-5 w-5 text-orange-500" />
                 <span className="font-medium">Asistencia por Edad</span>
@@ -674,7 +674,7 @@ const ReportesView = () => {
               value="classesSummary"
               className="border rounded-lg overflow-hidden"
             >
-              <AccordionTrigger className="px-4 py-3 hover:no-underline hover:bg-gray-50">
+              <AccordionTrigger className="px-4 py-3 hover:no-underline hover:bg-muted">
                 <div className="flex items-center gap-2">
                   <LayoutGrid className="h-5 w-5 text-indigo-500" />
                   <span className="font-medium">Resumen por Clases</span>
@@ -754,13 +754,13 @@ const ReportesView = () => {
 
       {!activeProjectId ? (
         <div className="text-center py-8">
-          <p className="text-gray-500">
+          <p className="text-muted-foreground">
             Selecciona un proyecto para ver los reportes
           </p>
         </div>
       ) : (
         <>
-          <p className="text-gray-500 mb-4">
+          <p className="text-muted-foreground mb-4">
             Selecciona una clase para ver sus reportes detallados o genera un
             reporte general.
           </p>
@@ -771,13 +771,13 @@ const ReportesView = () => {
         </div>
       ) : classes.length === 0 ? (
         <div className="text-center py-8">
-          <p className="text-gray-500">No hay clases disponibles</p>
+          <p className="text-muted-foreground">No hay clases disponibles</p>
         </div>
       ) : (
         <div className="space-y-3">
           {/* General report option */}
           <Card
-            className="cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800 border-2 border-blue-200 dark:border-blue-800 bg-blue-50 dark:bg-blue-950"
+            className="cursor-pointer hover:bg-blue-100 dark:hover:bg-blue-900 border-2 border-blue-200 dark:border-blue-800 bg-blue-50 dark:bg-blue-950"
             onClick={handleViewGeneralReport}
           >
             <CardContent className="p-4">
@@ -785,7 +785,7 @@ const ReportesView = () => {
                 <LayoutGrid className="h-5 w-5 text-blue-500 mr-2" />
                 <div>
                   <h2 className="text-lg font-medium">Reporte General</h2>
-                  <p className="text-sm text-gray-500">
+                  <p className="text-sm text-muted-foreground">
                     Ver estadísticas de todas las clases
                   </p>
                 </div>
@@ -793,8 +793,8 @@ const ReportesView = () => {
             </CardContent>
           </Card>
 
-          <div className="my-3 border-t border-gray-200 pt-3">
-            <h3 className="text-sm font-medium text-gray-500 mb-2">
+          <div className="my-3 border-t border-border pt-3">
+            <h3 className="text-sm font-medium text-muted-foreground mb-2">
               Reportes por clase
             </h3>
           </div>
@@ -805,12 +805,12 @@ const ReportesView = () => {
             .map((cls) => (
               <Card
                 key={cls.id}
-                className="cursor-pointer hover:bg-gray-50"
+                className="cursor-pointer hover:bg-accent"
                 onClick={() => setSelectedClass(cls)}
               >
                 <CardContent className="p-4">
                   <h2 className="text-lg font-medium">{cls.name}</h2>
-                  <p className="text-sm text-gray-500">
+                  <p className="text-sm text-muted-foreground">
                     {cls._count.students} estudiantes
                   </p>
                 </CardContent>

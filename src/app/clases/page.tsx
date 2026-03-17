@@ -203,7 +203,7 @@ const ClasesView = () => {
 
       {!activeProjectId ? (
         <div className="text-center py-8">
-          <p className="text-gray-500">
+          <p className="text-muted-foreground">
             Selecciona un proyecto para ver las clases
           </p>
         </div>
@@ -211,7 +211,7 @@ const ClasesView = () => {
         <>
           <div className="mb-4 relative">
             <Search
-              className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"
+              className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground"
               size={18}
             />
             <Input
@@ -229,7 +229,7 @@ const ClasesView = () => {
         </div>
       ) : filteredClasses.length === 0 ? (
         <div className="text-center py-8">
-          <p className="text-gray-500">No hay clases disponibles</p>
+          <p className="text-muted-foreground">No hay clases disponibles</p>
         </div>
       ) : (
         <div className="space-y-3 mb-20">
@@ -244,7 +244,7 @@ const ClasesView = () => {
                 <CardContent className="p-4 flex justify-between items-center">
                   <div>
                     <h2 className="text-lg font-medium">{cls.name}</h2>
-                    <p className="text-sm text-gray-500">
+                    <p className="text-sm text-muted-foreground">
                       {cls._count.students} estudiantes
                     </p>
                   </div>
