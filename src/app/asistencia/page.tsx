@@ -89,7 +89,6 @@ const AsistenciaView = () => {
   const [currentAttendanceRecords, setCurrentAttendanceRecords] = useState<
     Record<string, boolean>
   >({});
-  const [isCompletionShown, setIsCompletionShown] = useState(false);
   const [showAddAttendanceDialog, setShowAddAttendanceDialog] = useState(false);
   const [showDeleteAttendanceAlert, setShowDeleteAttendanceAlert] =
     useState(false);
@@ -232,43 +231,8 @@ const AsistenciaView = () => {
         toast.error("Error al guardar el registro de asistencia");
       });
 
-      // Navigate to next student
-      if (currentStudentIndex < studentsOrdered.length - 1) {
-        setCurrentStudentIndex(currentStudentIndex + 1);
-      } else {
-        // Show completion screen
-        setIsCompletionShown(true);
-
-        // Fire confetti
-        const end = Date.now() + 1500;
-        const colors = ["#3b82f6", "#60a5fa", "#93c5fd", "#2563eb"];
-        (function frame() {
-          confetti({
-            particleCount: 4,
-            angle: 60,
-            spread: 55,
-            origin: { x: 0 },
-            colors,
-          });
-          confetti({
-            particleCount: 4,
-            angle: 120,
-            spread: 55,
-            origin: { x: 1 },
-            colors,
-          });
-          if (Date.now() < end) requestAnimationFrame(frame);
-        })();
-
-        // Refresh attendance data asynchronously
-        refreshAttendanceData();
-
-        // After 2.5 seconds, go back to attendances list
-        setTimeout(() => {
-          setIsCompletionShown(false);
-          goBackToAttendances();
-        }, 2500);
-      }
+      // Navigate to next student (or past the end for the last one)
+      setCurrentStudentIndex(currentStudentIndex + 1);
     },
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [selectedAttendance, currentStudentIndex, studentsOrdered.length]
@@ -292,7 +256,7 @@ const AsistenciaView = () => {
       setCurrentStudentIndex(currentStudentIndex - 1);
     } else if (
       direction === "next" &&
-      currentStudentIndex < studentsOrdered.length - 1
+      currentStudentIndex < studentsOrdered.length
     ) {
       setCurrentStudentIndex(currentStudentIndex + 1);
     }
@@ -560,19 +524,44 @@ const AsistenciaView = () => {
     };
   };
 
-  // Completion screen
-  if (isCompletionShown) {
-    return (
-      <div className="flex h-screen items-center justify-center bg-blue-500">
-        <div className="text-center animate-in zoom-in-50 duration-500">
-          <div className="mb-4 inline-flex h-24 w-24 items-center justify-center rounded-full bg-white">
-            <Check className="text-blue-500" size={48} />
-          </div>
-          <h2 className="text-2xl font-bold text-white">¡Completado!</h2>
-        </div>
-      </div>
-    );
-  }
+  // Trigger completion when index goes past the last student
+  useEffect(() => {
+    if (
+      view === "taking-attendance" &&
+      studentsOrdered.length > 0 &&
+      currentStudentIndex >= studentsOrdered.length
+    ) {
+      // Fire confetti
+      const end = Date.now() + 1500;
+      const colors = ["#22c55e", "#4ade80", "#86efac", "#16a34a"];
+      (function frame() {
+        confetti({
+          particleCount: 4,
+          angle: 60,
+          spread: 55,
+          origin: { x: 0 },
+          colors,
+        });
+        confetti({
+          particleCount: 4,
+          angle: 120,
+          spread: 55,
+          origin: { x: 1 },
+          colors,
+        });
+        if (Date.now() < end) requestAnimationFrame(frame);
+      })();
+
+      // Refresh attendance data asynchronously
+      refreshAttendanceData();
+
+      // After 2.5 seconds, go back to attendances list
+      setTimeout(() => {
+        goBackToAttendances();
+      }, 2500);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [currentStudentIndex, studentsOrdered.length, view]);
 
   // Taking attendance view
   if (
@@ -581,6 +570,7 @@ const AsistenciaView = () => {
     studentsOrdered.length > 0
   ) {
     const student = studentsOrdered[currentStudentIndex];
+    const isComplete = currentStudentIndex >= studentsOrdered.length;
 
     return (
       <div className="flex flex-col h-screen relative overflow-hidden select-none">
@@ -621,8 +611,21 @@ const AsistenciaView = () => {
         {/* Swipeable stacked cards area */}
         <div className="flex-1 flex flex-col items-center justify-center p-4">
           <div className="relative w-full max-w-sm" style={{ height: 220 }}>
+            {/* Green check underneath all cards — visible when last card is swiped away */}
+            <div
+              className="absolute inset-0 flex items-center justify-center rounded-2xl"
+              style={{ zIndex: 1 }}
+            >
+              <div className="text-center">
+                <div className="inline-flex h-20 w-20 items-center justify-center rounded-full bg-green-100 dark:bg-green-900 mb-3">
+                  <Check className="text-green-500" size={40} />
+                </div>
+                <p className="text-lg font-semibold text-green-600 dark:text-green-400">¡Completado!</p>
+              </div>
+            </div>
+
             {/* Background stacked cards (up to 3 behind) */}
-            {[3, 2, 1].map((offset) => {
+            {!isComplete && [3, 2, 1].map((offset) => {
               const bgIndex = currentStudentIndex + offset;
               if (bgIndex >= studentsOrdered.length) return null;
               const bgStudent = studentsOrdered[bgIndex];
@@ -655,54 +658,58 @@ const AsistenciaView = () => {
               );
             })}
 
-            {/* Active top card — swipeable */}
-            <div
-              ref={cardRef}
-              className="absolute inset-0 rounded-2xl shadow-lg p-8 cursor-grab active:cursor-grabbing touch-none bg-card border border-border"
-              style={{ ...getCardStyle(), zIndex: 20 }}
-              onPointerDown={handlePointerDown}
-              onPointerMove={handlePointerMove}
-              onPointerUp={handlePointerUp}
-            >
-              <div className="text-center">
-                <p className="text-sm text-muted-foreground mb-3">
-                  {currentStudentIndex + 1} de {studentsOrdered.length}
-                </p>
-                <h2 className="text-2xl font-bold mb-1 text-foreground">
-                  {student.firstName} {student.lastName}
-                </h2>
-                <p className="text-muted-foreground">
-                  {student.age != null ? `${student.age} años` : "Sin edad"} ·{" "}
-                  {student.gender === "M" ? "Masculino" : "Femenino"}
-                </p>
-                {currentAttendanceRecords[student.id] !== undefined && (
-                  <div className="mt-3">
-                    <Badge
-                      className={
-                        currentAttendanceRecords[student.id]
-                          ? "bg-green-500"
-                          : "bg-red-500"
-                      }
-                    >
-                      {currentAttendanceRecords[student.id]
-                        ? "Presente"
-                        : "Ausente"}
-                    </Badge>
-                  </div>
-                )}
+            {/* Active top card — swipeable (only if not complete) */}
+            {!isComplete && student && (
+              <div
+                ref={cardRef}
+                className="absolute inset-0 rounded-2xl shadow-lg p-8 cursor-grab active:cursor-grabbing touch-none bg-card border border-border"
+                style={{ ...getCardStyle(), zIndex: 20 }}
+                onPointerDown={handlePointerDown}
+                onPointerMove={handlePointerMove}
+                onPointerUp={handlePointerUp}
+              >
+                <div className="text-center">
+                  <p className="text-sm text-muted-foreground mb-3">
+                    {currentStudentIndex + 1} de {studentsOrdered.length}
+                  </p>
+                  <h2 className="text-2xl font-bold mb-1 text-foreground">
+                    {student.firstName} {student.lastName}
+                  </h2>
+                  <p className="text-muted-foreground">
+                    {student.age != null ? `${student.age} años` : "Sin edad"} ·{" "}
+                    {student.gender === "M" ? "Masculino" : "Femenino"}
+                  </p>
+                  {currentAttendanceRecords[student.id] !== undefined && (
+                    <div className="mt-3">
+                      <Badge
+                        className={
+                          currentAttendanceRecords[student.id]
+                            ? "bg-green-500"
+                            : "bg-red-500"
+                        }
+                      >
+                        {currentAttendanceRecords[student.id]
+                          ? "Presente"
+                          : "Ausente"}
+                      </Badge>
+                    </div>
+                  )}
+                </div>
               </div>
-            </div>
+            )}
           </div>
 
           {/* Swipe hints */}
-          <div className="mt-6 text-center space-y-1">
-            <p className="text-xs text-muted-foreground">
-              ← Ausente · Presente →
-            </p>
-            <p className="text-xs text-muted-foreground">
-              ↓ Saltar · ↑ Anterior
-            </p>
-          </div>
+          {!isComplete && (
+            <div className="mt-6 text-center space-y-1">
+              <p className="text-xs text-muted-foreground">
+                ← Ausente · Presente →
+              </p>
+              <p className="text-xs text-muted-foreground">
+                ↓ Saltar · ↑ Anterior
+              </p>
+            </div>
+          )}
         </div>
       </div>
     );
