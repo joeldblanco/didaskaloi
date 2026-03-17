@@ -355,7 +355,7 @@ const AsistenciaView = () => {
   const [edgeFlash, setEdgeFlash] = useState<"green" | "red" | null>(null);
   const dragStart = useRef<{ x: number; y: number; time: number } | null>(null);
   const skipTransition = useRef(false);
-  const [enterFromTop, setEnterFromTop] = useState(false);
+  const [enterFromBottom, setEnterFromBottom] = useState(false);
 
   const SWIPE_THRESHOLD = 80;
 
@@ -438,15 +438,15 @@ const AsistenciaView = () => {
             resetCard();
           }, 300);
         } else {
-          // Up = previous: animate new card IN from top
+          // Up = previous: animate new card IN from bottom
           if (currentStudentIndex > 0) {
             // Snap current card back, change index, and animate entry
             setSwipeOffset({ x: 0, y: 0 });
             navigateStudent("previous");
-            setEnterFromTop(true);
+            setEnterFromBottom(true);
             requestAnimationFrame(() => {
               requestAnimationFrame(() => {
-                setEnterFromTop(false);
+                setEnterFromBottom(false);
               });
             });
           } else {
@@ -497,9 +497,9 @@ const AsistenciaView = () => {
         transition: "transform 0.3s ease-out",
       };
     }
-    if (enterFromTop) {
+    if (enterFromBottom) {
       return {
-        transform: "translateY(-150vh)",
+        transform: "translateY(150vh)",
         transition: "none",
       };
     }
@@ -573,7 +573,7 @@ const AsistenciaView = () => {
     const isComplete = currentStudentIndex >= studentsOrdered.length;
 
     return (
-      <div className="flex flex-col h-screen relative overflow-hidden select-none">
+      <div className="fixed inset-0 z-40 flex flex-col bg-background overflow-hidden select-none">
         {/* Edge flash effects */}
         {edgeFlash === "green" && (
           <div className="absolute inset-y-0 right-0 w-16 z-50 pointer-events-none animate-in fade-in-0 fade-out-0 duration-500 bg-gradient-to-l from-green-400/60 to-transparent" />
@@ -582,24 +582,19 @@ const AsistenciaView = () => {
           <div className="absolute inset-y-0 left-0 w-16 z-50 pointer-events-none animate-in fade-in-0 fade-out-0 duration-500 bg-gradient-to-r from-red-400/60 to-transparent" />
         )}
 
-        {/* Header */}
-        <div className="flex justify-between items-center p-4 border-b border-border">
-          <div>
-            <h1 className="text-xl font-medium">{selectedClass?.name}</h1>
-            <p className="text-sm text-muted-foreground">
-              {formatAttendanceDate(selectedAttendance.date)}
-            </p>
-          </div>
-          <Button onClick={goBackToAttendances} variant="ghost" size="icon">
-            <X size={20} />
-          </Button>
-        </div>
+        {/* Small X icon top-left */}
+        <button
+          onClick={goBackToAttendances}
+          className="absolute top-4 left-4 z-30 p-2 rounded-full text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
+        >
+          <X size={20} />
+        </button>
 
         {/* Progress bar */}
-        <div className="px-4 pt-4">
-          <div className="w-full bg-muted rounded-full h-2.5">
+        <div className="px-14 pt-5">
+          <div className="w-full bg-muted rounded-full h-1.5">
             <div
-              className="bg-blue-600 h-2.5 rounded-full transition-all duration-300"
+              className="bg-blue-600 h-1.5 rounded-full transition-all duration-300"
               style={{ width: `${calculateAttendanceCompletion()}%` }}
             />
           </div>
@@ -608,8 +603,13 @@ const AsistenciaView = () => {
           </p>
         </div>
 
-        {/* Swipeable stacked cards area */}
-        <div className="flex-1 flex flex-col items-center justify-center p-4">
+        {/* Swipeable area — covers cards + everything below for swipe-up gesture */}
+        <div
+          className="flex-1 flex flex-col items-center justify-center p-4 touch-none"
+          onPointerDown={handlePointerDown}
+          onPointerMove={handlePointerMove}
+          onPointerUp={handlePointerUp}
+        >
           <div className="relative w-full max-w-sm" style={{ height: 220 }}>
             {/* Green check underneath all cards — visible when last card is swiped away */}
             <div
@@ -658,15 +658,12 @@ const AsistenciaView = () => {
               );
             })}
 
-            {/* Active top card — swipeable (only if not complete) */}
+            {/* Active top card (only if not complete) */}
             {!isComplete && student && (
               <div
                 ref={cardRef}
-                className="absolute inset-0 rounded-2xl shadow-lg p-8 cursor-grab active:cursor-grabbing touch-none bg-card border border-border"
+                className="absolute inset-0 rounded-2xl shadow-lg p-8 cursor-grab active:cursor-grabbing bg-card border border-border"
                 style={{ ...getCardStyle(), zIndex: 20 }}
-                onPointerDown={handlePointerDown}
-                onPointerMove={handlePointerMove}
-                onPointerUp={handlePointerUp}
               >
                 <div className="text-center">
                   <p className="text-sm text-muted-foreground mb-3">
@@ -701,7 +698,7 @@ const AsistenciaView = () => {
 
           {/* Swipe hints */}
           {!isComplete && (
-            <div className="mt-6 text-center space-y-1">
+            <div className="mt-6 text-center space-y-1 pointer-events-none">
               <p className="text-xs text-muted-foreground">
                 ← Ausente · Presente →
               </p>
