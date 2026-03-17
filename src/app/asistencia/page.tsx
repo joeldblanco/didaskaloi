@@ -577,42 +577,66 @@ const AsistenciaView = () => {
           </p>
         </div>
 
-        {/* Swipeable card area */}
+        {/* Swipeable stacked cards area */}
         <div className="flex-1 flex flex-col items-center justify-center p-4">
-          <div
-            ref={cardRef}
-            className="w-full max-w-sm rounded-2xl shadow-lg p-8 cursor-grab active:cursor-grabbing touch-none bg-card border border-border"
-            style={getCardStyle()}
-            onPointerDown={handlePointerDown}
-            onPointerMove={handlePointerMove}
-            onPointerUp={handlePointerUp}
-          >
-            <div className="text-center">
-              <p className="text-sm text-muted-foreground mb-3">
-                {currentStudentIndex + 1} de {studentsOrdered.length}
-              </p>
-              <h2 className="text-2xl font-bold mb-1 text-foreground">
-                {student.firstName} {student.lastName}
-              </h2>
-              <p className="text-muted-foreground">
-                {student.age != null ? `${student.age} años` : "Sin edad"} ·{" "}
-                {student.gender === "M" ? "Masculino" : "Femenino"}
-              </p>
-              {currentAttendanceRecords[student.id] !== undefined && (
-                <div className="mt-3">
-                  <Badge
-                    className={
-                      currentAttendanceRecords[student.id]
-                        ? "bg-green-500"
-                        : "bg-red-500"
-                    }
-                  >
-                    {currentAttendanceRecords[student.id]
-                      ? "Presente"
-                      : "Ausente"}
-                  </Badge>
-                </div>
-              )}
+          <div className="relative w-full max-w-sm" style={{ height: 220 }}>
+            {/* Background stacked cards (up to 3 behind) */}
+            {[3, 2, 1].map((offset) => {
+              const bgIndex = currentStudentIndex + offset;
+              if (bgIndex >= studentsOrdered.length) return null;
+              // Deterministic pseudo-random rotation per student
+              const seed = studentsOrdered[bgIndex].id.charCodeAt(0) + offset;
+              const rotation = ((seed % 7) - 3) * 1.5; // range roughly -4.5 to 4.5 deg
+              const translateX = ((seed % 5) - 2) * 3; // range roughly -6 to 6 px
+              return (
+                <div
+                  key={studentsOrdered[bgIndex].id}
+                  className="absolute inset-0 rounded-2xl bg-card border border-border shadow-md"
+                  style={{
+                    transform: `rotate(${rotation}deg) translateX(${translateX}px)`,
+                    zIndex: 10 - offset,
+                    opacity: 1 - offset * 0.15,
+                  }}
+                />
+              );
+            })}
+
+            {/* Active top card — swipeable */}
+            <div
+              ref={cardRef}
+              className="absolute inset-0 rounded-2xl shadow-lg p-8 cursor-grab active:cursor-grabbing touch-none bg-card border border-border"
+              style={{ ...getCardStyle(), zIndex: 20 }}
+              onPointerDown={handlePointerDown}
+              onPointerMove={handlePointerMove}
+              onPointerUp={handlePointerUp}
+            >
+              <div className="text-center">
+                <p className="text-sm text-muted-foreground mb-3">
+                  {currentStudentIndex + 1} de {studentsOrdered.length}
+                </p>
+                <h2 className="text-2xl font-bold mb-1 text-foreground">
+                  {student.firstName} {student.lastName}
+                </h2>
+                <p className="text-muted-foreground">
+                  {student.age != null ? `${student.age} años` : "Sin edad"} ·{" "}
+                  {student.gender === "M" ? "Masculino" : "Femenino"}
+                </p>
+                {currentAttendanceRecords[student.id] !== undefined && (
+                  <div className="mt-3">
+                    <Badge
+                      className={
+                        currentAttendanceRecords[student.id]
+                          ? "bg-green-500"
+                          : "bg-red-500"
+                      }
+                    >
+                      {currentAttendanceRecords[student.id]
+                        ? "Presente"
+                        : "Ausente"}
+                    </Badge>
+                  </div>
+                )}
+              </div>
             </div>
           </div>
 
