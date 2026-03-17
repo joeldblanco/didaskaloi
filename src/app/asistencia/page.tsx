@@ -394,6 +394,14 @@ const AsistenciaView = () => {
 
   const SWIPE_THRESHOLD = 80;
 
+  // Deterministic rotation/offset per student — consistent regardless of stack position
+  const getCardTilt = (studentId: string) => {
+    const seed = studentId.charCodeAt(0) + studentId.charCodeAt(studentId.length - 1);
+    const rotation = ((seed % 7) - 3) * 1.2;
+    const tx = ((seed % 5) - 2) * 2.5;
+    return { rotation, tx };
+  };
+
   const handlePointerDown = useCallback((e: React.PointerEvent) => {
     dragStart.current = { x: e.clientX, y: e.clientY, time: Date.now() };
     setIsDragging(true);
@@ -522,6 +530,15 @@ const AsistenciaView = () => {
         transition: "none",
       };
     }
+    // Resting position: use the student's own tilt so there's no snap from background
+    const student = studentsOrdered[currentStudentIndex];
+    if (student) {
+      const { rotation, tx } = getCardTilt(student.id);
+      return {
+        transform: `translateX(${tx}px) rotate(${rotation}deg)`,
+        transition: skipTransition.current ? "none" : "transform 0.35s ease-out",
+      };
+    }
     return {
       transform: "translate(0, 0) rotate(0deg)",
       transition: skipTransition.current ? "none" : "transform 0.35s ease-out",
@@ -594,10 +611,7 @@ const AsistenciaView = () => {
               const bgIndex = currentStudentIndex + offset;
               if (bgIndex >= studentsOrdered.length) return null;
               const bgStudent = studentsOrdered[bgIndex];
-              // Deterministic pseudo-random rotation per student
-              const seed = bgStudent.id.charCodeAt(0) + offset;
-              const rotation = ((seed % 7) - 3) * 1.5;
-              const translateX = ((seed % 5) - 2) * 3;
+              const { rotation, tx: translateX } = getCardTilt(bgStudent.id);
               return (
                 <div
                   key={bgStudent.id}
