@@ -379,7 +379,8 @@ const AsistenciaView = () => {
       if (!isDragging || !dragStart.current) return;
       const dx = e.clientX - dragStart.current.x;
       const dy = e.clientY - dragStart.current.y;
-      setSwipeOffset({ x: dx, y: dy });
+      // Clamp upward movement so the card doesn't move up visually
+      setSwipeOffset({ x: dx, y: Math.max(0, dy) });
     },
     [isDragging]
   );
@@ -573,7 +574,7 @@ const AsistenciaView = () => {
     const isComplete = currentStudentIndex >= studentsOrdered.length;
 
     return (
-      <div className="fixed inset-0 z-40 flex flex-col bg-background overflow-hidden select-none">
+      <div className="fixed inset-0 z-[60] flex flex-col bg-background overflow-hidden select-none">
         {/* Edge flash effects */}
         {edgeFlash === "green" && (
           <div className="absolute inset-y-0 right-0 w-16 z-50 pointer-events-none animate-in fade-in-0 fade-out-0 duration-500 bg-gradient-to-l from-green-400/60 to-transparent" />
