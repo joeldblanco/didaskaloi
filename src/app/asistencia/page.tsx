@@ -31,13 +31,13 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import {
-  createAttendance,
-  deleteAttendance,
-  getAttendance,
-  getAttendances,
-  getClasses,
-  updateAttendanceRecord,
-} from "@/lib/actions";
+  offlineGetClasses,
+  offlineGetAttendances,
+  offlineGetAttendance,
+  offlineCreateAttendance,
+  offlineDeleteAttendance,
+  offlineUpdateAttendanceRecord,
+} from "@/lib/offline-actions";
 import { attendanceSchema, type AttendanceFormValues } from "@/lib/validations";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Attendance, AttendanceRecord, Class, Student } from "@prisma/client";
@@ -117,7 +117,7 @@ const AsistenciaView = () => {
 
       setIsLoading(true);
       try {
-        const data = await getClasses();
+        const data = await offlineGetClasses();
         setClasses(data as ClassWithCount[]);
       } catch (error) {
         console.error("Error loading classes:", error);
@@ -136,7 +136,7 @@ const AsistenciaView = () => {
       const loadAttendances = async () => {
         setIsLoading(true);
         try {
-          const data = await getAttendances(selectedClass.id);
+          const data = await offlineGetAttendances(selectedClass.id);
           setAttendances(data as AttendanceWithRelations[]);
         } catch (error) {
           console.error("Error loading attendances:", error);
@@ -159,12 +159,18 @@ const AsistenciaView = () => {
 
       try {
         // Fetch the full attendance data with all relations
-        const attendanceData = await getAttendance(selectedAttendance.id);
+        const rawAttendanceData = await offlineGetAttendance(selectedAttendance.id);
 
-        if (!attendanceData) {
+        if (!rawAttendanceData) {
           toast.error("Error al cargar los datos de asistencia");
           return;
         }
+
+        // Cast to expected shape
+        const attendanceData = rawAttendanceData as unknown as {
+          class: { students: Student[] };
+          records: (AttendanceRecord & { student: Student })[];
+        };
 
         // Map students with their attendance status
         const students = attendanceData.class.students.map((student) => {
@@ -223,7 +229,7 @@ const AsistenciaView = () => {
       }));
 
       // Save to DB asynchronously — fire and forget
-      updateAttendanceRecord({
+      offlineUpdateAttendanceRecord({
         studentId,
         attendanceId: selectedAttendance.id,
         present,
@@ -242,7 +248,7 @@ const AsistenciaView = () => {
     if (!selectedClass) return;
 
     try {
-      const updatedAttendances = await getAttendances(selectedClass.id);
+      const updatedAttendances = await offlineGetAttendances(selectedClass.id);
       setAttendances(updatedAttendances as AttendanceWithRelations[]);
     } catch (error) {
       console.error("Error refreshing attendance data:", error);
@@ -265,14 +271,17 @@ const AsistenciaView = () => {
   // Handle adding a new attendance
   const onSubmitAddAttendance = async (data: AttendanceFormValues) => {
     try {
-      const result = await createAttendance(data);
+      const result = await offlineCreateAttendance(data);
 
       if (result.success) {
-        toast.success("Asistencia creada correctamente");
+        const message = (result as { offline?: boolean }).offline
+          ? "Asistencia creada (se sincronizará cuando haya conexión)"
+          : "Asistencia creada correctamente";
+        toast.success(message);
         setShowAddAttendanceDialog(false);
 
         // Refresh attendances
-        const updatedAttendances = await getAttendances(selectedClass?.id);
+        const updatedAttendances = await offlineGetAttendances(selectedClass?.id);
         setAttendances(updatedAttendances as AttendanceWithRelations[]);
 
         // If the new attendance has an ID, select it to start taking attendance
@@ -285,7 +294,7 @@ const AsistenciaView = () => {
           }
         }
       } else {
-        toast.error(result.error || "Error al crear la asistencia");
+        toast.error((result as { error?: string }).error || "Error al crear la asistencia");
       }
     } catch (error) {
       console.error("Error creating attendance:", error);
@@ -298,20 +307,23 @@ const AsistenciaView = () => {
     if (!selectedAttendance) return;
 
     try {
-      const result = await deleteAttendance(selectedAttendance.id);
+      const result = await offlineDeleteAttendance(selectedAttendance.id);
 
       if (result.success) {
-        toast.success("Asistencia eliminada correctamente");
+        const message = (result as { offline?: boolean }).offline
+          ? "Asistencia eliminada (se sincronizará cuando haya conexión)"
+          : "Asistencia eliminada correctamente";
+        toast.success(message);
         setShowDeleteAttendanceAlert(false);
 
         // Refresh attendances
-        const updatedAttendances = await getAttendances(selectedClass?.id);
+        const updatedAttendances = await offlineGetAttendances(selectedClass?.id);
         setAttendances(updatedAttendances as AttendanceWithRelations[]);
 
         // Go back to attendances list
         goBackToAttendances();
       } else {
-        toast.error(result.error || "Error al eliminar la asistencia");
+        toast.error((result as { error?: string }).error || "Error al eliminar la asistencia");
       }
     } catch (error) {
       console.error("Error deleting attendance:", error);

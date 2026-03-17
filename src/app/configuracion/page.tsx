@@ -28,11 +28,11 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import {
-  createAgeRange,
-  deleteAgeRange,
-  getAgeRanges,
-  updateAgeRange,
-} from "@/lib/actions";
+  offlineCreateAgeRange,
+  offlineDeleteAgeRange,
+  offlineGetAgeRanges,
+  offlineUpdateAgeRange,
+} from "@/lib/offline-actions";
 import { ageRangeSchema, type AgeRangeFormValues } from "@/lib/validations";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { AgeRange } from "@prisma/client";
@@ -81,10 +81,10 @@ const ConfiguracionView = () => {
       setIsLoadingProject(true);
       try {
         const [ageData, details] = await Promise.all([
-          getAgeRanges(),
-          getProjectDetails(activeProjectId),
+          offlineGetAgeRanges(),
+          getProjectDetails(activeProjectId).catch(() => null),
         ]);
-        setAgeRanges(ageData);
+        setAgeRanges(ageData as AgeRange[]);
         setProjectDetails(details);
       } catch (error) {
         console.error("Error loading data:", error);
@@ -126,25 +126,31 @@ const ConfiguracionView = () => {
 
       if (editingRangeId) {
         // Update existing range
-        result = await updateAgeRange({ ...data, id: editingRangeId });
+        result = await offlineUpdateAgeRange({ ...data, id: editingRangeId });
 
         if (result.success) {
-          toast.success("Rango de edad actualizado correctamente");
+          const message = (result as { offline?: boolean }).offline
+            ? "Rango de edad actualizado (se sincronizará cuando haya conexión)"
+            : "Rango de edad actualizado correctamente";
+          toast.success(message);
           setEditingRangeId(null);
         }
       } else {
         // Create new range
-        result = await createAgeRange(data);
+        result = await offlineCreateAgeRange(data);
 
         if (result.success) {
-          toast.success("Rango de edad creado correctamente");
+          const message = (result as { offline?: boolean }).offline
+            ? "Rango de edad creado (se sincronizará cuando haya conexión)"
+            : "Rango de edad creado correctamente";
+          toast.success(message);
         }
       }
 
       if (result?.success) {
         // Refresh age ranges
-        const updatedRanges = await getAgeRanges();
-        setAgeRanges(updatedRanges);
+        const updatedRanges = await offlineGetAgeRanges();
+        setAgeRanges(updatedRanges as AgeRange[]);
 
         // Reset form
         form.reset({
@@ -153,7 +159,8 @@ const ConfiguracionView = () => {
           maxAge: 0,
         });
       } else {
-        toast.error(result?.error || "Error al guardar el rango de edad");
+        const errorMessage = result && !result.success && "error" in result ? result.error : "Error al guardar el rango de edad";
+        toast.error(errorMessage);
       }
     } catch (error) {
       console.error("Error saving age range:", error);
@@ -164,16 +171,19 @@ const ConfiguracionView = () => {
   // Handle deleting a range
   const handleDeleteRange = async (id: string) => {
     try {
-      const result = await deleteAgeRange(id);
+      const result = await offlineDeleteAgeRange(id);
 
       if (result.success) {
-        toast.success("Rango de edad eliminado correctamente");
+        const message = (result as { offline?: boolean }).offline
+          ? "Rango de edad eliminado (se sincronizará cuando haya conexión)"
+          : "Rango de edad eliminado correctamente";
+        toast.success(message);
 
         // Refresh age ranges
-        const updatedRanges = await getAgeRanges();
-        setAgeRanges(updatedRanges);
+        const updatedRanges = await offlineGetAgeRanges();
+        setAgeRanges(updatedRanges as AgeRange[]);
       } else {
-        toast.error(result.error || "Error al eliminar el rango de edad");
+        toast.error((result as { error?: string }).error || "Error al eliminar el rango de edad");
       }
 
       setShowDeleteAlert(null);

@@ -340,6 +340,28 @@ export async function offlineCreateAttendance(data: AttendanceFormValues): Promi
 export async function offlineUpdateAttendanceRecord(
   data: AttendanceRecordFormValues
 ): Promise<OfflineActionResult> {
+  // Update local cache so attendance data stays consistent offline
+  const cachedAttendances = await getCachedData("attendances");
+  const updatedAttendances = cachedAttendances.map((a) => {
+    if (a.id === data.attendanceId) {
+      const records = (a.records as Array<{ studentId: string; present: boolean; id?: string; attendanceId?: string }>) || [];
+      const existingIndex = records.findIndex((r) => r.studentId === data.studentId);
+      if (existingIndex >= 0) {
+        records[existingIndex] = { ...records[existingIndex], present: data.present };
+      } else {
+        records.push({
+          id: `temp_record_${Date.now()}`,
+          studentId: data.studentId,
+          attendanceId: data.attendanceId,
+          present: data.present,
+        });
+      }
+      return { ...a, records };
+    }
+    return a;
+  });
+  await cacheData("attendances", updatedAttendances);
+
   await addPendingAction("update", "attendanceRecord", data);
 
   if (isOnline()) {
@@ -519,6 +541,56 @@ export async function offlineGetAttendances(classId?: string) {
     }
 
     return cachedAttendances;
+  }
+}
+
+/**
+ * Get a single attendance by ID with offline fallback
+ * Returns attendance with class (including students) and records
+ */
+export async function offlineGetAttendance(id: string) {
+  try {
+    const { getAttendance } = await import("./actions");
+    const attendance = await getAttendance(id);
+
+    // If we got data, update the attendances cache with this record
+    if (attendance) {
+      const cachedAttendances = await getCachedData("attendances");
+      const existingIndex = cachedAttendances.findIndex((a) => a.id === id);
+      if (existingIndex >= 0) {
+        cachedAttendances[existingIndex] = attendance as unknown as { id: string; [key: string]: unknown };
+      } else {
+        cachedAttendances.push(attendance as unknown as { id: string; [key: string]: unknown });
+      }
+      await cacheData("attendances", cachedAttendances);
+    }
+
+    return attendance;
+  } catch {
+    console.log("Using cached attendance (offline mode)");
+    const cachedAttendances = await getCachedData("attendances");
+    const attendance = cachedAttendances.find((a) => a.id === id);
+
+    if (!attendance) return null;
+
+    // If cached attendance doesn't have full relations, try to build them
+    // from cached students data
+    if (!attendance.class || !(attendance.class as { students?: unknown[] }).students) {
+      const cachedStudents = await getCachedData("students");
+      const classId = attendance.classId as string;
+      const cachedClasses = await getCachedData("classes");
+      const classData = cachedClasses.find((c) => c.id === classId);
+
+      if (classData) {
+        const classStudents = cachedStudents.filter((s) => s.classId === classId);
+        attendance.class = {
+          ...classData,
+          students: classStudents,
+        };
+      }
+    }
+
+    return attendance;
   }
 }
 

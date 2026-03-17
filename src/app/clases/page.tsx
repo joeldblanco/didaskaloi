@@ -31,11 +31,11 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import {
-  createClass,
-  deleteClass,
-  updateClass,
-} from "@/lib/actions";
-import { offlineGetClasses } from "@/lib/offline-actions";
+  offlineGetClasses,
+  offlineCreateClass,
+  offlineUpdateClass,
+  offlineDeleteClass,
+} from "@/lib/offline-actions";
 import { classSchema, type ClassFormValues } from "@/lib/validations";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Class } from "@prisma/client";
@@ -132,15 +132,18 @@ const ClasesView = () => {
     }
 
     try {
-      const result = await createClass(data, activeProjectId);
+      const result = await offlineCreateClass(data);
       if (result.success) {
-        toast.success("Clase creada correctamente");
+        const message = (result as { offline?: boolean }).offline
+          ? "Clase creada (se sincronizará cuando haya conexión)"
+          : "Clase creada correctamente";
+        toast.success(message);
         setShowAddClassDialog(false);
         // Refresh classes
         const updatedClasses = await offlineGetClasses();
         setClasses(updatedClasses as ClassWithStudentCount[]);
       } else {
-        toast.error(result.error || "Error al crear la clase");
+        toast.error((result as { error?: string }).error || "Error al crear la clase");
       }
     } catch (error) {
       console.error("Error creating class:", error);
@@ -151,15 +154,18 @@ const ClasesView = () => {
   // Submit handler for updating a class
   const onSubmitUpdate = async (data: ClassFormValues) => {
     try {
-      const result = await updateClass(data);
+      const result = await offlineUpdateClass(data);
       if (result.success) {
-        toast.success("Clase actualizada correctamente");
+        const message = (result as { offline?: boolean }).offline
+          ? "Clase actualizada (se sincronizará cuando haya conexión)"
+          : "Clase actualizada correctamente";
+        toast.success(message);
         setShowEditClassDialog(false);
         // Refresh classes
         const updatedClasses = await offlineGetClasses();
         setClasses(updatedClasses as ClassWithStudentCount[]);
       } else {
-        toast.error(result.error || "Error al actualizar la clase");
+        toast.error((result as { error?: string }).error || "Error al actualizar la clase");
       }
     } catch (error) {
       console.error("Error updating class:", error);
@@ -174,8 +180,13 @@ const ClasesView = () => {
     setShowDeleteAlert(false);
 
     try {
-      await deleteClass(classToDelete);
-      toast.success("Clase eliminada correctamente");
+      const result = await offlineDeleteClass(classToDelete);
+      if (result.success) {
+        const message = (result as { offline?: boolean }).offline
+          ? "Clase eliminada (se sincronizará cuando haya conexión)"
+          : "Clase eliminada correctamente";
+        toast.success(message);
+      }
 
       // Refresh classes
       const updatedClasses = await offlineGetClasses();
