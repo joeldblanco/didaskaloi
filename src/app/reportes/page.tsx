@@ -15,8 +15,6 @@ import { ChevronLeft, Loader2, LayoutGrid, User, Users, Download, FileSpreadshee
 import { useEffect, useState, useCallback } from "react";
 import { exportReportToPDF, exportReportToExcel } from "@/lib/export-utils";
 import { useProject } from "@/contexts/project-context";
-import { getUserProjects } from "@/lib/project-actions";
-import { ProjectSelector } from "@/components/project-selector";
 import {
   Bar,
   BarChart,
@@ -77,7 +75,6 @@ interface ReportData {
 
 const ReportesView = () => {
   const { activeProjectId } = useProject();
-  const [projects, setProjects] = useState<Array<{ id: string; name: string; role: string }>>([]);
   const [classes, setClasses] = useState<ClassWithCount[]>([]);
   const [students, setStudents] = useState<ExtendedStudent[]>([]);
   const [ageRanges, setAgeRanges] = useState<AgeRange[]>([]);
@@ -85,19 +82,6 @@ const ReportesView = () => {
   const [isGeneralReport, setIsGeneralReport] = useState(false);
   const [reportData, setReportData] = useState<ReportData | null>(null);
   const [isLoading, setIsLoading] = useState(true);
-
-  // Load projects when component mounts
-  useEffect(() => {
-    const loadProjects = async () => {
-      try {
-        const userProjects = await getUserProjects();
-        setProjects(userProjects.map(p => ({ id: p.id, name: p.name, role: p.role || "VIEWER" })));
-      } catch (error) {
-        console.error("Error loading projects:", error);
-      }
-    };
-    loadProjects();
-  }, []);
 
   // Load initial data when component mounts or project changes
   useEffect(() => {
@@ -760,12 +744,6 @@ const ReportesView = () => {
   return (
     <div className="p-4">
       <h1 className="text-xl font-bold mb-4">Reportes</h1>
-
-      {projects.length > 0 && (
-        <div className="mb-4">
-          <ProjectSelector projects={projects} />
-        </div>
-      )}
 
       {!activeProjectId ? (
         <div className="text-center py-8">

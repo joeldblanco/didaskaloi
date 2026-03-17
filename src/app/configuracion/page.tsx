@@ -42,14 +42,12 @@ import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { useProject } from "@/contexts/project-context";
-import { getUserProjects, getProjectDetails } from "@/lib/project-actions";
-import { ProjectSelector } from "@/components/project-selector";
+import { getProjectDetails } from "@/lib/project-actions";
 import { ProjectMembersSection } from "@/components/project-members-section";
 import { ProjectInviteCodesSection } from "@/components/project-invite-codes-section";
 
 const ConfiguracionView = () => {
   const { activeProjectId } = useProject();
-  const [projects, setProjects] = useState<Array<{ id: string; name: string; role: string }>>([]);
   const [ageRanges, setAgeRanges] = useState<AgeRange[]>([]);
   const [editingRangeId, setEditingRangeId] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -67,19 +65,6 @@ const ConfiguracionView = () => {
       maxAge: 0,
     },
   });
-
-  // Load projects when component mounts
-  useEffect(() => {
-    const loadProjects = async () => {
-      try {
-        const userProjects = await getUserProjects();
-        setProjects(userProjects.map(p => ({ id: p.id, name: p.name, role: p.role || "VIEWER" })));
-      } catch (error) {
-        console.error("Error loading projects:", error);
-      }
-    };
-    loadProjects();
-  }, []);
 
   // Load age ranges and project details when component mounts or project changes
   useEffect(() => {
@@ -211,12 +196,6 @@ const ConfiguracionView = () => {
   return (
     <div className="p-4">
       <h1 className="text-xl font-bold mb-4">Configuración</h1>
-
-      {projects.length > 0 && (
-        <div className="mb-4">
-          <ProjectSelector projects={projects} />
-        </div>
-      )}
 
       {!activeProjectId ? (
         <div className="text-center py-8">

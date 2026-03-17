@@ -61,8 +61,6 @@ import { toast } from "sonner";
 import ImportStudentsDialog from "@/components/import-students-dialog";
 import { exportStudentsToExcel } from "@/lib/export-utils";
 import { useProject } from "@/contexts/project-context";
-import { getUserProjects } from "@/lib/project-actions";
-import { ProjectSelector } from "@/components/project-selector";
 
 interface ClassWithCount extends Class {
   _count: {
@@ -77,7 +75,6 @@ interface ExtendedStudent extends Student {
 
 const EstudiantesView = () => {
   const { activeProjectId } = useProject();
-  const [projects, setProjects] = useState<Array<{ id: string; name: string; role: string }>>([]);
   const [students, setStudents] = useState<ExtendedStudent[]>([]);
   const [classes, setClasses] = useState<ClassWithCount[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -98,23 +95,10 @@ const EstudiantesView = () => {
       firstName: "",
       lastName: "",
       gender: "M",
-      age: 18,
+      age: undefined,
       classId: undefined,
     },
   });
-
-  // Load projects when component mounts
-  useEffect(() => {
-    const loadProjects = async () => {
-      try {
-        const userProjects = await getUserProjects();
-        setProjects(userProjects.map(p => ({ id: p.id, name: p.name, role: p.role || "VIEWER" })));
-      } catch (error) {
-        console.error("Error loading projects:", error);
-      }
-    };
-    loadProjects();
-  }, []);
 
   // Load data when component mounts or project changes
   useEffect(() => {
@@ -179,7 +163,7 @@ const EstudiantesView = () => {
       firstName: "",
       lastName: "",
       gender: "M",
-      age: 18,
+      age: undefined,
       classId: undefined,
     });
     setSelectedStudent(null);
@@ -193,7 +177,7 @@ const EstudiantesView = () => {
       firstName: student.firstName,
       lastName: student.lastName,
       gender: student.gender,
-      age: student.age,
+      age: student.age ?? undefined,
       classId: student.classId,
     });
     setSelectedStudent(student);
@@ -441,16 +425,21 @@ const EstudiantesView = () => {
             <FormField
               control={form.control}
               name="age"
-              render={({ field }) => (
+              render={({ field: { value, ...fieldRest } }) => (
                 <FormItem>
                   <FormLabel>Edad</FormLabel>
                   <FormControl>
                     <Input
                       type="number"
-                      min={5}
+                      min={1}
                       max={100}
-                      {...field}
-                      onChange={(e) => field.onChange(parseInt(e.target.value))}
+                      placeholder="Edad del estudiante"
+                      {...fieldRest}
+                      value={value ?? ""}
+                      onChange={(e) => {
+                        const val = e.target.value;
+                        fieldRest.onChange(val === "" ? "" : parseInt(val) || "");
+                      }}
                     />
                   </FormControl>
                   <FormMessage />
@@ -528,12 +517,6 @@ const EstudiantesView = () => {
           </Button>
         </div>
       </div>
-
-      {projects.length > 0 && (
-        <div className="mb-4">
-          <ProjectSelector projects={projects} />
-        </div>
-      )}
 
       {!activeProjectId ? (
         <div className="text-center py-8">
@@ -672,7 +655,7 @@ const EstudiantesView = () => {
                     )}
                   </div>
                   <p className="text-sm text-gray-500">
-                    {student.age} años ·{" "}
+                    {student.age != null ? `${student.age} años` : "Sin edad"} ·{" "}
                     {student.gender === "M" ? "Masculino" : "Femenino"}
                   </p>
                   <div className="flex items-center text-xs text-gray-500 mt-1">

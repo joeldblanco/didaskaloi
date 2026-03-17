@@ -3,8 +3,7 @@ import { auth } from "@/lib/auth";
 import { getUserProjects } from "@/lib/project-actions";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
-import { Plus, Users, BookOpen, LogOut } from "lucide-react";
-import { signOut } from "@/lib/auth";
+import { Plus, Users, BookOpen } from "lucide-react";
 
 export default async function ProyectosPage() {
   const session = await auth();
@@ -28,17 +27,6 @@ export default async function ProyectosPage() {
               Bienvenido, {session.user.name}
             </p>
           </div>
-          <form
-            action={async () => {
-              "use server";
-              await signOut({ redirectTo: "/auth/login" });
-            }}
-          >
-            <Button variant="outline" type="submit">
-              <LogOut className="mr-2 h-4 w-4" />
-              Cerrar Sesión
-            </Button>
-          </form>
         </div>
 
         {/* Actions */}

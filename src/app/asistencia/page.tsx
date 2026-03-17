@@ -57,8 +57,6 @@ import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { useProject } from "@/contexts/project-context";
-import { getUserProjects } from "@/lib/project-actions";
-import { ProjectSelector } from "@/components/project-selector";
 
 // Extended types for our data with relations
 interface ClassWithCount extends Class {
@@ -78,7 +76,6 @@ interface StudentAttendanceData extends Student {
 
 const AsistenciaView = () => {
   const { activeProjectId } = useProject();
-  const [projects, setProjects] = useState<Array<{ id: string; name: string; role: string }>>([]);
   const [classes, setClasses] = useState<ClassWithCount[]>([]);
   const [attendances, setAttendances] = useState<AttendanceWithRelations[]>([]);
   const [selectedClass, setSelectedClass] = useState<Class | null>(null);
@@ -108,19 +105,6 @@ const AsistenciaView = () => {
       classId: undefined,
     },
   });
-
-  // Load projects when component mounts
-  useEffect(() => {
-    const loadProjects = async () => {
-      try {
-        const userProjects = await getUserProjects();
-        setProjects(userProjects.map(p => ({ id: p.id, name: p.name, role: p.role || "VIEWER" })));
-      } catch (error) {
-        console.error("Error loading projects:", error);
-      }
-    };
-    loadProjects();
-  }, []);
 
   // Load classes when component mounts or project changes
   useEffect(() => {
@@ -664,12 +648,6 @@ const AsistenciaView = () => {
   return (
     <div className="p-4">
       <h1 className="text-xl font-bold mb-4">Registro de Asistencia</h1>
-
-      {projects.length > 0 && (
-        <div className="mb-4">
-          <ProjectSelector projects={projects} />
-        </div>
-      )}
 
       {!activeProjectId ? (
         <div className="text-center py-8">

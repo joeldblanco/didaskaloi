@@ -1,9 +1,11 @@
 "use client";
 
-import React from "react";
+import React, { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useProject } from "@/contexts/project-context";
+import { ChevronLeft, Menu } from "lucide-react";
+import { AppSheet } from "@/components/app-sheet";
 
 interface NavItem {
   name: string;
@@ -14,27 +16,7 @@ interface NavItem {
 const BottomNavigation = () => {
   const pathname = usePathname();
   const { activeProjectId } = useProject();
-
-  const homeItem: NavItem = {
-    name: "Inicio",
-    path: "/proyectos",
-    icon: (
-      <svg
-        xmlns="http://www.w3.org/2000/svg"
-        width="20"
-        height="20"
-        viewBox="0 0 24 24"
-        fill="none"
-        stroke="currentColor"
-        strokeWidth="2"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      >
-        <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
-        <polyline points="9 22 9 12 15 12 15 22"></polyline>
-      </svg>
-    ),
-  };
+  const [sheetOpen, setSheetOpen] = useState(false);
 
   const projectItems: NavItem[] = [
     {
@@ -144,37 +126,64 @@ const BottomNavigation = () => {
     },
   ];
 
-  const navItems = activeProjectId ? [homeItem, ...projectItems] : [homeItem];
-
   // Don't show bottom navigation on auth pages or project selection pages
   if (pathname.startsWith("/auth") || pathname.startsWith("/proyectos")) {
     return null;
   }
 
+  const navItems = activeProjectId ? projectItems : [];
+
   return (
-    <div className="fixed bottom-0 left-0 right-0 z-50 bg-gray-900 border-t border-gray-700 shadow-lg">
-      <div className="flex justify-around items-center h-16">
-        {navItems.map((item) => {
-          const isActive =
-            pathname === item.path ||
-            (pathname === "/" && item.path === "/clases");
-          return (
-            <Link
-              key={item.name}
-              href={item.path}
-              className={`flex flex-col items-center justify-center w-full h-full ${
-                isActive ? "text-blue-400" : "text-gray-400 hover:text-blue-300"
-              }`}
-            >
-              <div className="flex items-center justify-center">
-                {item.icon}
-              </div>
-              <span className="text-xs mt-1">{item.name}</span>
-            </Link>
-          );
-        })}
+    <>
+      <AppSheet open={sheetOpen} onOpenChange={setSheetOpen} />
+      <div className="fixed bottom-0 left-0 right-0 z-50 bg-gray-900 border-t border-gray-700 shadow-lg">
+        <div className="flex justify-around items-center h-16">
+          {/* Back to Projects */}
+          <Link
+            href="/proyectos"
+            className="flex flex-col items-center justify-center w-full h-full text-gray-400 hover:text-blue-300"
+          >
+            <div className="flex items-center justify-center">
+              <ChevronLeft size={20} />
+            </div>
+            <span className="text-xs mt-1">Proyectos</span>
+          </Link>
+
+          {navItems.map((item) => {
+            const isActive =
+              pathname === item.path ||
+              (pathname === "/" && item.path === "/clases");
+            return (
+              <Link
+                key={item.name}
+                href={item.path}
+                className={`flex flex-col items-center justify-center w-full h-full ${
+                  isActive
+                    ? "text-blue-400"
+                    : "text-gray-400 hover:text-blue-300"
+                }`}
+              >
+                <div className="flex items-center justify-center">
+                  {item.icon}
+                </div>
+                <span className="text-xs mt-1">{item.name}</span>
+              </Link>
+            );
+          })}
+
+          {/* Menu / Sheet trigger */}
+          <button
+            onClick={() => setSheetOpen(true)}
+            className="flex flex-col items-center justify-center w-full h-full text-gray-400 hover:text-blue-300"
+          >
+            <div className="flex items-center justify-center">
+              <Menu size={20} />
+            </div>
+            <span className="text-xs mt-1">Menú</span>
+          </button>
+        </div>
       </div>
-    </div>
+    </>
   );
 };
 
