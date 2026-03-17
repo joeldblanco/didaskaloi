@@ -3,6 +3,7 @@
 import React from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useProject } from "@/contexts/project-context";
 
 interface NavItem {
   name: string;
@@ -12,28 +13,30 @@ interface NavItem {
 
 const BottomNavigation = () => {
   const pathname = usePathname();
+  const { activeProjectId } = useProject();
 
-  const navItems: NavItem[] = [
-    {
-      name: "Inicio",
-      path: "/proyectos",
-      icon: (
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          width="20"
-          height="20"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth="2"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-        >
-          <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
-          <polyline points="9 22 9 12 15 12 15 22"></polyline>
-        </svg>
-      ),
-    },
+  const homeItem: NavItem = {
+    name: "Inicio",
+    path: "/proyectos",
+    icon: (
+      <svg
+        xmlns="http://www.w3.org/2000/svg"
+        width="20"
+        height="20"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      >
+        <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+        <polyline points="9 22 9 12 15 12 15 22"></polyline>
+      </svg>
+    ),
+  };
+
+  const projectItems: NavItem[] = [
     {
       name: "Clases",
       path: "/clases",
@@ -141,8 +144,10 @@ const BottomNavigation = () => {
     },
   ];
 
-  // Don't show bottom navigation on auth pages
-  if (pathname.startsWith("/auth")) {
+  const navItems = activeProjectId ? [homeItem, ...projectItems] : [homeItem];
+
+  // Don't show bottom navigation on auth pages or project selection pages
+  if (pathname.startsWith("/auth") || pathname.startsWith("/proyectos")) {
     return null;
   }
 
