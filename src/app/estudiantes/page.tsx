@@ -45,6 +45,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { Class, Student } from "@prisma/client";
 import {
   AlertCircle,
+  ChevronLeft,
   ChevronRight,
   Filter,
   Loader2,
@@ -55,6 +56,7 @@ import {
   Download,
   AlertTriangle,
 } from "lucide-react";
+import Link from "next/link";
 import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
@@ -493,6 +495,12 @@ const EstudiantesView = () => {
   // Students list view
   return (
     <div className="p-4">
+      <Button variant="link" asChild className="p-0 h-auto mb-2 text-muted-foreground">
+        <Link href="/proyectos">
+          <ChevronLeft size={16} />
+          Volver a Proyectos
+        </Link>
+      </Button>
       <div className="flex justify-between items-center mb-4">
         <h1 className="text-xl font-bold">Estudiantes</h1>
         <div className="flex gap-2">

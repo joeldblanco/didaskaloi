@@ -53,6 +53,7 @@ import {
   Plus,
   X,
 } from "lucide-react";
+import Link from "next/link";
 import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
@@ -647,6 +648,12 @@ const AsistenciaView = () => {
   // Classes list view (default)
   return (
     <div className="p-4">
+      <Button variant="link" asChild className="p-0 h-auto mb-2 text-muted-foreground">
+        <Link href="/proyectos">
+          <ChevronLeft size={16} />
+          Volver a Proyectos
+        </Link>
+      </Button>
       <h1 className="text-xl font-bold mb-4">Registro de Asistencia</h1>
 
       {!activeProjectId ? (

@@ -1,11 +1,9 @@
 "use client";
 
-import React, { useState } from "react";
+import React from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useProject } from "@/contexts/project-context";
-import { ChevronLeft, Menu } from "lucide-react";
-import { AppSheet } from "@/components/app-sheet";
 
 interface NavItem {
   name: string;
@@ -16,7 +14,6 @@ interface NavItem {
 const BottomNavigation = () => {
   const pathname = usePathname();
   const { activeProjectId } = useProject();
-  const [sheetOpen, setSheetOpen] = useState(false);
 
   const projectItems: NavItem[] = [
     {
@@ -134,56 +131,31 @@ const BottomNavigation = () => {
   const navItems = activeProjectId ? projectItems : [];
 
   return (
-    <>
-      <AppSheet open={sheetOpen} onOpenChange={setSheetOpen} />
-      <div className="fixed bottom-0 left-0 right-0 z-50 bg-gray-900 border-t border-gray-700 shadow-lg">
-        <div className="flex justify-around items-center h-16">
-          {/* Back to Projects */}
-          <Link
-            href="/proyectos"
-            className="flex flex-col items-center justify-center w-full h-full text-gray-400 hover:text-blue-300"
-          >
-            <div className="flex items-center justify-center">
-              <ChevronLeft size={20} />
-            </div>
-            <span className="text-xs mt-1">Proyectos</span>
-          </Link>
-
-          {navItems.map((item) => {
-            const isActive =
-              pathname === item.path ||
-              (pathname === "/" && item.path === "/clases");
-            return (
-              <Link
-                key={item.name}
-                href={item.path}
-                className={`flex flex-col items-center justify-center w-full h-full ${
-                  isActive
-                    ? "text-blue-400"
-                    : "text-gray-400 hover:text-blue-300"
-                }`}
-              >
-                <div className="flex items-center justify-center">
-                  {item.icon}
-                </div>
-                <span className="text-xs mt-1">{item.name}</span>
-              </Link>
-            );
-          })}
-
-          {/* Menu / Sheet trigger */}
-          <button
-            onClick={() => setSheetOpen(true)}
-            className="flex flex-col items-center justify-center w-full h-full text-gray-400 hover:text-blue-300"
-          >
-            <div className="flex items-center justify-center">
-              <Menu size={20} />
-            </div>
-            <span className="text-xs mt-1">Menú</span>
-          </button>
-        </div>
+    <div className="fixed bottom-0 left-0 right-0 z-50 bg-gray-900 border-t border-gray-700 shadow-lg">
+      <div className="flex justify-around items-center h-16">
+        {navItems.map((item) => {
+          const isActive =
+            pathname === item.path ||
+            (pathname === "/" && item.path === "/clases");
+          return (
+            <Link
+              key={item.name}
+              href={item.path}
+              className={`flex flex-col items-center justify-center w-full h-full ${
+                isActive
+                  ? "text-blue-400"
+                  : "text-gray-400 hover:text-blue-300"
+              }`}
+            >
+              <div className="flex items-center justify-center">
+                {item.icon}
+              </div>
+              <span className="text-xs mt-1">{item.name}</span>
+            </Link>
+          );
+        })}
       </div>
-    </>
+    </div>
   );
 };
 

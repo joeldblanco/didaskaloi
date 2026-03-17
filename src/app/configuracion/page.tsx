@@ -36,7 +36,8 @@ import {
 import { ageRangeSchema, type AgeRangeFormValues } from "@/lib/validations";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { AgeRange } from "@prisma/client";
-import { CheckCircle, Edit, Loader2, Plus, Save, Trash, Users, KeyRound } from "lucide-react";
+import { CheckCircle, ChevronLeft, Edit, Loader2, Plus, Save, Trash, Users, KeyRound } from "lucide-react";
+import Link from "next/link";
 import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
@@ -195,6 +196,12 @@ const ConfiguracionView = () => {
 
   return (
     <div className="p-4">
+      <Button variant="link" asChild className="p-0 h-auto mb-2 text-muted-foreground">
+        <Link href="/proyectos">
+          <ChevronLeft size={16} />
+          Volver a Proyectos
+        </Link>
+      </Button>
       <h1 className="text-xl font-bold mb-4">Configuración</h1>
 
       {!activeProjectId ? (

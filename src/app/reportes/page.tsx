@@ -12,6 +12,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { offlineGetAgeRanges, offlineGetClasses, offlineGetStudents } from "@/lib/offline-actions";
 import { AgeRange, Class, Student } from "@prisma/client";
 import { ChevronLeft, Loader2, LayoutGrid, User, Users, Download, FileSpreadsheet } from "lucide-react";
+import Link from "next/link";
 import { useEffect, useState, useCallback } from "react";
 import { exportReportToPDF, exportReportToExcel } from "@/lib/export-utils";
 import { useProject } from "@/contexts/project-context";
@@ -743,6 +744,12 @@ const ReportesView = () => {
   // Class selection view
   return (
     <div className="p-4">
+      <Button variant="link" asChild className="p-0 h-auto mb-2 text-muted-foreground">
+        <Link href="/proyectos">
+          <ChevronLeft size={16} />
+          Volver a Proyectos
+        </Link>
+      </Button>
       <h1 className="text-xl font-bold mb-4">Reportes</h1>
 
       {!activeProjectId ? (
@@ -770,7 +777,7 @@ const ReportesView = () => {
         <div className="space-y-3">
           {/* General report option */}
           <Card
-            className="cursor-pointer hover:bg-gray-50 border-2 border-blue-200 bg-blue-50"
+            className="cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800 border-2 border-blue-200 dark:border-blue-800 bg-blue-50 dark:bg-blue-950"
             onClick={handleViewGeneralReport}
           >
             <CardContent className="p-4">

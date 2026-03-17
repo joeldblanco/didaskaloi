@@ -39,7 +39,8 @@ import { offlineGetClasses } from "@/lib/offline-actions";
 import { classSchema, type ClassFormValues } from "@/lib/validations";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Class } from "@prisma/client";
-import { Edit, Loader2, Plus, Search, Trash } from "lucide-react";
+import { ChevronLeft, Edit, Loader2, Plus, Search, Trash } from "lucide-react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
@@ -190,6 +191,12 @@ const ClasesView = () => {
 
   return (
     <div className="p-4">
+      <Button variant="link" asChild className="p-0 h-auto mb-2 text-muted-foreground">
+        <Link href="/proyectos">
+          <ChevronLeft size={16} />
+          Volver a Proyectos
+        </Link>
+      </Button>
       <div className="flex justify-between items-center mb-4">
         <h1 className="text-xl font-bold">Mis Clases</h1>
       </div>

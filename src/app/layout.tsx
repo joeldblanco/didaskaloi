@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import BottomNavigation from "@/components/bottom-navigation";
+import { AppHeader } from "@/components/app-header";
 import { SessionProvider } from "next-auth/react";
 import { ThemeProvider } from "@/components/theme-provider";
 import { Toaster } from "sonner";
@@ -65,6 +66,7 @@ export default function RootLayout({
             <ProjectProvider>
               <OfflineSyncProvider>
                 <OfflineIndicator />
+                <AppHeader />
                 <main className="pb-16 h-full">{children}</main>
                 <BottomNavigation />
                 <Toaster position="top-center" richColors />
