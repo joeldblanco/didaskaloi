@@ -357,9 +357,8 @@ const ReportesView = () => {
         </div>
 
         <Accordion
-          type="single"
-          collapsible
-          defaultValue="gender"
+          type="multiple"
+          defaultValue={["gender", "ageGender", "attendance", "age", "attendanceByAge", "classesSummary"]}
           className="space-y-4"
         >
           {/* Gender Distribution Section */}
