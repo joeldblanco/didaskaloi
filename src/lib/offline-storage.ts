@@ -40,6 +40,10 @@ interface DidaskaloidDB extends DBSchema {
     key: string;
     value: CachedData;
   };
+  projects: {
+    key: string;
+    value: CachedData;
+  };
 }
 
 let db: IDBPDatabase<DidaskaloidDB> | null = null;
@@ -47,7 +51,7 @@ let db: IDBPDatabase<DidaskaloidDB> | null = null;
 export async function initDB() {
   if (db) return db;
 
-  db = await openDB<DidaskaloidDB>("didaskaloi-db", 2, {
+  db = await openDB<DidaskaloidDB>("didaskaloi-db", 3, {
     async upgrade(db, oldVersion, newVersion, transaction) {
       // Store para acciones pendientes de sincronización
       if (!db.objectStoreNames.contains("pendingActions")) {
@@ -87,6 +91,9 @@ export async function initDB() {
       }
       if (!db.objectStoreNames.contains("ageRanges")) {
         db.createObjectStore("ageRanges", { keyPath: "id" });
+      }
+      if (!db.objectStoreNames.contains("projects")) {
+        db.createObjectStore("projects", { keyPath: "id" });
       }
     },
   });
@@ -152,7 +159,7 @@ export async function cleanOldSyncedActions(daysOld = 7) {
 
 // Caché de datos
 export async function cacheData(
-  store: "classes" | "students" | "attendances" | "ageRanges",
+  store: "classes" | "students" | "attendances" | "ageRanges" | "projects",
   data: CachedData[]
 ) {
   const database = await initDB();
@@ -166,14 +173,14 @@ export async function cacheData(
 }
 
 export async function getCachedData(
-  store: "classes" | "students" | "attendances" | "ageRanges"
+  store: "classes" | "students" | "attendances" | "ageRanges" | "projects"
 ): Promise<CachedData[]> {
   const database = await initDB();
   return await database.getAll(store);
 }
 
 export async function clearCache(
-  store: "classes" | "students" | "attendances" | "ageRanges"
+  store: "classes" | "students" | "attendances" | "ageRanges" | "projects"
 ) {
   const database = await initDB();
   await database.clear(store);
@@ -185,4 +192,5 @@ export async function clearAllCache() {
   await database.clear("students");
   await database.clear("attendances");
   await database.clear("ageRanges");
+  await database.clear("projects");
 }

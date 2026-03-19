@@ -394,6 +394,27 @@ export async function offlineDeleteAttendance(id: string): Promise<OfflineAction
   return { success: true, offline: true };
 }
 
+// ============ PROJECT READ OPERATIONS ============
+
+/**
+ * Get user projects with offline fallback
+ */
+export async function offlineGetProjects() {
+  try {
+    const { getUserProjects } = await import("./project-actions");
+    const projects = await getUserProjects();
+
+    // Update cache with fresh data
+    await cacheData("projects", projects as unknown as { id: string; [key: string]: unknown }[]);
+
+    return projects;
+  } catch {
+    console.log("Using cached projects (offline mode)");
+    const cachedProjects = await getCachedData("projects");
+    return cachedProjects;
+  }
+}
+
 // ============ CACHE INITIALIZATION ============
 
 export async function initializeCache() {
@@ -404,13 +425,15 @@ export async function initializeCache() {
     if (isOnline()) {
       // Importar dinámicamente para evitar problemas con server actions
       const { getClasses, getStudents, getAgeRanges, getAttendances } = await import("./actions");
+      const { getUserProjects } = await import("./project-actions");
 
       try {
-        const [classes, students, ageRanges, attendances] = await Promise.all([
+        const [classes, students, ageRanges, attendances, projects] = await Promise.all([
           getClasses(),
           getStudents(),
           getAgeRanges(),
           getAttendances(),
+          getUserProjects(),
         ]);
 
         await Promise.all([
@@ -418,6 +441,7 @@ export async function initializeCache() {
           cacheData("students", students as unknown as { id: string; [key: string]: unknown }[]),
           cacheData("ageRanges", ageRanges as unknown as { id: string; [key: string]: unknown }[]),
           cacheData("attendances", attendances as unknown as { id: string; [key: string]: unknown }[]),
+          cacheData("projects", projects as unknown as { id: string; [key: string]: unknown }[]),
         ]);
       } catch (error) {
         console.error("Error loading fresh data:", error);

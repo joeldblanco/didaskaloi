@@ -8,6 +8,12 @@ export default auth((req) => {
   // Public paths that don't require authentication
   const isAuthPage = pathname.startsWith("/auth");
   const isApiAuth = pathname.startsWith("/api/auth");
+  const isOfflinePage = pathname.startsWith("/_offline");
+
+  // Always allow offline fallback page
+  if (isOfflinePage) {
+    return NextResponse.next();
+  }
 
   // Redirect logged-in users away from auth pages
   if (isLoggedIn && isAuthPage) {

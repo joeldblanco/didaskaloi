@@ -10,22 +10,38 @@ const pwaConfig = withPWA({
   register: true,
   skipWaiting: true,
   disable: process.env.NODE_ENV === "development",
+  fallbacks: {
+    document: "/_offline",
+  },
   runtimeCaching: [
     {
-      // Cache page navigations (documents)
-      urlPattern: /^https?.*\/$/,
+      // Cache all page navigations (with and without trailing slash)
+      urlPattern: /^https?:\/\/[^/]+\/(clases|estudiantes|asistencia|reportes|configuracion|proyectos|auth)(\/.*)?$/,
       handler: "NetworkFirst",
       options: {
         cacheName: "pages-cache",
         expiration: {
-          maxEntries: 32,
-          maxAgeSeconds: 24 * 60 * 60, // 24 hours
+          maxEntries: 64,
+          maxAgeSeconds: 30 * 24 * 60 * 60, // 30 days
         },
-        networkTimeoutSeconds: 3, // Fall back to cache after 3 seconds
+        networkTimeoutSeconds: 3,
       },
     },
     {
-      // Cache API routes and server actions with CacheFirst strategy
+      // Cache the root/home page
+      urlPattern: /^https?:\/\/[^/]+\/$/,
+      handler: "NetworkFirst",
+      options: {
+        cacheName: "pages-cache",
+        expiration: {
+          maxEntries: 64,
+          maxAgeSeconds: 30 * 24 * 60 * 60, // 30 days
+        },
+        networkTimeoutSeconds: 3,
+      },
+    },
+    {
+      // Cache API routes and server actions
       urlPattern: /^https?.*\/_next\/data\/.*/,
       handler: "NetworkFirst",
       options: {
@@ -34,7 +50,7 @@ const pwaConfig = withPWA({
           maxEntries: 32,
           maxAgeSeconds: 24 * 60 * 60, // 24 hours
         },
-        networkTimeoutSeconds: 3, // Fall back to cache after 3 seconds
+        networkTimeoutSeconds: 3,
       },
     },
     {
@@ -71,7 +87,7 @@ const pwaConfig = withPWA({
           maxEntries: 128,
           maxAgeSeconds: 24 * 60 * 60, // 24 hours
         },
-        networkTimeoutSeconds: 3, // Fall back to cache after 3 seconds
+        networkTimeoutSeconds: 3,
       },
     },
   ],

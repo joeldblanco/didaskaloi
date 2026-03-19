@@ -6,6 +6,13 @@ declare module 'next-pwa' {
     register?: boolean;
     skipWaiting?: boolean;
     disable?: boolean;
+    fallbacks?: {
+      document?: string;
+      image?: string;
+      audio?: string;
+      video?: string;
+      font?: string;
+    };
     runtimeCaching?: Array<{
       urlPattern: RegExp;
       handler: string;
