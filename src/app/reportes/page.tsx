@@ -358,7 +358,11 @@ const ReportesView = () => {
 
         <Accordion
           type="multiple"
-          defaultValue={["gender", "ageGender", "attendance", "age", "attendanceByAge", "classesSummary"]}
+          defaultValue={
+            isGeneralReport
+              ? ["gender", "ageGender", "attendance", "age", "attendanceByAge", "classesSummary"]
+              : ["gender", "ageGender", "attendance", "age", "attendanceByAge"]
+          }
           className="space-y-4"
         >
           {/* Gender Distribution Section */}
