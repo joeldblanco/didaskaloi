@@ -32,7 +32,7 @@ export default function ProyectosPage() {
       return;
     }
 
-    if (status === "authenticated" || status === "loading") {
+    if (status === "authenticated") {
       const loadProjects = async () => {
         setIsLoading(true);
         try {

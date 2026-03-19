@@ -10,7 +10,7 @@ export default function OfflineFallbackPage() {
 
   useEffect(() => {
     // Intentar redirigir a la última ruta visitada o a /clases como fallback
-    const lastPath = localStorage.getItem("didaskaloi-last-path");
+    const lastPath = typeof window !== "undefined" ? localStorage.getItem("didaskaloi-last-path") : null;
     const targetPath = lastPath && lastPath !== "/" && lastPath !== "/_offline"
       ? lastPath
       : "/clases";
