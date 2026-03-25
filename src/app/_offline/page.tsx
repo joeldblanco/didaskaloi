@@ -1,11 +1,10 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
 import { Loader2, WifiOff } from "lucide-react";
 
 /**
- * Comprueba si una ruta está disponible en el caché del Service Worker.
+ * Comprueba si una ruta está disponible en algún caché del Service Worker.
  */
 async function isRouteCached(url: string): Promise<boolean> {
   if (!("caches" in window)) return false;
@@ -23,19 +22,15 @@ async function isRouteCached(url: string): Promise<boolean> {
 }
 
 export default function OfflineFallbackPage() {
-  const router = useRouter();
   const [redirecting, setRedirecting] = useState(true);
 
   useEffect(() => {
     let cancelled = false;
 
     const tryRedirect = async () => {
-      // Intentar redirigir a la última ruta visitada o a /clases como fallback
       let lastPath: string | null = null;
       try {
-        if (typeof window !== "undefined") {
-          lastPath = localStorage.getItem("didaskaloi-last-path");
-        }
+        lastPath = localStorage.getItem("didaskaloi-last-path");
       } catch {
         lastPath = null;
       }
@@ -45,32 +40,33 @@ export default function OfflineFallbackPage() {
           ? lastPath
           : "/clases";
 
-      // Verificar si la ruta está en caché antes de intentar redirigir.
-      // Así evitamos el loop: /_offline → ruta no cacheada → /_offline
+      // Verificar caché antes de redirigir para evitar loops
       const cachedTarget = await isRouteCached(targetPath);
       const cachedFallback =
         targetPath !== "/clases" ? await isRouteCached("/clases") : false;
 
       if (cancelled) return;
 
+      // Usar hard navigation (window.location) en vez de router.push/replace.
+      // El router hace fetch RSC que falla offline, pero una navegación de
+      // documento completa sí es interceptada por el SW desde caché.
       if (cachedTarget) {
-        router.replace(targetPath);
-        // Dar tiempo para que la navegación ocurra
+        window.location.replace(targetPath);
         setTimeout(() => {
           if (!cancelled) setRedirecting(false);
-        }, 3000);
+        }, 4000);
         return;
       }
 
       if (cachedFallback) {
-        router.replace("/clases");
+        window.location.replace("/clases");
         setTimeout(() => {
           if (!cancelled) setRedirecting(false);
-        }, 3000);
+        }, 4000);
         return;
       }
 
-      // Ninguna ruta está en caché, mostrar UI offline directamente
+      // Ninguna ruta en caché
       setRedirecting(false);
     };
 
@@ -79,7 +75,7 @@ export default function OfflineFallbackPage() {
     return () => {
       cancelled = true;
     };
-  }, [router]);
+  }, []);
 
   if (redirecting) {
     return (
@@ -92,7 +88,6 @@ export default function OfflineFallbackPage() {
     );
   }
 
-  // Si no pudimos redirigir, mostrar UI funcional offline
   return (
     <div className="min-h-screen flex flex-col items-center justify-center bg-background p-4">
       <div className="text-center max-w-sm">

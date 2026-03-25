@@ -16,9 +16,8 @@ const WARMUP_KEY = "didaskaloi-cache-warmup";
 const WARMUP_INTERVAL_MS = 24 * 60 * 60 * 1000; // 24 hours
 
 /**
- * Precarga las rutas principales de la app en el caché del Service Worker.
- * Se ejecuta una vez tras login exitoso y luego cada 24 horas.
- * Las peticiones son invisibles para el usuario.
+ * Precarga las rutas principales de la app directamente en el caché del SW
+ * usando la Cache API. Se ejecuta tras login exitoso y cada 24 horas.
  */
 export function CacheWarmup() {
   const { status } = useSession();
@@ -26,7 +25,7 @@ export function CacheWarmup() {
 
   useEffect(() => {
     if (status !== "authenticated" || warming.current) return;
-    if (!("serviceWorker" in navigator)) return;
+    if (!("caches" in window) || !("serviceWorker" in navigator)) return;
 
     const lastWarmup = localStorage.getItem(WARMUP_KEY);
     const now = Date.now();
@@ -39,19 +38,28 @@ export function CacheWarmup() {
 
     const warmup = async () => {
       try {
-        // Esperar a que el SW esté listo
         await navigator.serviceWorker.ready;
 
-        // Fetch cada ruta secuencialmente para no saturar la red
+        // Abrir el caché directamente — garantiza que las respuestas se guardan
+        const cache = await caches.open("pages-cache");
+
         for (const route of ROUTES_TO_CACHE) {
           try {
-            await fetch(route, {
+            const response = await fetch(route, {
               credentials: "same-origin",
-              cache: "no-cache",
-              headers: { "X-Cache-Warmup": "1" },
             });
+
+            // Solo cachear respuestas exitosas que NO sean redirects a login
+            if (response.ok && !response.redirected) {
+              // Guardar con un Request limpio (sin headers extra) para que
+              // cualquier navegación futura al mismo URL haga match en caché
+              const cleanRequest = new Request(
+                new URL(route, window.location.origin).href
+              );
+              await cache.put(cleanRequest, response.clone());
+            }
           } catch {
-            // Ignorar fallos individuales (ya podríamos estar offline)
+            // Ignorar fallos individuales
           }
         }
 
@@ -63,7 +71,6 @@ export function CacheWarmup() {
       }
     };
 
-    // Ejecutar después de un breve delay para no competir con el render inicial
     const timer = setTimeout(warmup, 3000);
     return () => clearTimeout(timer);
   }, [status]);
