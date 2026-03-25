@@ -54,7 +54,7 @@ export function CacheWarmup() {
               // Guardar con un Request limpio (sin headers extra) para que
               // cualquier navegación futura al mismo URL haga match en caché
               const cleanRequest = new Request(
-                new URL(route, window.location.origin).href
+                new URL(route, window.location.origin).href,
               );
               await cache.put(cleanRequest, response.clone());
             }
