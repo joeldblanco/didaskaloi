@@ -10,6 +10,7 @@ import { OfflineIndicator } from "@/components/offline-indicator";
 import { OfflineSyncProvider } from "@/components/offline-sync-provider";
 import { ProjectProvider } from "@/contexts/project-context";
 import { PathTracker } from "@/components/path-tracker";
+import { CacheWarmup } from "@/components/cache-warmup";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -67,6 +68,7 @@ export default function RootLayout({
             <ProjectProvider>
               <OfflineSyncProvider>
                 <PathTracker />
+                <CacheWarmup />
                 <OfflineIndicator />
                 <AppHeader />
                 <main className="pb-16 h-full">{children}</main>

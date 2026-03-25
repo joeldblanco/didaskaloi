@@ -15,29 +15,28 @@ const pwaConfig = withPWA({
   },
   runtimeCaching: [
     {
-      // Cache all page navigations (with and without trailing slash)
-      urlPattern: /^https?:\/\/[^/]+\/(clases|estudiantes|asistencia|reportes|configuracion|proyectos|auth)(\/.*)?$/,
-      handler: "NetworkFirst",
+      // Cache app page navigations (exclude auth — those always need network)
+      urlPattern:
+        /^https?:\/\/[^/]+\/(clases|estudiantes|asistencia|reportes|configuracion|proyectos)(\/.*)?$/,
+      handler: "StaleWhileRevalidate",
       options: {
         cacheName: "pages-cache",
         expiration: {
           maxEntries: 64,
           maxAgeSeconds: 30 * 24 * 60 * 60, // 30 days
         },
-        networkTimeoutSeconds: 3,
       },
     },
     {
       // Cache the root/home page
       urlPattern: /^https?:\/\/[^/]+\/$/,
-      handler: "NetworkFirst",
+      handler: "StaleWhileRevalidate",
       options: {
         cacheName: "pages-cache",
         expiration: {
           maxEntries: 64,
           maxAgeSeconds: 30 * 24 * 60 * 60, // 30 days
         },
-        networkTimeoutSeconds: 3,
       },
     },
     {
