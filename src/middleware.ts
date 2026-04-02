@@ -29,7 +29,7 @@ export default auth((req) => {
   if (!isLoggedIn && !isAuthPage) {
     const callbackUrl = encodeURIComponent(pathname);
     return NextResponse.redirect(
-      new URL(`/auth/login?callbackUrl=${callbackUrl}`, req.url)
+      new URL(`/auth/login?callbackUrl=${callbackUrl}`, req.url),
     );
   }
 
