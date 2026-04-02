@@ -12,7 +12,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { offlineGetAgeRanges, offlineGetClasses, offlineGetStudents } from "@/lib/offline-actions";
 import { AgeRange, Class, Student } from "@prisma/client";
 import { ChevronLeft, Loader2, LayoutGrid, User, Users, Download, FileSpreadsheet } from "lucide-react";
-import Link from "next/link";
+
 import { useEffect, useState, useCallback } from "react";
 import { exportReportToPDF, exportReportToExcel } from "@/lib/export-utils";
 import { useProject } from "@/contexts/project-context";
@@ -319,8 +319,8 @@ const ReportesView = () => {
   // Report view for a selected class or general report
   if ((selectedClass || isGeneralReport) && reportData) {
     return (
-      <div className="p-4">
-        <div className="flex justify-between items-center mb-4">
+      <div className="p-6">
+        <div className="flex justify-between items-center mb-6">
           <div className="flex items-center gap-2">
             <Button
               onClick={handleBackToSelection}
@@ -363,7 +363,7 @@ const ReportesView = () => {
               ? ["gender", "ageGender", "attendance", "age", "attendanceByAge", "classesSummary"]
               : ["gender", "ageGender", "attendance", "age", "attendanceByAge"]
           }
-          className="space-y-4"
+          className="grid grid-cols-1 xl:grid-cols-2 gap-4"
         >
           {/* Gender Distribution Section */}
           <AccordionItem
@@ -746,14 +746,8 @@ const ReportesView = () => {
 
   // Class selection view
   return (
-    <div className="p-4">
-      <Button variant="link" asChild className="p-0 h-auto mb-2 text-muted-foreground">
-        <Link href="/proyectos">
-          <ChevronLeft size={16} />
-          Volver a Proyectos
-        </Link>
-      </Button>
-      <h1 className="text-xl font-bold mb-4">Reportes</h1>
+    <div className="p-6">
+      <h1 className="text-2xl font-bold mb-6">Reportes</h1>
 
       {!activeProjectId ? (
         <div className="text-center py-8">
@@ -777,7 +771,7 @@ const ReportesView = () => {
           <p className="text-muted-foreground">No hay clases disponibles</p>
         </div>
       ) : (
-        <div className="space-y-3">
+        <div className="space-y-6">
           {/* General report option */}
           <Card
             className="cursor-pointer hover:bg-blue-100 dark:hover:bg-blue-900 border-2 border-blue-200 dark:border-blue-800 bg-blue-50 dark:bg-blue-950"
@@ -796,29 +790,29 @@ const ReportesView = () => {
             </CardContent>
           </Card>
 
-          <div className="my-3 border-t border-border pt-3">
-            <h3 className="text-sm font-medium text-muted-foreground mb-2">
+          <div>
+            <h3 className="text-sm font-medium text-muted-foreground mb-3">
               Reportes por clase
             </h3>
+            <div className="grid grid-cols-2 xl:grid-cols-3 gap-4">
+              {classes
+                .sort((a, b) => (b.createdAt < a.createdAt ? 1 : -1))
+                .map((cls) => (
+                  <Card
+                    key={cls.id}
+                    className="cursor-pointer hover:bg-accent"
+                    onClick={() => setSelectedClass(cls)}
+                  >
+                    <CardContent className="p-4">
+                      <h2 className="text-lg font-medium">{cls.name}</h2>
+                      <p className="text-sm text-muted-foreground">
+                        {cls._count.students} estudiantes
+                      </p>
+                    </CardContent>
+                  </Card>
+                ))}
+            </div>
           </div>
-
-          {/* Individual class options */}
-          {classes
-            .sort((a, b) => (b.createdAt < a.createdAt ? 1 : -1))
-            .map((cls) => (
-              <Card
-                key={cls.id}
-                className="cursor-pointer hover:bg-accent"
-                onClick={() => setSelectedClass(cls)}
-              >
-                <CardContent className="p-4">
-                  <h2 className="text-lg font-medium">{cls.name}</h2>
-                  <p className="text-sm text-muted-foreground">
-                    {cls._count.students} estudiantes
-                  </p>
-                </CardContent>
-              </Card>
-            ))}
         </div>
       )}
         </>

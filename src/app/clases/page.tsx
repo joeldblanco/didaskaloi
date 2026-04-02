@@ -12,7 +12,6 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
 import {
   Dialog,
   DialogContent,
@@ -30,6 +29,7 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
+import { DataTable } from "@/components/ui/data-table";
 import {
   offlineGetClasses,
   offlineCreateClass,
@@ -39,8 +39,8 @@ import {
 import { classSchema, type ClassFormValues } from "@/lib/validations";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Class } from "@prisma/client";
-import { ChevronLeft, Edit, Loader2, Plus, Search, Trash } from "lucide-react";
-import Link from "next/link";
+import { ColumnDef } from "@tanstack/react-table";
+import { Edit, Loader2, Plus, Trash, ArrowUpDown } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
@@ -62,7 +62,6 @@ const ClasesView = () => {
   const [showEditClassDialog, setShowEditClassDialog] = useState(false);
   const [showDeleteAlert, setShowDeleteAlert] = useState(false);
   const [classToDelete, setClassToDelete] = useState<string | null>(null);
-  const [searchText, setSearchText] = useState("");
 
   // Form for creating or editing a class
   const form = useForm<ClassFormValues>({
@@ -95,11 +94,6 @@ const ClasesView = () => {
 
     loadClasses();
   }, [activeProjectId]);
-
-  // Filter classes based on search text
-  const filteredClasses = classes.filter((cls) =>
-    cls.name.toLowerCase().includes(searchText.toLowerCase()),
-  );
 
   // Handle class click
   const handleClaseClick = (cls: Class) => {
@@ -143,9 +137,7 @@ const ClasesView = () => {
         const updatedClasses = await offlineGetClasses();
         setClasses(updatedClasses as ClassWithStudentCount[]);
       } else {
-        toast.error(
-          (result as { error?: string }).error || "Error al crear la clase",
-        );
+        toast.error((result as { error?: string }).error || "Error al crear la clase");
       }
     } catch (error) {
       console.error("Error creating class:", error);
@@ -167,10 +159,7 @@ const ClasesView = () => {
         const updatedClasses = await offlineGetClasses();
         setClasses(updatedClasses as ClassWithStudentCount[]);
       } else {
-        toast.error(
-          (result as { error?: string }).error ||
-            "Error al actualizar la clase",
-        );
+        toast.error((result as { error?: string }).error || "Error al actualizar la clase");
       }
     } catch (error) {
       console.error("Error updating class:", error);
@@ -205,20 +194,79 @@ const ClasesView = () => {
 
   // Removed students view section since we're not using it
 
+  const columns: ColumnDef<ClassWithStudentCount>[] = [
+    {
+      accessorKey: "name",
+      header: ({ column }) => (
+        <Button
+          variant="ghost"
+          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+        >
+          Nombre
+          <ArrowUpDown className="ml-2 h-4 w-4" />
+        </Button>
+      ),
+      cell: ({ row }) => (
+        <span className="font-medium">{row.getValue("name")}</span>
+      ),
+    },
+    {
+      id: "students",
+      accessorFn: (row) => row._count.students,
+      header: ({ column }) => (
+        <Button
+          variant="ghost"
+          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+        >
+          Estudiantes
+          <ArrowUpDown className="ml-2 h-4 w-4" />
+        </Button>
+      ),
+      cell: ({ row }) => (
+        <span className="text-muted-foreground">
+          {row.original._count.students}
+        </span>
+      ),
+    },
+    {
+      id: "actions",
+      header: () => <span className="sr-only">Acciones</span>,
+      cell: ({ row }) => (
+        <div className="flex justify-end gap-1">
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={(e) => {
+              e.stopPropagation();
+              handleEditClassClick(row.original);
+            }}
+          >
+            <Edit className="h-4 w-4" />
+          </Button>
+          <Button
+            variant="ghost"
+            size="icon"
+            className="text-red-500 hover:text-red-700"
+            onClick={(e) => {
+              e.stopPropagation();
+              handleDeleteClick(row.original.id);
+            }}
+          >
+            <Trash className="h-4 w-4" />
+          </Button>
+        </div>
+      ),
+    },
+  ];
+
   return (
-    <div className="p-4">
-      <Button
-        variant="link"
-        asChild
-        className="p-0 h-auto mb-2 text-muted-foreground"
-      >
-        <Link href="/proyectos">
-          <ChevronLeft size={16} />
-          Volver a Proyectos
-        </Link>
-      </Button>
-      <div className="flex justify-between items-center mb-4">
-        <h1 className="text-xl font-bold">Mis Clases</h1>
+    <div className="p-6">
+      <div className="flex justify-between items-center mb-6">
+        <h1 className="text-2xl font-bold">Mis Clases</h1>
+        <Button onClick={handleAddClassClick}>
+          <Plus className="mr-2 h-4 w-4" />
+          Nueva Clase
+        </Button>
       </div>
 
       {!activeProjectId ? (
@@ -227,83 +275,18 @@ const ClasesView = () => {
             Selecciona un proyecto para ver las clases
           </p>
         </div>
+      ) : isLoading ? (
+        <div className="flex justify-center items-center py-8">
+          <Loader2 className="h-8 w-8 text-blue-500 animate-spin" />
+        </div>
       ) : (
-        <>
-          <div className="mb-4 relative">
-            <Search
-              className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground"
-              size={18}
-            />
-            <Input
-              type="text"
-              placeholder="Buscar clases..."
-              value={searchText}
-              onChange={(e) => setSearchText(e.target.value)}
-              className="pl-10"
-            />
-          </div>
-
-          {isLoading ? (
-            <div className="flex justify-center items-center py-8">
-              <Loader2 className="h-8 w-8 text-blue-500 animate-spin" />
-            </div>
-          ) : filteredClasses.length === 0 ? (
-            <div className="text-center py-8">
-              <p className="text-muted-foreground">No hay clases disponibles</p>
-            </div>
-          ) : (
-            <div className="space-y-3 mb-20">
-              {filteredClasses
-                .sort((a, b) => (b.createdAt < a.createdAt ? 1 : -1))
-                .map((cls) => (
-                  <Card
-                    key={cls.id}
-                    className="cursor-pointer transition-colors"
-                    onClick={() => handleClaseClick(cls)}
-                  >
-                    <CardContent className="p-4 flex justify-between items-center">
-                      <div>
-                        <h2 className="text-lg font-medium">{cls.name}</h2>
-                        <p className="text-sm text-muted-foreground">
-                          {cls._count.students} estudiantes
-                        </p>
-                      </div>
-                      <div className="flex gap-2">
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handleEditClassClick(cls);
-                          }}
-                        >
-                          <Edit className="h-4 w-4" />
-                        </Button>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          className="text-red-500 hover:text-red-700"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handleDeleteClick(cls.id);
-                          }}
-                        >
-                          <Trash className="h-4 w-4" />
-                        </Button>
-                      </div>
-                    </CardContent>
-                  </Card>
-                ))}
-            </div>
-          )}
-
-          <Button
-            onClick={handleAddClassClick}
-            className="fixed right-8 bottom-8 bg-blue-500 text-white w-14 h-14 rounded-full flex items-center justify-center shadow-lg"
-          >
-            <Plus className="h-6 w-6" />
-          </Button>
-        </>
+        <DataTable
+          columns={columns}
+          data={classes.sort((a, b) => (b.createdAt < a.createdAt ? 1 : -1))}
+          searchPlaceholder="Buscar clases..."
+          searchColumn="name"
+          onRowClick={(cls) => handleClaseClick(cls)}
+        />
       )}
 
       {/* Add Class Dialog */}

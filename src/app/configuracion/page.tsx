@@ -36,8 +36,7 @@ import {
 import { ageRangeSchema, type AgeRangeFormValues } from "@/lib/validations";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { AgeRange } from "@prisma/client";
-import { CheckCircle, ChevronLeft, Edit, Loader2, Plus, Save, Trash, Users, KeyRound } from "lucide-react";
-import Link from "next/link";
+import { CheckCircle, Edit, Loader2, Plus, Save, Trash, Users, KeyRound } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
@@ -205,14 +204,8 @@ const ConfiguracionView = () => {
   };
 
   return (
-    <div className="p-4">
-      <Button variant="link" asChild className="p-0 h-auto mb-2 text-muted-foreground">
-        <Link href="/proyectos">
-          <ChevronLeft size={16} />
-          Volver a Proyectos
-        </Link>
-      </Button>
-      <h1 className="text-xl font-bold mb-4">Configuración</h1>
+    <div className="p-6">
+      <h1 className="text-2xl font-bold mb-6">Configuración</h1>
 
       {!activeProjectId ? (
         <div className="text-center py-8">
@@ -467,58 +460,61 @@ const ConfiguracionView = () => {
         </CardFooter>
       </Card>
 
-      {/* Project Members Section */}
+      {/* Project Members & Invite Codes */}
       {projectDetails && (
-        <Card className="mb-4">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Users size={20} />
-              Miembros del Proyecto
-            </CardTitle>
-            <p className="text-sm text-muted-foreground">
-              Gestiona los miembros y sus roles en el proyecto
-            </p>
-          </CardHeader>
-          <CardContent>
-            {isLoadingProject ? (
-              <div className="flex justify-center py-4">
-                <Loader2 className="h-8 w-8 text-blue-500 animate-spin" />
-              </div>
-            ) : (
-              <ProjectMembersSection
-                projectId={projectDetails.id}
-                members={projectDetails.members}
-                isAdmin={projectDetails.userRole === "ADMIN"}
-                ownerId={projectDetails.owner.id}
-              />
-            )}
-          </CardContent>
-        </Card>
+        <div className="grid grid-cols-1 xl:grid-cols-2 gap-4 mb-4">
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Users size={20} />
+                Miembros del Proyecto
+              </CardTitle>
+              <p className="text-sm text-muted-foreground">
+                Gestiona los miembros y sus roles en el proyecto
+              </p>
+            </CardHeader>
+            <CardContent>
+              {isLoadingProject ? (
+                <div className="flex justify-center py-4">
+                  <Loader2 className="h-8 w-8 text-blue-500 animate-spin" />
+                </div>
+              ) : (
+                <ProjectMembersSection
+                  projectId={projectDetails.id}
+                  members={projectDetails.members}
+                  isAdmin={projectDetails.userRole === "ADMIN"}
+                  ownerId={projectDetails.owner.id}
+                />
+              )}
+            </CardContent>
+          </Card>
+
+          {/* Invite Codes Section (Admin Only) */}
+          {projectDetails.userRole === "ADMIN" && (
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <KeyRound size={20} />
+                  Códigos de Invitación
+                </CardTitle>
+                <p className="text-sm text-muted-foreground">
+                  Genera y gestiona códigos de invitación para el proyecto
+                </p>
+              </CardHeader>
+              <CardContent>
+                <ProjectInviteCodesSection
+                  projectId={projectDetails.id}
+                  inviteCodes={projectDetails.inviteCodes.filter(code => code.role === "EDITOR" || code.role === "VIEWER")}
+                />
+              </CardContent>
+            </Card>
+          )}
+        </div>
       )}
 
-      {/* Invite Codes Section (Admin Only) */}
-      {projectDetails && projectDetails.userRole === "ADMIN" && (
-        <Card className="mb-4">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <KeyRound size={20} />
-              Códigos de Invitación
-            </CardTitle>
-            <p className="text-sm text-muted-foreground">
-              Genera y gestiona códigos de invitación para el proyecto
-            </p>
-          </CardHeader>
-          <CardContent>
-            <ProjectInviteCodesSection
-              projectId={projectDetails.id}
-              inviteCodes={projectDetails.inviteCodes.filter(code => code.role === "EDITOR" || code.role === "VIEWER")}
-            />
-          </CardContent>
-        </Card>
-      )}
-
-      {/* Appearance Settings */}
-      <Card className="mb-4">
+      {/* Appearance & Info */}
+      <div className="grid grid-cols-1 xl:grid-cols-2 gap-4 mb-4">
+      <Card>
         <CardHeader>
           <CardTitle>Apariencia</CardTitle>
           <p className="text-sm text-muted-foreground">
@@ -546,6 +542,7 @@ const ConfiguracionView = () => {
           <p className="text-sm text-muted-foreground">© 2025 Didaskaloi</p>
         </CardContent>
       </Card>
+      </div>
 
       {/* Delete Confirmation Alert */}
       <AlertDialog

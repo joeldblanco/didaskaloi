@@ -14,7 +14,6 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Calendar as CalendarComponent } from "@/components/ui/calendar";
-import { Card, CardContent } from "@/components/ui/card";
 import {
   Dialog,
   DialogContent,
@@ -30,6 +29,7 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
+import { DataTable } from "@/components/ui/data-table";
 import {
   offlineGetClasses,
   offlineGetAttendances,
@@ -41,18 +41,18 @@ import {
 import { attendanceSchema, type AttendanceFormValues } from "@/lib/validations";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Attendance, AttendanceRecord, Class, Student } from "@prisma/client";
+import { ColumnDef } from "@tanstack/react-table";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
 import {
   ArrowLeft,
-  Calendar,
   Check,
-  ChevronLeft,
   Loader2,
   Plus,
   X,
+  ArrowUpDown,
+  Trash2,
 } from "lucide-react";
-import Link from "next/link";
 import { useEffect, useState, useRef, useCallback } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
@@ -159,9 +159,7 @@ const AsistenciaView = () => {
 
       try {
         // Fetch the full attendance data with all relations
-        const rawAttendanceData = await offlineGetAttendance(
-          selectedAttendance.id,
-        );
+        const rawAttendanceData = await offlineGetAttendance(selectedAttendance.id);
 
         if (!rawAttendanceData) {
           toast.error("Error al cargar los datos de asistencia");
@@ -177,7 +175,7 @@ const AsistenciaView = () => {
         // Map students with their attendance status
         const students = attendanceData.class.students.map((student) => {
           const record = attendanceData.records.find(
-            (r) => r.studentId === student.id,
+            (r) => r.studentId === student.id
           );
           return {
             ...student,
@@ -243,7 +241,7 @@ const AsistenciaView = () => {
       setCurrentStudentIndex(currentStudentIndex + 1);
     },
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [selectedAttendance, currentStudentIndex, studentsOrdered.length],
+    [selectedAttendance, currentStudentIndex, studentsOrdered.length]
   );
 
   const refreshAttendanceData = async () => {
@@ -283,25 +281,20 @@ const AsistenciaView = () => {
         setShowAddAttendanceDialog(false);
 
         // Refresh attendances
-        const updatedAttendances = await offlineGetAttendances(
-          selectedClass?.id,
-        );
+        const updatedAttendances = await offlineGetAttendances(selectedClass?.id);
         setAttendances(updatedAttendances as AttendanceWithRelations[]);
 
         // If the new attendance has an ID, select it to start taking attendance
         if (result.attendanceId) {
           const newAttendance = updatedAttendances.find(
-            (a) => a.id === result.attendanceId,
+            (a) => a.id === result.attendanceId
           );
           if (newAttendance) {
             setSelectedAttendance(newAttendance as AttendanceWithRelations);
           }
         }
       } else {
-        toast.error(
-          (result as { error?: string }).error ||
-            "Error al crear la asistencia",
-        );
+        toast.error((result as { error?: string }).error || "Error al crear la asistencia");
       }
     } catch (error) {
       console.error("Error creating attendance:", error);
@@ -324,18 +317,13 @@ const AsistenciaView = () => {
         setShowDeleteAttendanceAlert(false);
 
         // Refresh attendances
-        const updatedAttendances = await offlineGetAttendances(
-          selectedClass?.id,
-        );
+        const updatedAttendances = await offlineGetAttendances(selectedClass?.id);
         setAttendances(updatedAttendances as AttendanceWithRelations[]);
 
         // Go back to attendances list
         goBackToAttendances();
       } else {
-        toast.error(
-          (result as { error?: string }).error ||
-            "Error al eliminar la asistencia",
-        );
+        toast.error((result as { error?: string }).error || "Error al eliminar la asistencia");
       }
     } catch (error) {
       console.error("Error deleting attendance:", error);
@@ -375,9 +363,7 @@ const AsistenciaView = () => {
   const cardRef = useRef<HTMLDivElement>(null);
   const [swipeOffset, setSwipeOffset] = useState({ x: 0, y: 0 });
   const [isDragging, setIsDragging] = useState(false);
-  const [exitDirection, setExitDirection] = useState<
-    "left" | "right" | "up" | "down" | null
-  >(null);
+  const [exitDirection, setExitDirection] = useState<"left" | "right" | "up" | "down" | null>(null);
   const [edgeFlash, setEdgeFlash] = useState<"green" | "red" | null>(null);
   const dragStart = useRef<{ x: number; y: number; time: number } | null>(null);
   const skipTransition = useRef(false);
@@ -387,8 +373,7 @@ const AsistenciaView = () => {
 
   // Deterministic rotation/offset per student — consistent regardless of stack position
   const getCardTilt = (studentId: string) => {
-    const seed =
-      studentId.charCodeAt(0) + studentId.charCodeAt(studentId.length - 1);
+    const seed = studentId.charCodeAt(0) + studentId.charCodeAt(studentId.length - 1);
     const rotation = ((seed % 7) - 3) * 1.2;
     const tx = ((seed % 5) - 2) * 2.5;
     return { rotation, tx };
@@ -409,7 +394,7 @@ const AsistenciaView = () => {
       // Clamp upward movement so the card doesn't move up visually
       setSwipeOffset({ x: dx, y: Math.max(0, dy) });
     },
-    [isDragging],
+    [isDragging]
   );
 
   const handlePointerUp = useCallback(
@@ -486,7 +471,7 @@ const AsistenciaView = () => {
       dragStart.current = null;
     },
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [isDragging, studentsOrdered, currentStudentIndex, recordAttendance],
+    [isDragging, studentsOrdered, currentStudentIndex, recordAttendance]
   );
 
   const resetCard = useCallback(() => {
@@ -543,9 +528,7 @@ const AsistenciaView = () => {
       const { rotation, tx } = getCardTilt(student.id);
       return {
         transform: `translateX(${tx}px) rotate(${rotation}deg)`,
-        transition: skipTransition.current
-          ? "none"
-          : "transform 0.35s ease-out",
+        transition: skipTransition.current ? "none" : "transform 0.35s ease-out",
       };
     }
     return {
@@ -629,8 +612,7 @@ const AsistenciaView = () => {
             />
           </div>
           <p className="text-xs text-muted-foreground text-center mt-1">
-            {Object.keys(currentAttendanceRecords).length} /{" "}
-            {studentsOrdered.length}
+            {Object.keys(currentAttendanceRecords).length} / {studentsOrdered.length}
           </p>
         </div>
 
@@ -651,49 +633,43 @@ const AsistenciaView = () => {
                 <div className="inline-flex h-20 w-20 items-center justify-center rounded-full bg-green-100 dark:bg-green-900 mb-3">
                   <Check className="text-green-500" size={40} />
                 </div>
-                <p className="text-lg font-semibold text-green-600 dark:text-green-400">
-                  ¡Completado!
-                </p>
+                <p className="text-lg font-semibold text-green-600 dark:text-green-400">¡Completado!</p>
               </div>
             </div>
 
             {/* Background stacked cards (up to 3 behind) */}
-            {!isComplete &&
-              [3, 2, 1].map((offset) => {
-                const bgIndex = currentStudentIndex + offset;
-                if (bgIndex >= studentsOrdered.length) return null;
-                const bgStudent = studentsOrdered[bgIndex];
-                const { rotation, tx: translateX } = getCardTilt(bgStudent.id);
-                return (
-                  <div
-                    key={bgStudent.id}
-                    className="absolute inset-0 rounded-2xl bg-card border border-border shadow-md p-8 overflow-hidden"
-                    style={{
-                      transform: `rotate(${rotation}deg) translateX(${translateX}px)`,
-                      zIndex: 10 - offset,
-                      opacity: 1 - offset * 0.15,
-                    }}
-                  >
-                    {offset === 1 && (
-                      <div className="text-center">
-                        <p className="text-sm text-muted-foreground mb-3">
-                          {bgIndex + 1} de {studentsOrdered.length}
-                        </p>
-                        <h2 className="text-2xl font-bold mb-1 text-foreground">
-                          {bgStudent.firstName} {bgStudent.lastName}
-                        </h2>
-                        <p className="text-muted-foreground">
-                          {bgStudent.age != null
-                            ? `${bgStudent.age} años`
-                            : "Sin edad"}{" "}
-                          ·{" "}
-                          {bgStudent.gender === "M" ? "Masculino" : "Femenino"}
-                        </p>
-                      </div>
-                    )}
-                  </div>
-                );
-              })}
+            {!isComplete && [3, 2, 1].map((offset) => {
+              const bgIndex = currentStudentIndex + offset;
+              if (bgIndex >= studentsOrdered.length) return null;
+              const bgStudent = studentsOrdered[bgIndex];
+              const { rotation, tx: translateX } = getCardTilt(bgStudent.id);
+              return (
+                <div
+                  key={bgStudent.id}
+                  className="absolute inset-0 rounded-2xl bg-card border border-border shadow-md p-8 overflow-hidden"
+                  style={{
+                    transform: `rotate(${rotation}deg) translateX(${translateX}px)`,
+                    zIndex: 10 - offset,
+                    opacity: 1 - offset * 0.15,
+                  }}
+                >
+                  {offset === 1 && (
+                    <div className="text-center">
+                      <p className="text-sm text-muted-foreground mb-3">
+                        {bgIndex + 1} de {studentsOrdered.length}
+                      </p>
+                      <h2 className="text-2xl font-bold mb-1 text-foreground">
+                        {bgStudent.firstName} {bgStudent.lastName}
+                      </h2>
+                      <p className="text-muted-foreground">
+                        {bgStudent.age != null ? `${bgStudent.age} años` : "Sin edad"} ·{" "}
+                        {bgStudent.gender === "M" ? "Masculino" : "Femenino"}
+                      </p>
+                    </div>
+                  )}
+                </div>
+              );
+            })}
 
             {/* Active top card (only if not complete) */}
             {!isComplete && student && (
@@ -751,106 +727,137 @@ const AsistenciaView = () => {
 
   // Attendances list view
   if (view === "attendances" && selectedClass) {
+    const attendanceColumns: ColumnDef<AttendanceWithRelations>[] = [
+      {
+        accessorKey: "date",
+        header: ({ column }) => (
+          <Button
+            variant="ghost"
+            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+          >
+            Fecha
+            <ArrowUpDown className="ml-2 h-4 w-4" />
+          </Button>
+        ),
+        cell: ({ row }) => (
+          <span className="font-medium">
+            {formatAttendanceDate(row.original.date)}
+          </span>
+        ),
+      },
+      {
+        id: "totalStudents",
+        header: "Estudiantes",
+        cell: ({ row }) => (
+          <span className="text-muted-foreground">
+            {row.original.records.length}
+          </span>
+        ),
+      },
+      {
+        id: "presentStudents",
+        header: "Presentes",
+        cell: ({ row }) => {
+          const present = row.original.records.filter((r) => r.present).length;
+          return <span className="text-muted-foreground">{present}</span>;
+        },
+      },
+      {
+        id: "percentage",
+        header: ({ column }) => (
+          <Button
+            variant="ghost"
+            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+          >
+            Asistencia
+            <ArrowUpDown className="ml-2 h-4 w-4" />
+          </Button>
+        ),
+        accessorFn: (row) => {
+          const total = row.records.length;
+          return total > 0
+            ? Math.round(
+                (row.records.filter((r) => r.present).length / total) * 100
+              )
+            : 0;
+        },
+        cell: ({ row }) => {
+          const total = row.original.records.length;
+          const present = row.original.records.filter((r) => r.present).length;
+          const pct = total > 0 ? Math.round((present / total) * 100) : 0;
+          return (
+            <div className="flex items-center gap-2">
+              <div className="w-20 bg-muted rounded-full h-1.5">
+                <div
+                  className={`h-1.5 rounded-full ${
+                    pct >= 70 ? "bg-green-500" : "bg-orange-500"
+                  }`}
+                  style={{ width: `${pct}%` }}
+                />
+              </div>
+              <Badge className={pct >= 70 ? "bg-green-500" : "bg-orange-500"}>
+                {pct}%
+              </Badge>
+            </div>
+          );
+        },
+      },
+      {
+        id: "actions",
+        header: () => <span className="sr-only">Acciones</span>,
+        cell: ({ row }) => (
+          <Button
+            variant="ghost"
+            size="icon"
+            className="text-red-500 hover:text-red-700"
+            onClick={(e) => {
+              e.stopPropagation();
+              setSelectedAttendance(row.original);
+              setShowDeleteAttendanceAlert(true);
+            }}
+          >
+            <Trash2 className="h-4 w-4" />
+          </Button>
+        ),
+      },
+    ];
+
     return (
-      <div className="p-4">
-        <div className="flex justify-between items-center mb-4">
+      <div className="p-6">
+        <div className="flex justify-between items-center mb-6">
           <div className="flex items-center gap-2">
             <Button
               onClick={goBackToClasses}
               variant="ghost"
               size="icon"
-              className="p-0"
             >
               <ArrowLeft size={20} />
             </Button>
-            <h1 className="text-xl font-bold">{selectedClass.name}</h1>
+            <h1 className="text-2xl font-bold">{selectedClass.name}</h1>
           </div>
           <Button
             onClick={() => {
               form.reset({ date: new Date(), classId: selectedClass.id });
               setShowAddAttendanceDialog(true);
             }}
-            className="fixed right-8 bottom-8 bg-blue-500 text-white w-14 h-14 rounded-full flex items-center justify-center shadow-lg"
           >
-            <Plus className="h-6 w-6" />
+            <Plus className="mr-2 h-4 w-4" />
+            Nueva Asistencia
           </Button>
         </div>
-
-        <h2 className="text-lg font-medium mb-3">Registros de Asistencia</h2>
 
         {isLoading ? (
           <div className="flex justify-center items-center py-8">
             <Loader2 className="h-8 w-8 text-blue-500 animate-spin" />
           </div>
-        ) : attendances.length === 0 ? (
-          <div className="text-center py-8">
-            <Calendar className="mx-auto h-12 w-12 text-muted-foreground mb-2" />
-            <p className="text-muted-foreground">
-              No hay registros de asistencia
-            </p>
-            <p className="text-sm text-muted-foreground mt-1">
-              Crea un nuevo registro para comenzar
-            </p>
-          </div>
         ) : (
-          <div className="space-y-3">
-            {attendances.map((attendance) => {
-              // Calculate attendance stats
-              const totalStudents = attendance.records.length;
-              const presentStudents = attendance.records.filter(
-                (r) => r.present,
-              ).length;
-              const presentPercentage =
-                totalStudents > 0
-                  ? Math.round((presentStudents / totalStudents) * 100)
-                  : 0;
-
-              return (
-                <Card
-                  key={attendance.id}
-                  className="cursor-pointer hover:bg-accent"
-                  onClick={() => setSelectedAttendance(attendance)}
-                >
-                  <CardContent className="p-4">
-                    <div className="flex justify-between items-center">
-                      <div>
-                        <h3 className="font-medium">
-                          {formatAttendanceDate(attendance.date)}
-                        </h3>
-                        <p className="text-sm text-muted-foreground">
-                          {totalStudents} estudiantes
-                        </p>
-                      </div>
-                      <div className="flex flex-col items-end">
-                        <Badge
-                          className={
-                            presentPercentage >= 70
-                              ? "bg-green-500"
-                              : "bg-orange-500"
-                          }
-                        >
-                          {presentPercentage}% asistencia
-                        </Badge>
-                        <p className="text-xs text-muted-foreground mt-1">
-                          {presentStudents} presentes
-                        </p>
-                      </div>
-                    </div>
-                    <div className="mt-2 w-full bg-muted rounded-full h-1.5">
-                      <div
-                        className={`h-1.5 rounded-full ${
-                          presentPercentage >= 70
-                            ? "bg-green-500"
-                            : "bg-orange-500"
-                        }`}
-                        style={{ width: `${presentPercentage}%` }}
-                      ></div>
-                    </div>
-                  </CardContent>
-                </Card>
-              );
-            })}
-          </div>
+          <DataTable
+            columns={attendanceColumns}
+            data={attendances}
+            searchPlaceholder="Buscar por fecha..."
+            globalFilter
+            onRowClick={(attendance) => setSelectedAttendance(attendance)}
+          />
         )}
 
         {/* Add New Attendance Dialog */}
@@ -908,20 +915,47 @@ const AsistenciaView = () => {
     );
   }
 
+  // Classes list column definitions
+  const classColumns: ColumnDef<ClassWithCount>[] = [
+    {
+      accessorKey: "name",
+      header: ({ column }) => (
+        <Button
+          variant="ghost"
+          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+        >
+          Clase
+          <ArrowUpDown className="ml-2 h-4 w-4" />
+        </Button>
+      ),
+      cell: ({ row }) => (
+        <span className="font-medium">{row.getValue("name")}</span>
+      ),
+    },
+    {
+      id: "students",
+      accessorFn: (row) => row._count.students,
+      header: ({ column }) => (
+        <Button
+          variant="ghost"
+          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+        >
+          Estudiantes
+          <ArrowUpDown className="ml-2 h-4 w-4" />
+        </Button>
+      ),
+      cell: ({ row }) => (
+        <span className="text-muted-foreground">
+          {row.original._count.students}
+        </span>
+      ),
+    },
+  ];
+
   // Classes list view (default)
   return (
-    <div className="p-4">
-      <Button
-        variant="link"
-        asChild
-        className="p-0 h-auto mb-2 text-muted-foreground"
-      >
-        <Link href="/proyectos">
-          <ChevronLeft size={16} />
-          Volver a Proyectos
-        </Link>
-      </Button>
-      <h1 className="text-xl font-bold mb-4">Registro de Asistencia</h1>
+    <div className="p-6">
+      <h1 className="text-2xl font-bold mb-6">Registro de Asistencia</h1>
 
       {!activeProjectId ? (
         <div className="text-center py-8">
@@ -933,32 +967,19 @@ const AsistenciaView = () => {
         <div className="flex justify-center items-center py-8">
           <Loader2 className="h-8 w-8 text-blue-500 animate-spin" />
         </div>
-      ) : classes.length === 0 ? (
-        <div className="text-center py-8">
-          <p className="text-muted-foreground">No hay clases disponibles</p>
-          <p className="text-sm text-muted-foreground mt-1">
-            Crea una clase primero en la sección de Clases
-          </p>
-        </div>
       ) : (
-        <div className="space-y-3">
-          {classes
-            .sort((a, b) => (b.createdAt < a.createdAt ? 1 : -1))
-            .map((cls) => (
-              <Card
-                key={cls.id}
-                className="cursor-pointer hover:bg-accent"
-                onClick={() => setSelectedClass(cls)}
-              >
-                <CardContent className="p-4">
-                  <h2 className="text-lg font-medium">{cls.name}</h2>
-                  <p className="text-sm text-muted-foreground">
-                    {cls._count.students} estudiantes
-                  </p>
-                </CardContent>
-              </Card>
-            ))}
-        </div>
+        <>
+          <p className="text-muted-foreground mb-4">
+            Selecciona una clase para ver y registrar asistencias.
+          </p>
+          <DataTable
+            columns={classColumns}
+            data={classes.sort((a, b) => (b.createdAt < a.createdAt ? 1 : -1))}
+            searchPlaceholder="Buscar clases..."
+            searchColumn="name"
+            onRowClick={(cls) => setSelectedClass(cls)}
+          />
+        </>
       )}
 
       {/* Delete Attendance Alert */}

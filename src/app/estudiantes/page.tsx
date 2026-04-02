@@ -12,7 +12,6 @@ import {
 } from "@/components/ui/alert-dialog";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
 import {
   Form,
   FormControl,
@@ -31,6 +30,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { DataTable } from "@/components/ui/data-table";
 import {
   offlineCreateStudent,
   offlineUpdateStudent,
@@ -39,24 +39,19 @@ import {
   offlineGetStudents,
   offlineCalculateStudentAttendance,
 } from "@/lib/offline-actions";
-import { cn } from "@/lib/utils";
 import { studentSchema, type StudentFormValues } from "@/lib/validations";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Class, Student } from "@prisma/client";
+import { ColumnDef } from "@tanstack/react-table";
 import {
-  AlertCircle,
-  ChevronLeft,
-  ChevronRight,
-  Filter,
+  AlertTriangle,
   Loader2,
   Plus,
-  Search,
   X,
   Upload,
   Download,
-  AlertTriangle,
+  ArrowUpDown,
 } from "lucide-react";
-import Link from "next/link";
 import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
@@ -80,10 +75,8 @@ const EstudiantesView = () => {
   const [students, setStudents] = useState<ExtendedStudent[]>([]);
   const [classes, setClasses] = useState<ClassWithCount[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [searchText, setSearchText] = useState("");
   const [classFilter, setClassFilter] = useState<string | null>(null);
   const [genderFilter, setGenderFilter] = useState<"M" | "F" | null>(null);
-  const [showFilters, setShowFilters] = useState(false);
   const [selectedStudent, setSelectedStudent] =
     useState<ExtendedStudent | null>(null);
   const [isEditMode, setIsEditMode] = useState(false);
@@ -144,19 +137,15 @@ const EstudiantesView = () => {
     loadData();
   }, [activeProjectId]);
 
-  // Filter students based on search and filters
+  // Filter students based on filters (search is handled by DataTable)
   const filteredStudents = students.filter((student) => {
-    const matchesSearch = `${student.firstName} ${student.lastName}`
-      .toLowerCase()
-      .includes(searchText.toLowerCase());
-
     const matchesClass = classFilter
       ? student.classId === classFilter
       : true;
 
     const matchesGender = genderFilter ? student.gender === genderFilter : true;
 
-    return matchesSearch && matchesClass && matchesGender;
+    return matchesClass && matchesGender;
   });
 
   // Start creating a new student
@@ -325,9 +314,9 @@ const EstudiantesView = () => {
   // Student editing view
   if (isEditMode) {
     return (
-      <div className="p-4">
-        <div className="flex justify-between items-center mb-4">
-          <h1 className="text-xl font-bold">
+      <div className="p-6">
+        <div className="flex justify-between items-center mb-6">
+          <h1 className="text-2xl font-bold">
             {selectedStudent ? "Editar Estudiante" : "Nuevo Estudiante"}
           </h1>
           <Button
@@ -339,132 +328,146 @@ const EstudiantesView = () => {
           </Button>
         </div>
 
-        <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-            <FormField
-              control={form.control}
-              name="firstName"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Nombre</FormLabel>
-                  <FormControl>
-                    <Input placeholder="Nombre del estudiante" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+        <div className="max-w-2xl">
+          <Form {...form}>
+            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+              <div className="grid grid-cols-2 gap-4">
+                <FormField
+                  control={form.control}
+                  name="firstName"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Nombre</FormLabel>
+                      <FormControl>
+                        <Input placeholder="Nombre del estudiante" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
 
-            <FormField
-              control={form.control}
-              name="lastName"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Apellidos</FormLabel>
-                  <FormControl>
-                    <Input placeholder="Apellidos del estudiante" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+                <FormField
+                  control={form.control}
+                  name="lastName"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Apellidos</FormLabel>
+                      <FormControl>
+                        <Input placeholder="Apellidos del estudiante" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
 
-            <FormField
-              control={form.control}
-              name="classId"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Clase</FormLabel>
-                  <Select
-                    onValueChange={(value) => field.onChange(value)}
-                    defaultValue={field.value}
+              <div className="grid grid-cols-3 gap-4">
+                <FormField
+                  control={form.control}
+                  name="classId"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Clase</FormLabel>
+                      <Select
+                        onValueChange={(value) => field.onChange(value)}
+                        defaultValue={field.value}
+                      >
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Seleccionar clase" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          {classes.map((cls) => (
+                            <SelectItem key={cls.id} value={cls.id.toString()}>
+                              {cls.name}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="gender"
+                  render={({ field }) => (
+                    <FormItem className="space-y-2">
+                      <FormLabel>Género</FormLabel>
+                      <FormControl>
+                        <RadioGroup
+                          onValueChange={field.onChange}
+                          defaultValue={field.value}
+                          className="flex gap-4 pt-2"
+                        >
+                          <div className="flex items-center space-x-2">
+                            <RadioGroupItem value="M" id="male" />
+                            <Label htmlFor="male">Masculino</Label>
+                          </div>
+                          <div className="flex items-center space-x-2">
+                            <RadioGroupItem value="F" id="female" />
+                            <Label htmlFor="female">Femenino</Label>
+                          </div>
+                        </RadioGroup>
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="age"
+                  render={({ field: { value, ...fieldRest } }) => (
+                    <FormItem>
+                      <FormLabel>Edad</FormLabel>
+                      <FormControl>
+                        <Input
+                          type="number"
+                          min={1}
+                          max={100}
+                          placeholder="Edad"
+                          {...fieldRest}
+                          value={value ?? ""}
+                          onChange={(e) => {
+                            const val = e.target.value;
+                            fieldRest.onChange(val === "" ? "" : parseInt(val) || "");
+                          }}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+
+              <div className="flex gap-3 pt-2">
+                <Button type="submit">
+                  {selectedStudent ? "Actualizar" : "Guardar"}
+                </Button>
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => setIsEditMode(false)}
+                >
+                  Cancelar
+                </Button>
+                {selectedStudent && (
+                  <Button
+                    type="button"
+                    variant="outline"
+                    className="border-red-500 text-red-500 hover:bg-red-50 dark:hover:bg-red-950 ml-auto"
+                    onClick={() => setShowDeleteAlert(true)}
                   >
-                    <FormControl>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Seleccionar clase" />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      {classes.map((cls) => (
-                        <SelectItem key={cls.id} value={cls.id.toString()}>
-                          {cls.name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={form.control}
-              name="gender"
-              render={({ field }) => (
-                <FormItem className="space-y-2">
-                  <FormLabel>Género</FormLabel>
-                  <FormControl>
-                    <RadioGroup
-                      onValueChange={field.onChange}
-                      defaultValue={field.value}
-                      className="flex gap-4"
-                    >
-                      <div className="flex items-center space-x-2">
-                        <RadioGroupItem value="M" id="male" />
-                        <Label htmlFor="male">Masculino</Label>
-                      </div>
-                      <div className="flex items-center space-x-2">
-                        <RadioGroupItem value="F" id="female" />
-                        <Label htmlFor="female">Femenino</Label>
-                      </div>
-                    </RadioGroup>
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={form.control}
-              name="age"
-              render={({ field: { value, ...fieldRest } }) => (
-                <FormItem>
-                  <FormLabel>Edad</FormLabel>
-                  <FormControl>
-                    <Input
-                      type="number"
-                      min={1}
-                      max={100}
-                      placeholder="Edad del estudiante"
-                      {...fieldRest}
-                      value={value ?? ""}
-                      onChange={(e) => {
-                        const val = e.target.value;
-                        fieldRest.onChange(val === "" ? "" : parseInt(val) || "");
-                      }}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <Button type="submit" className="w-full mt-4">
-              {selectedStudent ? "Actualizar" : "Guardar"}
-            </Button>
-
-            {selectedStudent && (
-              <Button
-                type="button"
-                variant="outline"
-                className="w-full border-red-500 text-red-500 hover:bg-red-50 dark:hover:bg-red-950"
-                onClick={() => setShowDeleteAlert(true)}
-              >
-                Eliminar
-              </Button>
-            )}
-          </form>
-        </Form>
+                    Eliminar
+                  </Button>
+                )}
+              </div>
+            </form>
+          </Form>
+        </div>
 
         {/* Delete Confirmation Alert */}
         <AlertDialog open={showDeleteAlert} onOpenChange={setShowDeleteAlert}>
@@ -492,38 +495,177 @@ const EstudiantesView = () => {
     );
   }
 
+  // Column definitions for the students table
+  const columns: ColumnDef<ExtendedStudent>[] = [
+    {
+      accessorFn: (row) => `${row.firstName} ${row.lastName}`,
+      id: "fullName",
+      header: ({ column }) => (
+        <Button
+          variant="ghost"
+          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+        >
+          Nombre
+          <ArrowUpDown className="ml-2 h-4 w-4" />
+        </Button>
+      ),
+      cell: ({ row }) => (
+        <div className="flex items-center gap-2">
+          <span className="font-medium">
+            {row.original.firstName} {row.original.lastName}
+          </span>
+          {(row.original.attendancePercentage || 0) < 70 && (
+            <AlertTriangle
+              size={14}
+              className="text-orange-500"
+              aria-label="Asistencia baja"
+            />
+          )}
+        </div>
+      ),
+    },
+    {
+      accessorKey: "age",
+      header: ({ column }) => (
+        <Button
+          variant="ghost"
+          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+        >
+          Edad
+          <ArrowUpDown className="ml-2 h-4 w-4" />
+        </Button>
+      ),
+      cell: ({ row }) => (
+        <span className="text-muted-foreground">
+          {row.original.age != null ? row.original.age : "—"}
+        </span>
+      ),
+    },
+    {
+      accessorKey: "gender",
+      header: "Género",
+      cell: ({ row }) => (
+        <span className="text-muted-foreground">
+          {row.original.gender === "M" ? "Masculino" : "Femenino"}
+        </span>
+      ),
+    },
+    {
+      accessorKey: "classId",
+      header: "Clase",
+      cell: ({ row }) => (
+        <span className="text-muted-foreground">
+          {getClassName(row.original.classId)}
+        </span>
+      ),
+    },
+    {
+      accessorKey: "attendancePercentage",
+      header: ({ column }) => (
+        <Button
+          variant="ghost"
+          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+        >
+          Asistencia
+          <ArrowUpDown className="ml-2 h-4 w-4" />
+        </Button>
+      ),
+      cell: ({ row }) => {
+        const pct = row.original.attendancePercentage || 0;
+        return (
+          <Badge className={pct >= 70 ? "bg-green-500" : "bg-orange-500"}>
+            {pct}%
+          </Badge>
+        );
+      },
+    },
+  ];
+
   // Students list view
   return (
-    <div className="p-4">
-      <Button variant="link" asChild className="p-0 h-auto mb-2 text-muted-foreground">
-        <Link href="/proyectos">
-          <ChevronLeft size={16} />
-          Volver a Proyectos
-        </Link>
-      </Button>
-      <div className="flex justify-between items-center mb-4">
-        <h1 className="text-xl font-bold">Estudiantes</h1>
+    <div className="p-6">
+      <div className="flex justify-between items-center mb-6">
+        <h1 className="text-2xl font-bold">Estudiantes</h1>
         <div className="flex gap-2">
           <Button
             onClick={() => setShowImportDialog(true)}
             variant="outline"
             size="sm"
-            className="flex items-center gap-1"
           >
-            <Upload size={16} />
+            <Upload size={16} className="mr-1" />
             Importar
           </Button>
           <Button
             onClick={handleExportExcel}
             variant="outline"
             size="sm"
-            className="flex items-center gap-1"
             disabled={filteredStudents.length === 0}
           >
-            <Download size={16} />
+            <Download size={16} className="mr-1" />
             Exportar
           </Button>
+          <Button onClick={startCreating}>
+            <Plus className="mr-2 h-4 w-4" />
+            Nuevo Estudiante
+          </Button>
         </div>
+      </div>
+
+      {/* Filters Row */}
+      <div className="flex gap-4 mb-4 items-end">
+        <div>
+          <Label htmlFor="class-filter" className="text-xs text-muted-foreground mb-1 block">
+            Clase
+          </Label>
+          <Select
+            value={classFilter || "all"}
+            onValueChange={(value) =>
+              setClassFilter(value === "all" ? null : value)
+            }
+          >
+            <SelectTrigger id="class-filter" className="w-48">
+              <SelectValue placeholder="Todas las clases" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Todas las clases</SelectItem>
+              {classes.map((cls) => (
+                <SelectItem key={cls.id} value={cls.id.toString()}>
+                  {cls.name}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+        <div>
+          <Label className="text-xs text-muted-foreground mb-1 block">
+            Género
+          </Label>
+          <Select
+            value={genderFilter || "all"}
+            onValueChange={(value) =>
+              setGenderFilter(value === "all" ? null : (value as "M" | "F"))
+            }
+          >
+            <SelectTrigger className="w-40">
+              <SelectValue placeholder="Todos" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Todos</SelectItem>
+              <SelectItem value="M">Masculino</SelectItem>
+              <SelectItem value="F">Femenino</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+        {(classFilter || genderFilter) && (
+          <Button
+            onClick={clearFilters}
+            variant="ghost"
+            size="sm"
+            className="text-muted-foreground"
+          >
+            Limpiar filtros
+          </Button>
+        )}
       </div>
 
       {!activeProjectId ? (
@@ -532,170 +674,19 @@ const EstudiantesView = () => {
             Selecciona un proyecto para ver los estudiantes
           </p>
         </div>
-      ) : (
-        <>
-
-      {/* Search and Filters */}
-      <div className="mb-4 relative">
-        <Search
-          className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground"
-          size={18}
-        />
-        <Input
-          type="text"
-          placeholder="Buscar estudiantes..."
-          value={searchText}
-          onChange={(e) => setSearchText(e.target.value)}
-          className="pl-10"
-        />
-        <Button
-          onClick={() => setShowFilters(!showFilters)}
-          variant="ghost"
-          size="icon"
-          className="absolute right-1 top-1/2 -translate-y-1/2"
-        >
-          <Filter className={cn(showFilters && "text-blue-500")} size={18} />
-        </Button>
-      </div>
-
-      {/* Filters Panel */}
-      {showFilters && (
-        <Card className="mb-4">
-          <CardContent className="p-4">
-            <h3 className="font-medium mb-3">Filtros</h3>
-
-            <div className="space-y-4">
-              <div>
-                <Label htmlFor="class-filter" className="block mb-3">
-                  Clase
-                </Label>
-                <Select
-                  value={classFilter || ""}
-                  onValueChange={(value) =>
-                    setClassFilter(value === "" ? null : value)
-                  }
-                >
-                  <SelectTrigger id="class-filter" className="w-full">
-                    <SelectValue placeholder="Todas las clases" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {classes.map((cls) => (
-                      <SelectItem key={cls.id} value={cls.id.toString()}>
-                        {cls.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-
-              <div>
-                <Label className="block mb-3">Género</Label>
-                <RadioGroup
-                  value={genderFilter || "all"}
-                  onValueChange={(value) =>
-                    setGenderFilter(
-                      value === "all" ? null : (value as "M" | "F")
-                    )
-                  }
-                  className="flex flex-col"
-                >
-                  <div className="flex items-center space-x-2">
-                    <RadioGroupItem value="all" id="all-gender" />
-                    <Label htmlFor="all-gender">Todos</Label>
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    <RadioGroupItem value="M" id="filter-male" />
-                    <Label htmlFor="filter-male">Masculino</Label>
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    <RadioGroupItem value="F" id="filter-female" />
-                    <Label htmlFor="filter-female">Femenino</Label>
-                  </div>
-                </RadioGroup>
-              </div>
-
-              <Button
-                onClick={clearFilters}
-                variant="link"
-                className="text-blue-500 p-0 h-auto"
-              >
-                Limpiar filtros
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
-      )}
-
-      {/* Students List */}
-      {isLoading ? (
+      ) : isLoading ? (
         <div className="flex justify-center items-center py-8">
           <Loader2 className="h-8 w-8 text-blue-500 animate-spin" />
         </div>
-      ) : filteredStudents.length === 0 ? (
-        <div className="text-center py-8">
-          <AlertCircle className="mx-auto h-12 w-12 text-muted-foreground mb-2" />
-          <p className="text-muted-foreground">
-            {searchText || classFilter || genderFilter
-              ? "No se encontraron estudiantes con los filtros seleccionados"
-              : "No hay estudiantes registrados"}
-          </p>
-        </div>
       ) : (
-        <div className="space-y-3 mb-20">
-          {filteredStudents.map((student) => (
-            <Card
-              key={student.id}
-              className="cursor-pointer hover:bg-accent"
-              onClick={() => startEditing(student)}
-            >
-              <CardContent className="p-4 flex justify-between items-center">
-                <div>
-                  <div className="flex items-center gap-2">
-                    <h3 className="font-medium">
-                      {student.firstName} {student.lastName}
-                    </h3>
-                    {(student.attendancePercentage || 0) < 70 && (
-                      <AlertTriangle
-                        size={16}
-                        className="text-orange-500"
-                        aria-label="Asistencia baja"
-                      />
-                    )}
-                  </div>
-                  <p className="text-sm text-muted-foreground">
-                    {student.age != null ? `${student.age} años` : "Sin edad"} ·{" "}
-                    {student.gender === "M" ? "Masculino" : "Femenino"}
-                  </p>
-                  <div className="flex items-center text-xs text-muted-foreground mt-1">
-                    {getClassName(student.classId)}
-                  </div>
-                </div>
-
-                <div className="flex items-center gap-2">
-                  <Badge
-                    className={
-                      (student.attendancePercentage || 0) >= 70
-                        ? "bg-green-500"
-                        : "bg-orange-500"
-                    }
-                  >
-                    {student.attendancePercentage || 0}%
-                  </Badge>
-                  <ChevronRight size={18} className="text-muted-foreground" />
-                </div>
-              </CardContent>
-            </Card>
-          ))}
-        </div>
+        <DataTable
+          columns={columns}
+          data={filteredStudents}
+          searchPlaceholder="Buscar estudiantes..."
+          globalFilter
+          onRowClick={(student) => startEditing(student)}
+        />
       )}
-
-      {/* Floating Action Button */}
-      <Button
-        onClick={startCreating}
-        className="fixed right-4 bottom-20 bg-blue-500 hover:bg-blue-600 text-white w-14 h-14 rounded-full flex items-center justify-center shadow-lg"
-      >
-        <Plus size={24} />
-      </Button>
 
       {/* Import Students Dialog */}
       <ImportStudentsDialog
@@ -704,8 +695,6 @@ const EstudiantesView = () => {
         classes={classes}
         onImportComplete={handleImportComplete}
       />
-        </>
-      )}
     </div>
   );
 };

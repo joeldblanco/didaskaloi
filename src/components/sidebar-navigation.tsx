@@ -84,7 +84,7 @@ export function SidebarNavigation() {
             id: p.id,
             name: p.name,
             role: p.role || "VIEWER",
-          })),
+          }))
         );
       } catch (error) {
         console.error("Error loading projects:", error);
@@ -107,8 +107,8 @@ export function SidebarNavigation() {
     await signOut({ callbackUrl: "/auth/login" });
   };
 
-  // Don't show sidebar on auth pages or project selection pages
-  if (pathname.startsWith("/auth") || pathname.startsWith("/proyectos")) {
+  // Don't show sidebar on auth pages
+  if (pathname.startsWith("/auth")) {
     return null;
   }
 
@@ -209,28 +209,53 @@ export function SidebarNavigation() {
 
       {/* Navigation Links */}
       <nav className="flex-1 overflow-y-auto px-3 py-4">
-        <ul className="space-y-1">
-          {navItems.map((item) => {
-            const isActive =
-              pathname === item.path ||
-              (pathname === "/" && item.path === "/clases");
-            return (
-              <li key={item.name}>
-                <Link
-                  href={item.path}
-                  className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors ${
-                    isActive
-                      ? "bg-primary text-primary-foreground"
-                      : "text-muted-foreground hover:bg-accent hover:text-accent-foreground"
-                  }`}
-                >
-                  {item.icon}
-                  <span>{item.name}</span>
-                </Link>
-              </li>
-            );
-          })}
-        </ul>
+        {/* Proyectos - top-level item */}
+        <div className="mb-4">
+          <Link
+            href="/proyectos"
+            className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-semibold transition-colors ${
+              pathname.startsWith("/proyectos")
+                ? "bg-primary text-primary-foreground"
+                : "text-foreground hover:bg-accent hover:text-accent-foreground"
+            }`}
+          >
+            <FolderOpen size={20} />
+            <span>Proyectos</span>
+          </Link>
+        </div>
+
+        {/* Project sections */}
+        {navItems.length > 0 && (
+          <>
+            <div className="px-3 mb-2">
+              <span className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
+                Proyecto activo
+              </span>
+            </div>
+            <ul className="space-y-1">
+              {navItems.map((item) => {
+                const isActive =
+                  pathname === item.path ||
+                  (pathname === "/" && item.path === "/clases");
+                return (
+                  <li key={item.name}>
+                    <Link
+                      href={item.path}
+                      className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors ${
+                        isActive
+                          ? "bg-primary text-primary-foreground"
+                          : "text-muted-foreground hover:bg-accent hover:text-accent-foreground"
+                      }`}
+                    >
+                      {item.icon}
+                      <span>{item.name}</span>
+                    </Link>
+                  </li>
+                );
+              })}
+            </ul>
+          </>
+        )}
       </nav>
 
       {/* Sync Status */}

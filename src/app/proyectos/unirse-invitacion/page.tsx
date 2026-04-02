@@ -5,16 +5,13 @@ import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import Link from "next/link";
-import {
-  joinWithInviteSchema,
-  type JoinWithInviteFormValues,
-} from "@/lib/auth-validations";
+import { joinWithInviteSchema, type JoinWithInviteFormValues } from "@/lib/auth-validations";
 import { joinWithInviteCode } from "@/lib/project-actions";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
-import { Loader2, Mail, ArrowLeft } from "lucide-react";
+import { Loader2, Mail } from "lucide-react";
 
 export default function UnirseInvitacionPage() {
   const router = useRouter();
@@ -51,13 +48,6 @@ export default function UnirseInvitacionPage() {
   return (
     <div className="min-h-screen bg-background py-8">
       <div className="max-w-2xl mx-auto px-8">
-        <Link href="/proyectos">
-          <Button variant="ghost" className="mb-6">
-            <ArrowLeft className="mr-2 h-4 w-4" />
-            Volver a Proyectos
-          </Button>
-        </Link>
-
         <div className="bg-card rounded-lg shadow-xl p-8">
           <div className="text-center mb-8">
             <div className="inline-flex items-center justify-center w-16 h-16 bg-green-100 dark:bg-green-900 rounded-full mb-4">
@@ -88,8 +78,7 @@ export default function UnirseInvitacionPage() {
                 </p>
               )}
               <p className="text-xs text-muted-foreground mt-1">
-                El código de invitación termina en EDIT (Editor) o VIEW
-                (Visualizador)
+                El código de invitación termina en EDIT (Editor) o VIEW (Visualizador)
               </p>
             </div>
 
@@ -112,9 +101,8 @@ export default function UnirseInvitacionPage() {
 
             <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4">
               <p className="text-sm text-blue-800 dark:text-blue-200">
-                <strong>Ventaja:</strong> Al usar un código de invitación,
-                obtendrás el rol específico (Editor o Visualizador) asignado por
-                el administrador, sin necesidad de esperar a que te lo otorgue.
+                <strong>Ventaja:</strong> Al usar un código de invitación, obtendrás el rol específico 
+                (Editor o Visualizador) asignado por el administrador, sin necesidad de esperar a que te lo otorgue.
               </p>
             </div>
 

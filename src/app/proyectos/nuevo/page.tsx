@@ -1,8 +1,5 @@
 import { redirect } from "next/navigation";
 import { auth } from "@/lib/auth";
-import Link from "next/link";
-import { Button } from "@/components/ui/button";
-import { ArrowLeft } from "lucide-react";
 import { CreateProjectForm } from "@/components/create-project-form";
 
 export default async function NuevoProyectoPage() {
@@ -15,15 +12,10 @@ export default async function NuevoProyectoPage() {
   return (
     <div className="min-h-screen bg-background py-8">
       <div className="max-w-2xl mx-auto px-8">
-        <Link href="/proyectos">
-          <Button variant="ghost" className="mb-6">
-            <ArrowLeft className="mr-2 h-4 w-4" />
-            Volver a Proyectos
-          </Button>
-        </Link>
-
         <div className="bg-card rounded-lg shadow-xl p-8">
-          <h1 className="text-3xl font-bold mb-6">Crear Nuevo Proyecto</h1>
+          <h1 className="text-3xl font-bold mb-6">
+            Crear Nuevo Proyecto
+          </h1>
           <CreateProjectForm />
         </div>
       </div>
