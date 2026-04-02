@@ -93,7 +93,7 @@ export function ProjectInviteCodesSection({ projectId, inviteCodes }: Props) {
         <h3 className="font-semibold mb-4">
           Generar Nuevo Código de Invitación
         </h3>
-        <div className="flex flex-col sm:flex-row sm:items-end gap-4">
+        <div className="flex flex-row items-end gap-4">
           <div className="flex-1">
             <Label htmlFor="role">Rol para el código</Label>
             <Select value={selectedRole} onValueChange={(value) => setSelectedRole(value as "EDITOR" | "VIEWER")}>
@@ -137,7 +137,7 @@ export function ProjectInviteCodesSection({ projectId, inviteCodes }: Props) {
             {inviteCodes.map((inviteCode) => (
               <div
                 key={inviteCode.id}
-                className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-4 bg-muted rounded-lg"
+                className="flex flex-row items-center justify-between gap-3 p-4 bg-muted rounded-lg"
               >
                 <div className="flex-1">
                   <div className="flex items-center gap-3">

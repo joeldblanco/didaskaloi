@@ -1,7 +1,7 @@
 export default function ProyectosLoading() {
   return (
     <div className="min-h-screen bg-background">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <div className="max-w-7xl mx-auto px-8 py-8">
         {/* Header Skeleton */}
         <div className="flex items-center justify-between mb-8">
           <div>
@@ -11,7 +11,7 @@ export default function ProyectosLoading() {
         </div>
 
         {/* Actions Skeleton */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
+        <div className="grid grid-cols-3 gap-4 mb-8">
           {[1, 2, 3].map((i) => (
             <div
               key={i}
@@ -21,7 +21,7 @@ export default function ProyectosLoading() {
         </div>
 
         {/* Projects Grid Skeleton */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-3 gap-6">
           {[1, 2, 3].map((i) => (
             <div
               key={i}

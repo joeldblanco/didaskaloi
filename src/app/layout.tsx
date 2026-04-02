@@ -1,8 +1,7 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
-import BottomNavigation from "@/components/bottom-navigation";
-import { AppHeader } from "@/components/app-header";
+import { SidebarNavigation } from "@/components/sidebar-navigation";
 import { SessionProvider } from "next-auth/react";
 import { ThemeProvider } from "@/components/theme-provider";
 import { Toaster } from "sonner";
@@ -25,14 +24,14 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: "Didaskaloi | Sistema de Gestión de Asistencia",
   description:
-    "Aplicación móvil para gestión de clases, estudiantes y registro de asistencias con reportes estadísticos detallados. Optimizada para uso educativo.",
+    "Plataforma web para gestión de clases, estudiantes y registro de asistencias con reportes estadísticos detallados. Optimizada para uso en escritorio.",
   keywords: [
     "educación",
     "asistencia",
     "gestión escolar",
     "reportes educativos",
     "nextjs",
-    "aplicación móvil",
+    "plataforma web",
   ],
   authors: [
     {
@@ -56,7 +55,7 @@ export default function RootLayout({
         <meta name="theme-color" content="#3b82f6" />
       </head>
       <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased bg-background max-w-md mx-auto`}
+        className={`${geistSans.variable} ${geistMono.variable} antialiased bg-background`}
       >
         <SessionProvider>
           <ThemeProvider
@@ -70,9 +69,10 @@ export default function RootLayout({
                 <PathTracker />
                 <CacheWarmup />
                 <OfflineIndicator />
-                <AppHeader />
-                <main className="pb-16 h-full">{children}</main>
-                <BottomNavigation />
+                <div className="flex min-h-screen">
+                  <SidebarNavigation />
+                  <main className="flex-1 overflow-y-auto">{children}</main>
+                </div>
                 <Toaster position="top-center" richColors />
               </OfflineSyncProvider>
             </ProjectProvider>

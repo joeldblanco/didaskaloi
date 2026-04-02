@@ -290,7 +290,7 @@ const ClasesView = () => {
 
           <Button
             onClick={handleAddClassClick}
-            className="fixed right-4 bottom-20 bg-blue-500 text-white w-14 h-14 rounded-full flex items-center justify-center shadow-lg"
+            className="fixed right-8 bottom-8 bg-blue-500 text-white w-14 h-14 rounded-full flex items-center justify-center shadow-lg"
           >
             <Plus className="h-6 w-6" />
           </Button>
