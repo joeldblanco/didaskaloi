@@ -7,11 +7,16 @@ export default auth((req) => {
 
   // Public paths that don't require authentication
   const isAuthPage = pathname.startsWith("/auth");
-  const isApiAuth = pathname.startsWith("/api/auth");
+  const isApiRoute = pathname.startsWith("/api/");
   const isOfflinePage = pathname.startsWith("/_offline");
 
   // Always allow offline fallback page
   if (isOfflinePage) {
+    return NextResponse.next();
+  }
+
+  // API routes handle their own authentication (Bearer token)
+  if (isApiRoute) {
     return NextResponse.next();
   }
 
@@ -21,7 +26,7 @@ export default auth((req) => {
   }
 
   // Redirect non-logged-in users to login
-  if (!isLoggedIn && !isAuthPage && !isApiAuth) {
+  if (!isLoggedIn && !isAuthPage) {
     const callbackUrl = encodeURIComponent(pathname);
     return NextResponse.redirect(
       new URL(`/auth/login?callbackUrl=${callbackUrl}`, req.url)
