@@ -159,7 +159,9 @@ const AsistenciaView = () => {
 
       try {
         // Fetch the full attendance data with all relations
-        const rawAttendanceData = await offlineGetAttendance(selectedAttendance.id);
+        const rawAttendanceData = await offlineGetAttendance(
+          selectedAttendance.id,
+        );
 
         if (!rawAttendanceData) {
           toast.error("Error al cargar los datos de asistencia");
@@ -175,7 +177,7 @@ const AsistenciaView = () => {
         // Map students with their attendance status
         const students = attendanceData.class.students.map((student) => {
           const record = attendanceData.records.find(
-            (r) => r.studentId === student.id
+            (r) => r.studentId === student.id,
           );
           return {
             ...student,
@@ -241,7 +243,7 @@ const AsistenciaView = () => {
       setCurrentStudentIndex(currentStudentIndex + 1);
     },
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [selectedAttendance, currentStudentIndex, studentsOrdered.length]
+    [selectedAttendance, currentStudentIndex, studentsOrdered.length],
   );
 
   const refreshAttendanceData = async () => {
@@ -281,20 +283,25 @@ const AsistenciaView = () => {
         setShowAddAttendanceDialog(false);
 
         // Refresh attendances
-        const updatedAttendances = await offlineGetAttendances(selectedClass?.id);
+        const updatedAttendances = await offlineGetAttendances(
+          selectedClass?.id,
+        );
         setAttendances(updatedAttendances as AttendanceWithRelations[]);
 
         // If the new attendance has an ID, select it to start taking attendance
         if (result.attendanceId) {
           const newAttendance = updatedAttendances.find(
-            (a) => a.id === result.attendanceId
+            (a) => a.id === result.attendanceId,
           );
           if (newAttendance) {
             setSelectedAttendance(newAttendance as AttendanceWithRelations);
           }
         }
       } else {
-        toast.error((result as { error?: string }).error || "Error al crear la asistencia");
+        toast.error(
+          (result as { error?: string }).error ||
+            "Error al crear la asistencia",
+        );
       }
     } catch (error) {
       console.error("Error creating attendance:", error);
@@ -317,13 +324,18 @@ const AsistenciaView = () => {
         setShowDeleteAttendanceAlert(false);
 
         // Refresh attendances
-        const updatedAttendances = await offlineGetAttendances(selectedClass?.id);
+        const updatedAttendances = await offlineGetAttendances(
+          selectedClass?.id,
+        );
         setAttendances(updatedAttendances as AttendanceWithRelations[]);
 
         // Go back to attendances list
         goBackToAttendances();
       } else {
-        toast.error((result as { error?: string }).error || "Error al eliminar la asistencia");
+        toast.error(
+          (result as { error?: string }).error ||
+            "Error al eliminar la asistencia",
+        );
       }
     } catch (error) {
       console.error("Error deleting attendance:", error);
@@ -363,7 +375,9 @@ const AsistenciaView = () => {
   const cardRef = useRef<HTMLDivElement>(null);
   const [swipeOffset, setSwipeOffset] = useState({ x: 0, y: 0 });
   const [isDragging, setIsDragging] = useState(false);
-  const [exitDirection, setExitDirection] = useState<"left" | "right" | "up" | "down" | null>(null);
+  const [exitDirection, setExitDirection] = useState<
+    "left" | "right" | "up" | "down" | null
+  >(null);
   const [edgeFlash, setEdgeFlash] = useState<"green" | "red" | null>(null);
   const dragStart = useRef<{ x: number; y: number; time: number } | null>(null);
   const skipTransition = useRef(false);
@@ -373,7 +387,8 @@ const AsistenciaView = () => {
 
   // Deterministic rotation/offset per student — consistent regardless of stack position
   const getCardTilt = (studentId: string) => {
-    const seed = studentId.charCodeAt(0) + studentId.charCodeAt(studentId.length - 1);
+    const seed =
+      studentId.charCodeAt(0) + studentId.charCodeAt(studentId.length - 1);
     const rotation = ((seed % 7) - 3) * 1.2;
     const tx = ((seed % 5) - 2) * 2.5;
     return { rotation, tx };
@@ -394,7 +409,7 @@ const AsistenciaView = () => {
       // Clamp upward movement so the card doesn't move up visually
       setSwipeOffset({ x: dx, y: Math.max(0, dy) });
     },
-    [isDragging]
+    [isDragging],
   );
 
   const handlePointerUp = useCallback(
@@ -471,7 +486,7 @@ const AsistenciaView = () => {
       dragStart.current = null;
     },
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [isDragging, studentsOrdered, currentStudentIndex, recordAttendance]
+    [isDragging, studentsOrdered, currentStudentIndex, recordAttendance],
   );
 
   const resetCard = useCallback(() => {
@@ -528,7 +543,9 @@ const AsistenciaView = () => {
       const { rotation, tx } = getCardTilt(student.id);
       return {
         transform: `translateX(${tx}px) rotate(${rotation}deg)`,
-        transition: skipTransition.current ? "none" : "transform 0.35s ease-out",
+        transition: skipTransition.current
+          ? "none"
+          : "transform 0.35s ease-out",
       };
     }
     return {
@@ -612,7 +629,8 @@ const AsistenciaView = () => {
             />
           </div>
           <p className="text-xs text-muted-foreground text-center mt-1">
-            {Object.keys(currentAttendanceRecords).length} / {studentsOrdered.length}
+            {Object.keys(currentAttendanceRecords).length} /{" "}
+            {studentsOrdered.length}
           </p>
         </div>
 
@@ -633,43 +651,49 @@ const AsistenciaView = () => {
                 <div className="inline-flex h-20 w-20 items-center justify-center rounded-full bg-green-100 dark:bg-green-900 mb-3">
                   <Check className="text-green-500" size={40} />
                 </div>
-                <p className="text-lg font-semibold text-green-600 dark:text-green-400">¡Completado!</p>
+                <p className="text-lg font-semibold text-green-600 dark:text-green-400">
+                  ¡Completado!
+                </p>
               </div>
             </div>
 
             {/* Background stacked cards (up to 3 behind) */}
-            {!isComplete && [3, 2, 1].map((offset) => {
-              const bgIndex = currentStudentIndex + offset;
-              if (bgIndex >= studentsOrdered.length) return null;
-              const bgStudent = studentsOrdered[bgIndex];
-              const { rotation, tx: translateX } = getCardTilt(bgStudent.id);
-              return (
-                <div
-                  key={bgStudent.id}
-                  className="absolute inset-0 rounded-2xl bg-card border border-border shadow-md p-8 overflow-hidden"
-                  style={{
-                    transform: `rotate(${rotation}deg) translateX(${translateX}px)`,
-                    zIndex: 10 - offset,
-                    opacity: 1 - offset * 0.15,
-                  }}
-                >
-                  {offset === 1 && (
-                    <div className="text-center">
-                      <p className="text-sm text-muted-foreground mb-3">
-                        {bgIndex + 1} de {studentsOrdered.length}
-                      </p>
-                      <h2 className="text-2xl font-bold mb-1 text-foreground">
-                        {bgStudent.firstName} {bgStudent.lastName}
-                      </h2>
-                      <p className="text-muted-foreground">
-                        {bgStudent.age != null ? `${bgStudent.age} años` : "Sin edad"} ·{" "}
-                        {bgStudent.gender === "M" ? "Masculino" : "Femenino"}
-                      </p>
-                    </div>
-                  )}
-                </div>
-              );
-            })}
+            {!isComplete &&
+              [3, 2, 1].map((offset) => {
+                const bgIndex = currentStudentIndex + offset;
+                if (bgIndex >= studentsOrdered.length) return null;
+                const bgStudent = studentsOrdered[bgIndex];
+                const { rotation, tx: translateX } = getCardTilt(bgStudent.id);
+                return (
+                  <div
+                    key={bgStudent.id}
+                    className="absolute inset-0 rounded-2xl bg-card border border-border shadow-md p-8 overflow-hidden"
+                    style={{
+                      transform: `rotate(${rotation}deg) translateX(${translateX}px)`,
+                      zIndex: 10 - offset,
+                      opacity: 1 - offset * 0.15,
+                    }}
+                  >
+                    {offset === 1 && (
+                      <div className="text-center">
+                        <p className="text-sm text-muted-foreground mb-3">
+                          {bgIndex + 1} de {studentsOrdered.length}
+                        </p>
+                        <h2 className="text-2xl font-bold mb-1 text-foreground">
+                          {bgStudent.firstName} {bgStudent.lastName}
+                        </h2>
+                        <p className="text-muted-foreground">
+                          {bgStudent.age != null
+                            ? `${bgStudent.age} años`
+                            : "Sin edad"}{" "}
+                          ·{" "}
+                          {bgStudent.gender === "M" ? "Masculino" : "Femenino"}
+                        </p>
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
 
             {/* Active top card (only if not complete) */}
             {!isComplete && student && (
@@ -761,7 +785,9 @@ const AsistenciaView = () => {
         ) : attendances.length === 0 ? (
           <div className="text-center py-8">
             <Calendar className="mx-auto h-12 w-12 text-muted-foreground mb-2" />
-            <p className="text-muted-foreground">No hay registros de asistencia</p>
+            <p className="text-muted-foreground">
+              No hay registros de asistencia
+            </p>
             <p className="text-sm text-muted-foreground mt-1">
               Crea un nuevo registro para comenzar
             </p>
@@ -772,7 +798,7 @@ const AsistenciaView = () => {
               // Calculate attendance stats
               const totalStudents = attendance.records.length;
               const presentStudents = attendance.records.filter(
-                (r) => r.present
+                (r) => r.present,
               ).length;
               const presentPercentage =
                 totalStudents > 0
@@ -885,7 +911,11 @@ const AsistenciaView = () => {
   // Classes list view (default)
   return (
     <div className="p-4">
-      <Button variant="link" asChild className="p-0 h-auto mb-2 text-muted-foreground">
+      <Button
+        variant="link"
+        asChild
+        className="p-0 h-auto mb-2 text-muted-foreground"
+      >
         <Link href="/proyectos">
           <ChevronLeft size={16} />
           Volver a Proyectos

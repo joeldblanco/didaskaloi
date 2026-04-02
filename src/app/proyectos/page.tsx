@@ -69,9 +69,7 @@ export default function ProyectosPage() {
         {/* Header */}
         <div className="flex items-center justify-between mb-8">
           <div>
-            <h1 className="text-3xl font-bold">
-              Mis Proyectos
-            </h1>
+            <h1 className="text-3xl font-bold">Mis Proyectos</h1>
             {session?.user?.name && (
               <p className="text-muted-foreground mt-1">
                 Bienvenido, {session.user.name}
@@ -110,9 +108,7 @@ export default function ProyectosPage() {
         ) : projects.length === 0 ? (
           <div className="text-center py-12 bg-card rounded-lg shadow">
             <BookOpen className="mx-auto h-12 w-12 text-muted-foreground" />
-            <h3 className="mt-4 text-lg font-medium">
-              No tienes proyectos
-            </h3>
+            <h3 className="mt-4 text-lg font-medium">No tienes proyectos</h3>
             <p className="mt-2 text-muted-foreground">
               Crea un nuevo proyecto o únete a uno existente para comenzar.
             </p>
@@ -128,9 +124,7 @@ export default function ProyectosPage() {
                 <div className="bg-card rounded-lg shadow hover:shadow-lg transition-shadow p-6">
                   <div className="flex items-start justify-between mb-4">
                     <div className="flex-1">
-                      <h3 className="text-xl font-semibold">
-                        {project.name}
-                      </h3>
+                      <h3 className="text-xl font-semibold">{project.name}</h3>
                       {project.accessCode && (
                         <p className="text-sm text-muted-foreground mt-1">
                           Código: {project.accessCode}
@@ -143,15 +137,15 @@ export default function ProyectosPage() {
                           project.role === "ADMIN"
                             ? "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200"
                             : project.role === "EDITOR"
-                            ? "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200"
-                            : "bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-200"
+                              ? "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200"
+                              : "bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-200"
                         }`}
                       >
                         {project.role === "ADMIN"
                           ? "Administrador"
                           : project.role === "EDITOR"
-                          ? "Editor"
-                          : "Visualizador"}
+                            ? "Editor"
+                            : "Visualizador"}
                       </span>
                     )}
                   </div>

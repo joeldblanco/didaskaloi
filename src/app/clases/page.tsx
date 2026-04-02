@@ -98,7 +98,7 @@ const ClasesView = () => {
 
   // Filter classes based on search text
   const filteredClasses = classes.filter((cls) =>
-    cls.name.toLowerCase().includes(searchText.toLowerCase())
+    cls.name.toLowerCase().includes(searchText.toLowerCase()),
   );
 
   // Handle class click
@@ -143,7 +143,9 @@ const ClasesView = () => {
         const updatedClasses = await offlineGetClasses();
         setClasses(updatedClasses as ClassWithStudentCount[]);
       } else {
-        toast.error((result as { error?: string }).error || "Error al crear la clase");
+        toast.error(
+          (result as { error?: string }).error || "Error al crear la clase",
+        );
       }
     } catch (error) {
       console.error("Error creating class:", error);
@@ -165,7 +167,10 @@ const ClasesView = () => {
         const updatedClasses = await offlineGetClasses();
         setClasses(updatedClasses as ClassWithStudentCount[]);
       } else {
-        toast.error((result as { error?: string }).error || "Error al actualizar la clase");
+        toast.error(
+          (result as { error?: string }).error ||
+            "Error al actualizar la clase",
+        );
       }
     } catch (error) {
       console.error("Error updating class:", error);
@@ -202,7 +207,11 @@ const ClasesView = () => {
 
   return (
     <div className="p-4">
-      <Button variant="link" asChild className="p-0 h-auto mb-2 text-muted-foreground">
+      <Button
+        variant="link"
+        asChild
+        className="p-0 h-auto mb-2 text-muted-foreground"
+      >
         <Link href="/proyectos">
           <ChevronLeft size={16} />
           Volver a Proyectos
@@ -235,58 +244,58 @@ const ClasesView = () => {
           </div>
 
           {isLoading ? (
-        <div className="flex justify-center items-center py-8">
-          <Loader2 className="h-8 w-8 text-blue-500 animate-spin" />
-        </div>
-      ) : filteredClasses.length === 0 ? (
-        <div className="text-center py-8">
-          <p className="text-muted-foreground">No hay clases disponibles</p>
-        </div>
-      ) : (
-        <div className="space-y-3 mb-20">
-          {filteredClasses
-            .sort((a, b) => (b.createdAt < a.createdAt ? 1 : -1))
-            .map((cls) => (
-              <Card
-                key={cls.id}
-                className="cursor-pointer transition-colors"
-                onClick={() => handleClaseClick(cls)}
-              >
-                <CardContent className="p-4 flex justify-between items-center">
-                  <div>
-                    <h2 className="text-lg font-medium">{cls.name}</h2>
-                    <p className="text-sm text-muted-foreground">
-                      {cls._count.students} estudiantes
-                    </p>
-                  </div>
-                  <div className="flex gap-2">
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleEditClassClick(cls);
-                      }}
-                    >
-                      <Edit className="h-4 w-4" />
-                    </Button>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="text-red-500 hover:text-red-700"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleDeleteClick(cls.id);
-                      }}
-                    >
-                      <Trash className="h-4 w-4" />
-                    </Button>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
-        </div>
-      )}
+            <div className="flex justify-center items-center py-8">
+              <Loader2 className="h-8 w-8 text-blue-500 animate-spin" />
+            </div>
+          ) : filteredClasses.length === 0 ? (
+            <div className="text-center py-8">
+              <p className="text-muted-foreground">No hay clases disponibles</p>
+            </div>
+          ) : (
+            <div className="space-y-3 mb-20">
+              {filteredClasses
+                .sort((a, b) => (b.createdAt < a.createdAt ? 1 : -1))
+                .map((cls) => (
+                  <Card
+                    key={cls.id}
+                    className="cursor-pointer transition-colors"
+                    onClick={() => handleClaseClick(cls)}
+                  >
+                    <CardContent className="p-4 flex justify-between items-center">
+                      <div>
+                        <h2 className="text-lg font-medium">{cls.name}</h2>
+                        <p className="text-sm text-muted-foreground">
+                          {cls._count.students} estudiantes
+                        </p>
+                      </div>
+                      <div className="flex gap-2">
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleEditClassClick(cls);
+                          }}
+                        >
+                          <Edit className="h-4 w-4" />
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="text-red-500 hover:text-red-700"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleDeleteClick(cls.id);
+                          }}
+                        >
+                          <Trash className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))}
+            </div>
+          )}
 
           <Button
             onClick={handleAddClassClick}

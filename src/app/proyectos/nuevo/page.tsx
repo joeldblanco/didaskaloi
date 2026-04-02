@@ -23,9 +23,7 @@ export default async function NuevoProyectoPage() {
         </Link>
 
         <div className="bg-card rounded-lg shadow-xl p-8">
-          <h1 className="text-3xl font-bold mb-6">
-            Crear Nuevo Proyecto
-          </h1>
+          <h1 className="text-3xl font-bold mb-6">Crear Nuevo Proyecto</h1>
           <CreateProjectForm />
         </div>
       </div>

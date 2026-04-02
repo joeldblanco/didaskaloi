@@ -3,7 +3,10 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { type CreateInviteCodeFormValues } from "@/lib/auth-validations";
-import { createInviteCodeAction, deactivateInviteCode } from "@/lib/project-actions";
+import {
+  createInviteCodeAction,
+  deactivateInviteCode,
+} from "@/lib/project-actions";
 import { Role } from "@prisma/client";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
@@ -37,7 +40,9 @@ export function ProjectInviteCodesSection({ projectId, inviteCodes }: Props) {
   const router = useRouter();
   const [isCreating, setIsCreating] = useState(false);
   const [copiedCode, setCopiedCode] = useState<string | null>(null);
-  const [selectedRole, setSelectedRole] = useState<"EDITOR" | "VIEWER">("VIEWER");
+  const [selectedRole, setSelectedRole] = useState<"EDITOR" | "VIEWER">(
+    "VIEWER",
+  );
 
   const handleCreateInviteCode = async () => {
     setIsCreating(true);
@@ -96,7 +101,12 @@ export function ProjectInviteCodesSection({ projectId, inviteCodes }: Props) {
         <div className="flex flex-row items-end gap-4">
           <div className="flex-1">
             <Label htmlFor="role">Rol para el código</Label>
-            <Select value={selectedRole} onValueChange={(value) => setSelectedRole(value as "EDITOR" | "VIEWER")}>
+            <Select
+              value={selectedRole}
+              onValueChange={(value) =>
+                setSelectedRole(value as "EDITOR" | "VIEWER")
+              }
+            >
               <SelectTrigger id="role" className="mt-1">
                 <SelectValue />
               </SelectTrigger>
@@ -125,9 +135,7 @@ export function ProjectInviteCodesSection({ projectId, inviteCodes }: Props) {
 
       {/* Active Invite Codes */}
       <div>
-        <h3 className="font-semibold mb-4">
-          Códigos Activos
-        </h3>
+        <h3 className="font-semibold mb-4">Códigos Activos</h3>
         {inviteCodes.length === 0 ? (
           <p className="text-muted-foreground text-center py-8">
             No hay códigos de invitación activos
@@ -166,14 +174,19 @@ export function ProjectInviteCodesSection({ projectId, inviteCodes }: Props) {
                     </span>
                   </div>
                   <div className="flex items-center gap-4 mt-2 text-sm text-muted-foreground">
-                    <span>Usos: {inviteCode.usedCount}{inviteCode.maxUses ? ` / ${inviteCode.maxUses}` : ""}</span>
+                    <span>
+                      Usos: {inviteCode.usedCount}
+                      {inviteCode.maxUses ? ` / ${inviteCode.maxUses}` : ""}
+                    </span>
                     {inviteCode.expiresAt && (
                       <span>
-                        Expira: {new Date(inviteCode.expiresAt).toLocaleDateString()}
+                        Expira:{" "}
+                        {new Date(inviteCode.expiresAt).toLocaleDateString()}
                       </span>
                     )}
                     <span className="text-xs">
-                      Creado: {new Date(inviteCode.createdAt).toLocaleDateString()}
+                      Creado:{" "}
+                      {new Date(inviteCode.createdAt).toLocaleDateString()}
                     </span>
                   </div>
                 </div>

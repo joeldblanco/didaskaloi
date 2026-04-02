@@ -5,7 +5,10 @@ import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import Link from "next/link";
-import { joinWithInviteSchema, type JoinWithInviteFormValues } from "@/lib/auth-validations";
+import {
+  joinWithInviteSchema,
+  type JoinWithInviteFormValues,
+} from "@/lib/auth-validations";
 import { joinWithInviteCode } from "@/lib/project-actions";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -85,7 +88,8 @@ export default function UnirseInvitacionPage() {
                 </p>
               )}
               <p className="text-xs text-muted-foreground mt-1">
-                El código de invitación termina en EDIT (Editor) o VIEW (Visualizador)
+                El código de invitación termina en EDIT (Editor) o VIEW
+                (Visualizador)
               </p>
             </div>
 
@@ -108,8 +112,9 @@ export default function UnirseInvitacionPage() {
 
             <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4">
               <p className="text-sm text-blue-800 dark:text-blue-200">
-                <strong>Ventaja:</strong> Al usar un código de invitación, obtendrás el rol específico 
-                (Editor o Visualizador) asignado por el administrador, sin necesidad de esperar a que te lo otorgue.
+                <strong>Ventaja:</strong> Al usar un código de invitación,
+                obtendrás el rol específico (Editor o Visualizador) asignado por
+                el administrador, sin necesidad de esperar a que te lo otorgue.
               </p>
             </div>
 
