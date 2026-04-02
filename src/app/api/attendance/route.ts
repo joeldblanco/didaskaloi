@@ -90,7 +90,13 @@ export async function GET(req: NextRequest) {
       where,
       include: {
         _count: { select: { records: true } },
-        records: { select: { present: true } },
+        records: {
+          include: {
+            student: {
+              select: { firstName: true, lastName: true, gender: true },
+            },
+          },
+        },
       },
       orderBy: { date: "desc" },
     });
@@ -108,6 +114,15 @@ export async function GET(req: NextRequest) {
         absentCount: totalRecords - presentCount,
         attendanceRate:
           totalRecords > 0 ? (presentCount / totalRecords) * 100 : 0,
+        records: a.records.map((r) => ({
+          id: r.id,
+          studentId: r.studentId,
+          attendanceId: r.attendanceId,
+          present: r.present,
+          studentFirstName: r.student.firstName,
+          studentLastName: r.student.lastName,
+          studentGender: r.student.gender,
+        })),
       };
     });
 
