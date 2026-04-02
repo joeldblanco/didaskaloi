@@ -137,7 +137,9 @@ const ClasesView = () => {
         const updatedClasses = await offlineGetClasses();
         setClasses(updatedClasses as ClassWithStudentCount[]);
       } else {
-        toast.error((result as { error?: string }).error || "Error al crear la clase");
+        toast.error(
+          (result as { error?: string }).error || "Error al crear la clase",
+        );
       }
     } catch (error) {
       console.error("Error creating class:", error);
@@ -159,7 +161,10 @@ const ClasesView = () => {
         const updatedClasses = await offlineGetClasses();
         setClasses(updatedClasses as ClassWithStudentCount[]);
       } else {
-        toast.error((result as { error?: string }).error || "Error al actualizar la clase");
+        toast.error(
+          (result as { error?: string }).error ||
+            "Error al actualizar la clase",
+        );
       }
     } catch (error) {
       console.error("Error updating class:", error);

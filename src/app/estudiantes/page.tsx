@@ -115,14 +115,13 @@ const EstudiantesView = () => {
         // Calculate attendance percentages
         const studentsWithAttendance = await Promise.all(
           studentsData.map(async (student) => {
-            const attendancePercentage = await offlineCalculateStudentAttendance(
-              student.id
-            );
+            const attendancePercentage =
+              await offlineCalculateStudentAttendance(student.id);
             return {
               ...student,
               attendancePercentage,
             };
-          })
+          }),
         );
 
         setStudents(studentsWithAttendance as ExtendedStudent[]);
@@ -139,9 +138,7 @@ const EstudiantesView = () => {
 
   // Filter students based on filters (search is handled by DataTable)
   const filteredStudents = students.filter((student) => {
-    const matchesClass = classFilter
-      ? student.classId === classFilter
-      : true;
+    const matchesClass = classFilter ? student.classId === classFilter : true;
 
     const matchesGender = genderFilter ? student.gender === genderFilter : true;
 
@@ -209,20 +206,22 @@ const EstudiantesView = () => {
         // Calculate attendance percentages
         const studentsWithAttendance = await Promise.all(
           studentsData.map(async (student) => {
-            const attendancePercentage = await offlineCalculateStudentAttendance(
-              student.id
-            );
+            const attendancePercentage =
+              await offlineCalculateStudentAttendance(student.id);
             return {
               ...student,
               attendancePercentage,
             };
-          })
+          }),
         );
 
         setStudents(studentsWithAttendance as ExtendedStudent[]);
         setIsEditMode(false);
       } else {
-        const errorMessage = !result?.success && "error" in result ? result.error : "Error al guardar el estudiante";
+        const errorMessage =
+          !result?.success && "error" in result
+            ? result.error
+            : "Error al guardar el estudiante";
         toast.error(errorMessage);
       }
     } catch (error) {
@@ -250,14 +249,13 @@ const EstudiantesView = () => {
         // Calculate attendance percentages
         const studentsWithAttendance = await Promise.all(
           studentsData.map(async (student) => {
-            const attendancePercentage = await offlineCalculateStudentAttendance(
-              student.id
-            );
+            const attendancePercentage =
+              await offlineCalculateStudentAttendance(student.id);
             return {
               ...student,
               attendancePercentage,
             };
-          })
+          }),
         );
 
         setStudents(studentsWithAttendance as ExtendedStudent[]);
@@ -289,15 +287,17 @@ const EstudiantesView = () => {
     // Refresh students after import
     const studentsData = await offlineGetStudents();
     const studentsWithAttendance = await Promise.all(
-      (studentsData as unknown as (Student & { class: Class })[]).map(async (student) => {
-        const attendancePercentage = await offlineCalculateStudentAttendance(
-          student.id
-        );
-        return {
-          ...student,
-          attendancePercentage,
-        };
-      })
+      (studentsData as unknown as (Student & { class: Class })[]).map(
+        async (student) => {
+          const attendancePercentage = await offlineCalculateStudentAttendance(
+            student.id,
+          );
+          return {
+            ...student,
+            attendancePercentage,
+          };
+        },
+      ),
     );
     setStudents(studentsWithAttendance as ExtendedStudent[]);
   };
@@ -353,7 +353,10 @@ const EstudiantesView = () => {
                     <FormItem>
                       <FormLabel>Apellidos</FormLabel>
                       <FormControl>
-                        <Input placeholder="Apellidos del estudiante" {...field} />
+                        <Input
+                          placeholder="Apellidos del estudiante"
+                          {...field}
+                        />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -433,7 +436,9 @@ const EstudiantesView = () => {
                           value={value ?? ""}
                           onChange={(e) => {
                             const val = e.target.value;
-                            fieldRest.onChange(val === "" ? "" : parseInt(val) || "");
+                            fieldRest.onChange(
+                              val === "" ? "" : parseInt(val) || "",
+                            );
                           }}
                         />
                       </FormControl>
@@ -614,7 +619,10 @@ const EstudiantesView = () => {
       {/* Filters Row */}
       <div className="flex gap-4 mb-4 items-end">
         <div>
-          <Label htmlFor="class-filter" className="text-xs text-muted-foreground mb-1 block">
+          <Label
+            htmlFor="class-filter"
+            className="text-xs text-muted-foreground mb-1 block"
+          >
             Clase
           </Label>
           <Select

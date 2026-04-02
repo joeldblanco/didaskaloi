@@ -84,7 +84,7 @@ export function SidebarNavigation() {
             id: p.id,
             name: p.name,
             role: p.role || "VIEWER",
-          }))
+          })),
         );
       } catch (error) {
         console.error("Error loading projects:", error);

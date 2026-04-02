@@ -5,7 +5,10 @@ import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import Link from "next/link";
-import { joinProjectSchema, type JoinProjectFormValues } from "@/lib/auth-validations";
+import {
+  joinProjectSchema,
+  type JoinProjectFormValues,
+} from "@/lib/auth-validations";
 import { joinProject } from "@/lib/project-actions";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -53,9 +56,7 @@ export default function UnirseProyectoPage() {
             <div className="inline-flex items-center justify-center w-16 h-16 bg-blue-100 dark:bg-blue-900 rounded-full mb-4">
               <Users className="w-8 h-8 text-blue-600 dark:text-blue-400" />
             </div>
-            <h1 className="text-3xl font-bold">
-              Unirse a un Proyecto
-            </h1>
+            <h1 className="text-3xl font-bold">Unirse a un Proyecto</h1>
             <p className="text-muted-foreground mt-2">
               Ingresa el código de acceso y la contraseña del proyecto
             </p>
@@ -104,8 +105,9 @@ export default function UnirseProyectoPage() {
 
             <div className="bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg p-4">
               <p className="text-sm text-yellow-800 dark:text-yellow-200">
-                <strong>Nota:</strong> Al unirte con el código de acceso, se te asignará el rol de <strong>Visualizador</strong> por defecto. 
-                El administrador del proyecto podrá cambiar tu rol posteriormente.
+                <strong>Nota:</strong> Al unirte con el código de acceso, se te
+                asignará el rol de <strong>Visualizador</strong> por defecto. El
+                administrador del proyecto podrá cambiar tu rol posteriormente.
               </p>
             </div>
 

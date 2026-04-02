@@ -9,9 +9,21 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { offlineGetAgeRanges, offlineGetClasses, offlineGetStudents } from "@/lib/offline-actions";
+import {
+  offlineGetAgeRanges,
+  offlineGetClasses,
+  offlineGetStudents,
+} from "@/lib/offline-actions";
 import { AgeRange, Class, Student } from "@prisma/client";
-import { ChevronLeft, Loader2, LayoutGrid, User, Users, Download, FileSpreadsheet } from "lucide-react";
+import {
+  ChevronLeft,
+  Loader2,
+  LayoutGrid,
+  User,
+  Users,
+  Download,
+  FileSpreadsheet,
+} from "lucide-react";
 
 import { useEffect, useState, useCallback } from "react";
 import { exportReportToPDF, exportReportToExcel } from "@/lib/export-utils";
@@ -108,10 +120,11 @@ const ReportesView = () => {
         // Process students data to include attendancePercentage
         const processedStudents = studentsData.map((student) => {
           // Calculate attendance percentage based on attendance records
-          const attendanceRecords = (student as unknown as ExtendedStudent).attendanceRecords || [];
+          const attendanceRecords =
+            (student as unknown as ExtendedStudent).attendanceRecords || [];
           const totalRecords = attendanceRecords.length;
           const presentCount = attendanceRecords.filter(
-            (record: { present: boolean }) => record.present
+            (record: { present: boolean }) => record.present,
           ).length;
           const attendancePercentage =
             totalRecords > 0
@@ -149,7 +162,7 @@ const ReportesView = () => {
       } else if (selectedClass) {
         // Include only students from the selected class
         studentsToInclude = students.filter(
-          (student) => student.classId === selectedClass.id
+          (student) => student.classId === selectedClass.id,
         );
       } else {
         return; // No selection made yet
@@ -157,15 +170,15 @@ const ReportesView = () => {
 
       // 1. Gender distribution
       const maleCount = studentsToInclude.filter(
-        (s) => s.gender === "M"
+        (s) => s.gender === "M",
       ).length;
       const femaleCount = studentsToInclude.filter(
-        (s) => s.gender === "F"
+        (s) => s.gender === "F",
       ).length;
 
       // 2. Best attendance students
       const sortedByAttendance = [...studentsToInclude].sort(
-        (a, b) => (b.attendancePercentage || 0) - (a.attendancePercentage || 0)
+        (a, b) => (b.attendancePercentage || 0) - (a.attendancePercentage || 0),
       );
 
       const bestOverall =
@@ -178,7 +191,8 @@ const ReportesView = () => {
       // 3. Students by age range
       const studentsByAgeRange = ageRanges.map((range) => {
         const count = studentsToInclude.filter(
-          (s) => s.age != null && s.age >= range.minAge && s.age <= range.maxAge
+          (s) =>
+            s.age != null && s.age >= range.minAge && s.age <= range.maxAge,
         ).length;
 
         return {
@@ -190,14 +204,15 @@ const ReportesView = () => {
       // 4. Average attendance by age range
       const attendanceByAgeRange = ageRanges.map((range) => {
         const rangeStudents = studentsToInclude.filter(
-          (s) => s.age != null && s.age >= range.minAge && s.age <= range.maxAge
+          (s) =>
+            s.age != null && s.age >= range.minAge && s.age <= range.maxAge,
         );
 
         const average =
           rangeStudents.length > 0
             ? rangeStudents.reduce(
                 (sum, s) => sum + (s.attendancePercentage || 0),
-                0
+                0,
               ) / rangeStudents.length
             : 0;
 
@@ -210,14 +225,15 @@ const ReportesView = () => {
       // 5. NEW: Students by age range and gender
       const studentsByAgeRangeAndGender = ageRanges.map((range) => {
         const rangeStudents = studentsToInclude.filter(
-          (s) => s.age != null && s.age >= range.minAge && s.age <= range.maxAge
+          (s) =>
+            s.age != null && s.age >= range.minAge && s.age <= range.maxAge,
         );
 
         const maleStudents = rangeStudents.filter(
-          (s) => s.gender === "M"
+          (s) => s.gender === "M",
         ).length;
         const femaleStudents = rangeStudents.filter(
-          (s) => s.gender === "F"
+          (s) => s.gender === "F",
         ).length;
 
         return {
@@ -234,7 +250,7 @@ const ReportesView = () => {
           const classStudents = students.filter((s) => s.classId === cls.id);
           const totalAttendance = classStudents.reduce(
             (sum, s) => sum + (s.attendancePercentage || 0),
-            0
+            0,
           );
           const averageAttendance =
             classStudents.length > 0
@@ -294,7 +310,9 @@ const ReportesView = () => {
   // Handle export functions
   const handleExportPDF = () => {
     if (!reportData) return;
-    const title = isGeneralReport ? "Reporte General" : selectedClass?.name || "Reporte";
+    const title = isGeneralReport
+      ? "Reporte General"
+      : selectedClass?.name || "Reporte";
     try {
       exportReportToPDF(reportData, title);
       toast.success("Reporte exportado a PDF correctamente");
@@ -306,7 +324,9 @@ const ReportesView = () => {
 
   const handleExportExcel = async () => {
     if (!reportData) return;
-    const title = isGeneralReport ? "Reporte General" : selectedClass?.name || "Reporte";
+    const title = isGeneralReport
+      ? "Reporte General"
+      : selectedClass?.name || "Reporte";
     try {
       await exportReportToExcel(reportData, title);
       toast.success("Reporte exportado a Excel correctamente");
@@ -360,7 +380,14 @@ const ReportesView = () => {
           type="multiple"
           defaultValue={
             isGeneralReport
-              ? ["gender", "ageGender", "attendance", "age", "attendanceByAge", "classesSummary"]
+              ? [
+                  "gender",
+                  "ageGender",
+                  "attendance",
+                  "age",
+                  "attendanceByAge",
+                  "classesSummary",
+                ]
               : ["gender", "ageGender", "attendance", "age", "attendanceByAge"]
           }
           className="grid grid-cols-1 xl:grid-cols-2 gap-4"
@@ -490,7 +517,9 @@ const ReportesView = () => {
             <AccordionContent className="px-4 py-3 border-t">
               {reportData.bestAttendance.overall && (
                 <div className="mb-4">
-                  <h3 className="font-medium text-muted-foreground mb-2">General</h3>
+                  <h3 className="font-medium text-muted-foreground mb-2">
+                    General
+                  </h3>
                   <Card>
                     <CardContent className="p-4">
                       <div className="flex justify-between items-center mb-1">
@@ -530,7 +559,9 @@ const ReportesView = () => {
               <div className="grid grid-cols-2 gap-4">
                 {reportData.bestAttendance.male && (
                   <div>
-                    <h3 className="font-medium text-muted-foreground mb-2">Varones</h3>
+                    <h3 className="font-medium text-muted-foreground mb-2">
+                      Varones
+                    </h3>
                     <Card className="bg-blue-50 dark:bg-blue-950">
                       <CardContent className="p-3">
                         <p className="font-medium">
@@ -557,7 +588,9 @@ const ReportesView = () => {
 
                 {reportData.bestAttendance.female && (
                   <div>
-                    <h3 className="font-medium text-muted-foreground mb-2">Mujeres</h3>
+                    <h3 className="font-medium text-muted-foreground mb-2">
+                      Mujeres
+                    </h3>
                     <Card className="bg-pink-50 dark:bg-pink-950">
                       <CardContent className="p-3">
                         <p className="font-medium">
@@ -763,58 +796,58 @@ const ReportesView = () => {
           </p>
 
           {isLoading ? (
-        <div className="flex justify-center items-center py-8">
-          <Loader2 className="h-8 w-8 text-blue-500 animate-spin" />
-        </div>
-      ) : classes.length === 0 ? (
-        <div className="text-center py-8">
-          <p className="text-muted-foreground">No hay clases disponibles</p>
-        </div>
-      ) : (
-        <div className="space-y-6">
-          {/* General report option */}
-          <Card
-            className="cursor-pointer hover:bg-blue-100 dark:hover:bg-blue-900 border-2 border-blue-200 dark:border-blue-800 bg-blue-50 dark:bg-blue-950"
-            onClick={handleViewGeneralReport}
-          >
-            <CardContent className="p-4">
-              <div className="flex items-center">
-                <LayoutGrid className="h-5 w-5 text-blue-500 mr-2" />
-                <div>
-                  <h2 className="text-lg font-medium">Reporte General</h2>
-                  <p className="text-sm text-muted-foreground">
-                    Ver estadísticas de todas las clases
-                  </p>
+            <div className="flex justify-center items-center py-8">
+              <Loader2 className="h-8 w-8 text-blue-500 animate-spin" />
+            </div>
+          ) : classes.length === 0 ? (
+            <div className="text-center py-8">
+              <p className="text-muted-foreground">No hay clases disponibles</p>
+            </div>
+          ) : (
+            <div className="space-y-6">
+              {/* General report option */}
+              <Card
+                className="cursor-pointer hover:bg-blue-100 dark:hover:bg-blue-900 border-2 border-blue-200 dark:border-blue-800 bg-blue-50 dark:bg-blue-950"
+                onClick={handleViewGeneralReport}
+              >
+                <CardContent className="p-4">
+                  <div className="flex items-center">
+                    <LayoutGrid className="h-5 w-5 text-blue-500 mr-2" />
+                    <div>
+                      <h2 className="text-lg font-medium">Reporte General</h2>
+                      <p className="text-sm text-muted-foreground">
+                        Ver estadísticas de todas las clases
+                      </p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+
+              <div>
+                <h3 className="text-sm font-medium text-muted-foreground mb-3">
+                  Reportes por clase
+                </h3>
+                <div className="grid grid-cols-2 xl:grid-cols-3 gap-4">
+                  {classes
+                    .sort((a, b) => (b.createdAt < a.createdAt ? 1 : -1))
+                    .map((cls) => (
+                      <Card
+                        key={cls.id}
+                        className="cursor-pointer hover:bg-accent"
+                        onClick={() => setSelectedClass(cls)}
+                      >
+                        <CardContent className="p-4">
+                          <h2 className="text-lg font-medium">{cls.name}</h2>
+                          <p className="text-sm text-muted-foreground">
+                            {cls._count.students} estudiantes
+                          </p>
+                        </CardContent>
+                      </Card>
+                    ))}
                 </div>
               </div>
-            </CardContent>
-          </Card>
-
-          <div>
-            <h3 className="text-sm font-medium text-muted-foreground mb-3">
-              Reportes por clase
-            </h3>
-            <div className="grid grid-cols-2 xl:grid-cols-3 gap-4">
-              {classes
-                .sort((a, b) => (b.createdAt < a.createdAt ? 1 : -1))
-                .map((cls) => (
-                  <Card
-                    key={cls.id}
-                    className="cursor-pointer hover:bg-accent"
-                    onClick={() => setSelectedClass(cls)}
-                  >
-                    <CardContent className="p-4">
-                      <h2 className="text-lg font-medium">{cls.name}</h2>
-                      <p className="text-sm text-muted-foreground">
-                        {cls._count.students} estudiantes
-                      </p>
-                    </CardContent>
-                  </Card>
-                ))}
             </div>
-          </div>
-        </div>
-      )}
+          )}
         </>
       )}
     </div>

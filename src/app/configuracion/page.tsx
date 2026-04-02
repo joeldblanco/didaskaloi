@@ -36,7 +36,16 @@ import {
 import { ageRangeSchema, type AgeRangeFormValues } from "@/lib/validations";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { AgeRange } from "@prisma/client";
-import { CheckCircle, Edit, Loader2, Plus, Save, Trash, Users, KeyRound } from "lucide-react";
+import {
+  CheckCircle,
+  Edit,
+  Loader2,
+  Plus,
+  Save,
+  Trash,
+  Users,
+  KeyRound,
+} from "lucide-react";
 import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
@@ -53,7 +62,8 @@ const ConfiguracionView = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [showDeleteAlert, setShowDeleteAlert] = useState<string | null>(null);
-  const [projectDetails, setProjectDetails] = useState<Awaited<ReturnType<typeof getProjectDetails>>>(null);
+  const [projectDetails, setProjectDetails] =
+    useState<Awaited<ReturnType<typeof getProjectDetails>>>(null);
   const [isLoadingProject, setIsLoadingProject] = useState(false);
 
   // Form for creating or editing age ranges
@@ -158,7 +168,10 @@ const ConfiguracionView = () => {
           maxAge: 0,
         });
       } else {
-        const errorMessage = result && !result.success && "error" in result ? result.error : "Error al guardar el rango de edad";
+        const errorMessage =
+          result && !result.success && "error" in result
+            ? result.error
+            : "Error al guardar el rango de edad";
         toast.error(errorMessage);
       }
     } catch (error) {
@@ -182,7 +195,10 @@ const ConfiguracionView = () => {
         const updatedRanges = await offlineGetAgeRanges();
         setAgeRanges(updatedRanges as AgeRange[]);
       } else {
-        toast.error((result as { error?: string }).error || "Error al eliminar el rango de edad");
+        toast.error(
+          (result as { error?: string }).error ||
+            "Error al eliminar el rango de edad",
+        );
       }
 
       setShowDeleteAlert(null);
@@ -215,26 +231,147 @@ const ConfiguracionView = () => {
         </div>
       ) : (
         <>
-      {/* Age Ranges Section */}
-      <Card className="mb-4">
-        <CardHeader>
-          <CardTitle>Rangos de Edad</CardTitle>
-          <p className="text-sm text-muted-foreground">
-            Define los rangos de edad que se utilizarán para agrupar estudiantes
-            en los reportes.
-          </p>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          {isLoading ? (
-            <div className="flex justify-center py-4">
-              <Loader2 className="h-8 w-8 text-blue-500 animate-spin" />
-            </div>
-          ) : (
-            <>
-              {ageRanges.map((range) => (
-                <Card key={range.id} className="border">
-                  <CardContent className="p-4">
-                    {editingRangeId === range.id ? (
+          {/* Age Ranges Section */}
+          <Card className="mb-4">
+            <CardHeader>
+              <CardTitle>Rangos de Edad</CardTitle>
+              <p className="text-sm text-muted-foreground">
+                Define los rangos de edad que se utilizarán para agrupar
+                estudiantes en los reportes.
+              </p>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              {isLoading ? (
+                <div className="flex justify-center py-4">
+                  <Loader2 className="h-8 w-8 text-blue-500 animate-spin" />
+                </div>
+              ) : (
+                <>
+                  {ageRanges.map((range) => (
+                    <Card key={range.id} className="border">
+                      <CardContent className="p-4">
+                        {editingRangeId === range.id ? (
+                          <Form {...form}>
+                            <form
+                              onSubmit={form.handleSubmit(onSubmit)}
+                              className="space-y-3"
+                            >
+                              <div className="grid grid-cols-2 gap-3">
+                                <FormField
+                                  control={form.control}
+                                  name="minAge"
+                                  render={({ field }) => (
+                                    <FormItem>
+                                      <FormLabel>Edad mínima</FormLabel>
+                                      <FormControl>
+                                        <Input
+                                          type="number"
+                                          {...field}
+                                          onChange={(e) => {
+                                            const value = e.target.value;
+                                            field.onChange(
+                                              value === ""
+                                                ? ""
+                                                : parseInt(value) || "",
+                                            );
+                                          }}
+                                        />
+                                      </FormControl>
+                                      <FormMessage />
+                                    </FormItem>
+                                  )}
+                                />
+                                <FormField
+                                  control={form.control}
+                                  name="maxAge"
+                                  render={({ field }) => (
+                                    <FormItem>
+                                      <FormLabel>Edad máxima</FormLabel>
+                                      <FormControl>
+                                        <Input
+                                          type="number"
+                                          {...field}
+                                          onChange={(e) => {
+                                            const value = e.target.value;
+                                            field.onChange(
+                                              value === ""
+                                                ? ""
+                                                : parseInt(value) || "",
+                                            );
+                                          }}
+                                        />
+                                      </FormControl>
+                                      <FormMessage />
+                                    </FormItem>
+                                  )}
+                                />
+                              </div>
+                              <FormField
+                                control={form.control}
+                                name="label"
+                                render={({ field }) => (
+                                  <FormItem>
+                                    <FormLabel>Etiqueta</FormLabel>
+                                    <FormControl>
+                                      <Input
+                                        placeholder="Ej: 18-19 años"
+                                        {...field}
+                                      />
+                                    </FormControl>
+                                    <FormMessage />
+                                  </FormItem>
+                                )}
+                              />
+                              <div className="flex justify-end gap-2 mt-2">
+                                <Button
+                                  type="button"
+                                  variant="outline"
+                                  size="sm"
+                                  onClick={cancelEditing}
+                                >
+                                  Cancelar
+                                </Button>
+                                <Button type="submit" size="sm">
+                                  Guardar
+                                </Button>
+                              </div>
+                            </form>
+                          </Form>
+                        ) : (
+                          <div className="flex justify-between items-center">
+                            <div>
+                              <h3 className="font-medium">{range.label}</h3>
+                              <p className="text-sm text-muted-foreground">
+                                Entre {range.minAge} y {range.maxAge} años
+                              </p>
+                            </div>
+                            <div className="flex gap-2">
+                              <Button
+                                onClick={() => startEditing(range)}
+                                variant="ghost"
+                                size="icon"
+                              >
+                                <Edit size={18} />
+                              </Button>
+                              <Button
+                                onClick={() => setShowDeleteAlert(range.id)}
+                                variant="ghost"
+                                size="icon"
+                                className="text-red-500"
+                              >
+                                <Trash size={18} />
+                              </Button>
+                            </div>
+                          </div>
+                        )}
+                      </CardContent>
+                    </Card>
+                  ))}
+
+                  {/* Add New Range Form */}
+                  <Card className="border border-dashed">
+                    <CardContent className="p-4">
+                      <h3 className="font-medium mb-3">Agregar nuevo rango</h3>
                       <Form {...form}>
                         <form
                           onSubmit={form.handleSubmit(onSubmit)}
@@ -256,9 +393,10 @@ const ConfiguracionView = () => {
                                         field.onChange(
                                           value === ""
                                             ? ""
-                                            : parseInt(value) || ""
+                                            : parseInt(value) || "",
                                         );
                                       }}
+                                      disabled={editingRangeId !== null}
                                     />
                                   </FormControl>
                                   <FormMessage />
@@ -280,9 +418,10 @@ const ConfiguracionView = () => {
                                         field.onChange(
                                           value === ""
                                             ? ""
-                                            : parseInt(value) || ""
+                                            : parseInt(value) || "",
                                         );
                                       }}
+                                      disabled={editingRangeId !== null}
                                     />
                                   </FormControl>
                                   <FormMessage />
@@ -300,279 +439,167 @@ const ConfiguracionView = () => {
                                   <Input
                                     placeholder="Ej: 18-19 años"
                                     {...field}
+                                    disabled={editingRangeId !== null}
                                   />
                                 </FormControl>
                                 <FormMessage />
                               </FormItem>
                             )}
                           />
-                          <div className="flex justify-end gap-2 mt-2">
-                            <Button
-                              type="button"
-                              variant="outline"
-                              size="sm"
-                              onClick={cancelEditing}
-                            >
-                              Cancelar
-                            </Button>
-                            <Button type="submit" size="sm">
-                              Guardar
-                            </Button>
-                          </div>
+                          <Button
+                            type="submit"
+                            variant="outline"
+                            className="w-full flex items-center justify-center gap-2 mt-2"
+                            disabled={editingRangeId !== null}
+                          >
+                            <Plus size={16} />
+                            <span>Agregar</span>
+                          </Button>
                         </form>
                       </Form>
-                    ) : (
-                      <div className="flex justify-between items-center">
-                        <div>
-                          <h3 className="font-medium">{range.label}</h3>
-                          <p className="text-sm text-muted-foreground">
-                            Entre {range.minAge} y {range.maxAge} años
-                          </p>
-                        </div>
-                        <div className="flex gap-2">
-                          <Button
-                            onClick={() => startEditing(range)}
-                            variant="ghost"
-                            size="icon"
-                          >
-                            <Edit size={18} />
-                          </Button>
-                          <Button
-                            onClick={() => setShowDeleteAlert(range.id)}
-                            variant="ghost"
-                            size="icon"
-                            className="text-red-500"
-                          >
-                            <Trash size={18} />
-                          </Button>
-                        </div>
-                      </div>
-                    )}
-                  </CardContent>
-                </Card>
-              ))}
-
-              {/* Add New Range Form */}
-              <Card className="border border-dashed">
-                <CardContent className="p-4">
-                  <h3 className="font-medium mb-3">Agregar nuevo rango</h3>
-                  <Form {...form}>
-                    <form
-                      onSubmit={form.handleSubmit(onSubmit)}
-                      className="space-y-3"
-                    >
-                      <div className="grid grid-cols-2 gap-3">
-                        <FormField
-                          control={form.control}
-                          name="minAge"
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>Edad mínima</FormLabel>
-                              <FormControl>
-                                <Input
-                                  type="number"
-                                  {...field}
-                                  onChange={(e) => {
-                                    const value = e.target.value;
-                                    field.onChange(
-                                      value === "" ? "" : parseInt(value) || ""
-                                    );
-                                  }}
-                                  disabled={editingRangeId !== null}
-                                />
-                              </FormControl>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
-                        <FormField
-                          control={form.control}
-                          name="maxAge"
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>Edad máxima</FormLabel>
-                              <FormControl>
-                                <Input
-                                  type="number"
-                                  {...field}
-                                  onChange={(e) => {
-                                    const value = e.target.value;
-                                    field.onChange(
-                                      value === "" ? "" : parseInt(value) || ""
-                                    );
-                                  }}
-                                  disabled={editingRangeId !== null}
-                                />
-                              </FormControl>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
-                      </div>
-                      <FormField
-                        control={form.control}
-                        name="label"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Etiqueta</FormLabel>
-                            <FormControl>
-                              <Input
-                                placeholder="Ej: 18-19 años"
-                                {...field}
-                                disabled={editingRangeId !== null}
-                              />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                      <Button
-                        type="submit"
-                        variant="outline"
-                        className="w-full flex items-center justify-center gap-2 mt-2"
-                        disabled={editingRangeId !== null}
-                      >
-                        <Plus size={16} />
-                        <span>Agregar</span>
-                      </Button>
-                    </form>
-                  </Form>
-                </CardContent>
-              </Card>
-            </>
-          )}
-        </CardContent>
-        <CardFooter className="flex flex-col">
-          <Button
-            onClick={saveConfiguration}
-            className="w-full flex items-center justify-center gap-2"
-          >
-            <Save size={16} />
-            <span>Guardar Configuración</span>
-          </Button>
-
-          {successMessage && (
-            <div className="flex items-center gap-2 text-green-600 mt-3 w-full justify-center">
-              <CheckCircle size={16} />
-              <span>{successMessage}</span>
-            </div>
-          )}
-        </CardFooter>
-      </Card>
-
-      {/* Project Members & Invite Codes */}
-      {projectDetails && (
-        <div className="grid grid-cols-1 xl:grid-cols-2 gap-4 mb-4">
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Users size={20} />
-                Miembros del Proyecto
-              </CardTitle>
-              <p className="text-sm text-muted-foreground">
-                Gestiona los miembros y sus roles en el proyecto
-              </p>
-            </CardHeader>
-            <CardContent>
-              {isLoadingProject ? (
-                <div className="flex justify-center py-4">
-                  <Loader2 className="h-8 w-8 text-blue-500 animate-spin" />
-                </div>
-              ) : (
-                <ProjectMembersSection
-                  projectId={projectDetails.id}
-                  members={projectDetails.members}
-                  isAdmin={projectDetails.userRole === "ADMIN"}
-                  ownerId={projectDetails.owner.id}
-                />
+                    </CardContent>
+                  </Card>
+                </>
               )}
             </CardContent>
+            <CardFooter className="flex flex-col">
+              <Button
+                onClick={saveConfiguration}
+                className="w-full flex items-center justify-center gap-2"
+              >
+                <Save size={16} />
+                <span>Guardar Configuración</span>
+              </Button>
+
+              {successMessage && (
+                <div className="flex items-center gap-2 text-green-600 mt-3 w-full justify-center">
+                  <CheckCircle size={16} />
+                  <span>{successMessage}</span>
+                </div>
+              )}
+            </CardFooter>
           </Card>
 
-          {/* Invite Codes Section (Admin Only) */}
-          {projectDetails.userRole === "ADMIN" && (
+          {/* Project Members & Invite Codes */}
+          {projectDetails && (
+            <div className="grid grid-cols-1 xl:grid-cols-2 gap-4 mb-4">
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Users size={20} />
+                    Miembros del Proyecto
+                  </CardTitle>
+                  <p className="text-sm text-muted-foreground">
+                    Gestiona los miembros y sus roles en el proyecto
+                  </p>
+                </CardHeader>
+                <CardContent>
+                  {isLoadingProject ? (
+                    <div className="flex justify-center py-4">
+                      <Loader2 className="h-8 w-8 text-blue-500 animate-spin" />
+                    </div>
+                  ) : (
+                    <ProjectMembersSection
+                      projectId={projectDetails.id}
+                      members={projectDetails.members}
+                      isAdmin={projectDetails.userRole === "ADMIN"}
+                      ownerId={projectDetails.owner.id}
+                    />
+                  )}
+                </CardContent>
+              </Card>
+
+              {/* Invite Codes Section (Admin Only) */}
+              {projectDetails.userRole === "ADMIN" && (
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                      <KeyRound size={20} />
+                      Códigos de Invitación
+                    </CardTitle>
+                    <p className="text-sm text-muted-foreground">
+                      Genera y gestiona códigos de invitación para el proyecto
+                    </p>
+                  </CardHeader>
+                  <CardContent>
+                    <ProjectInviteCodesSection
+                      projectId={projectDetails.id}
+                      inviteCodes={projectDetails.inviteCodes.filter(
+                        (code) =>
+                          code.role === "EDITOR" || code.role === "VIEWER",
+                      )}
+                    />
+                  </CardContent>
+                </Card>
+              )}
+            </div>
+          )}
+
+          {/* Appearance & Info */}
+          <div className="grid grid-cols-1 xl:grid-cols-2 gap-4 mb-4">
             <Card>
               <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <KeyRound size={20} />
-                  Códigos de Invitación
-                </CardTitle>
+                <CardTitle>Apariencia</CardTitle>
                 <p className="text-sm text-muted-foreground">
-                  Genera y gestiona códigos de invitación para el proyecto
+                  Personaliza la apariencia de la aplicación
                 </p>
               </CardHeader>
               <CardContent>
-                <ProjectInviteCodesSection
-                  projectId={projectDetails.id}
-                  inviteCodes={projectDetails.inviteCodes.filter(code => code.role === "EDITOR" || code.role === "VIEWER")}
-                />
+                <div className="flex items-center justify-between">
+                  <div>
+                    <h3 className="font-medium">Tema</h3>
+                    <p className="text-sm text-muted-foreground">
+                      Cambia entre modo claro y oscuro
+                    </p>
+                  </div>
+                  <ThemeToggle />
+                </div>
               </CardContent>
             </Card>
-          )}
-        </div>
-      )}
 
-      {/* Appearance & Info */}
-      <div className="grid grid-cols-1 xl:grid-cols-2 gap-4 mb-4">
-      <Card>
-        <CardHeader>
-          <CardTitle>Apariencia</CardTitle>
-          <p className="text-sm text-muted-foreground">
-            Personaliza la apariencia de la aplicación
-          </p>
-        </CardHeader>
-        <CardContent>
-          <div className="flex items-center justify-between">
-            <div>
-              <h3 className="font-medium">Tema</h3>
-              <p className="text-sm text-muted-foreground">
-                Cambia entre modo claro y oscuro
-              </p>
-            </div>
-            <ThemeToggle />
+            {/* Application Information */}
+            <Card>
+              <CardContent className="p-4">
+                <h2 className="text-lg font-medium mb-2">Información</h2>
+                <p className="text-sm text-muted-foreground mb-1">
+                  Versión: 1.0.0
+                </p>
+                <p className="text-sm text-muted-foreground">
+                  © 2025 Didaskaloi
+                </p>
+              </CardContent>
+            </Card>
           </div>
-        </CardContent>
-      </Card>
 
-      {/* Application Information */}
-      <Card>
-        <CardContent className="p-4">
-          <h2 className="text-lg font-medium mb-2">Información</h2>
-          <p className="text-sm text-muted-foreground mb-1">Versión: 1.0.0</p>
-          <p className="text-sm text-muted-foreground">© 2025 Didaskaloi</p>
-        </CardContent>
-      </Card>
-      </div>
-
-      {/* Delete Confirmation Alert */}
-      <AlertDialog
-        open={showDeleteAlert !== null}
-        onOpenChange={(isOpen) => {
-          if (!isOpen) setShowDeleteAlert(null);
-        }}
-      >
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>¿Estás seguro?</AlertDialogTitle>
-            <AlertDialogDescription>
-              Esta acción eliminará permanentemente este rango de edad.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Cancelar</AlertDialogCancel>
-            <AlertDialogAction
-              onClick={() => {
-                if (showDeleteAlert !== null) {
-                  handleDeleteRange(showDeleteAlert);
-                }
-              }}
-              className="bg-red-500 hover:bg-red-600"
-            >
-              Eliminar
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+          {/* Delete Confirmation Alert */}
+          <AlertDialog
+            open={showDeleteAlert !== null}
+            onOpenChange={(isOpen) => {
+              if (!isOpen) setShowDeleteAlert(null);
+            }}
+          >
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle>¿Estás seguro?</AlertDialogTitle>
+                <AlertDialogDescription>
+                  Esta acción eliminará permanentemente este rango de edad.
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                <AlertDialogAction
+                  onClick={() => {
+                    if (showDeleteAlert !== null) {
+                      handleDeleteRange(showDeleteAlert);
+                    }
+                  }}
+                  className="bg-red-500 hover:bg-red-600"
+                >
+                  Eliminar
+                </AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
         </>
       )}
     </div>
