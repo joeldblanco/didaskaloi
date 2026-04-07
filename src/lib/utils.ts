@@ -1,6 +1,10 @@
 import { type ClassValue, clsx } from "clsx";
 import { twMerge } from "tailwind-merge";
 
+function toDate(date: Date | string): Date {
+  return typeof date === "string" ? new Date(date) : date;
+}
+
 /**
  * Combines multiple class names using clsx and tailwind-merge
  */
@@ -12,7 +16,7 @@ export function cn(...inputs: ClassValue[]) {
  * Formats a date to a locale string
  */
 export function formatDate(date: Date | string): string {
-  const dateObj = typeof date === "string" ? new Date(date) : date;
+  const dateObj = toDate(date);
   return dateObj.toLocaleDateString("es-ES", {
     weekday: "long",
     year: "numeric",
@@ -22,11 +26,19 @@ export function formatDate(date: Date | string): string {
 }
 
 /**
+ * Normalizes a device-local date to local midnight so it can be stored as a UTC timestamp.
+ */
+export function normalizeDateToLocalMidnight(date: Date | string): Date {
+  const dateObj = toDate(date);
+  return new Date(dateObj.getFullYear(), dateObj.getMonth(), dateObj.getDate());
+}
+
+/**
  * Calculates attendance percentage from records
  */
 export function calculateAttendancePercentage(
   present: number,
-  total: number
+  total: number,
 ): number {
   if (total === 0) return 0;
   return Math.round((present / total) * 100);
@@ -62,7 +74,7 @@ export function getGenderDisplayText(gender: "M" | "F"): string {
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export function debounce<T extends (...args: any[]) => any>(
   func: T,
-  wait: number
+  wait: number,
 ): (...args: Parameters<T>) => void {
   let timeout: NodeJS.Timeout | null = null;
 
@@ -86,7 +98,7 @@ export function debounce<T extends (...args: any[]) => any>(
 export function sortByField<T>(
   array: T[],
   field: keyof T,
-  direction: "asc" | "desc" = "asc"
+  direction: "asc" | "desc" = "asc",
 ): T[] {
   return [...array].sort((a, b) => {
     const valueA = a[field];

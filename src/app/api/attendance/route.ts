@@ -151,6 +151,9 @@ export async function POST(req: NextRequest) {
     if (!canModify) return forbidden();
 
     const attendanceDate = new Date(date);
+    if (Number.isNaN(attendanceDate.getTime())) {
+      return badRequest("Fecha inválida");
+    }
 
     const existing = await prisma.attendance.findUnique({
       where: {
