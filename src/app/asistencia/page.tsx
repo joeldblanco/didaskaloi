@@ -58,6 +58,7 @@ import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { useProject } from "@/contexts/project-context";
 import confetti from "canvas-confetti";
+import { getAttendanceStats } from "@/lib/utils";
 
 // Extended types for our data with relations
 interface ClassWithCount extends Class {
@@ -72,7 +73,7 @@ interface AttendanceWithRelations extends Attendance {
 }
 
 interface StudentAttendanceData extends Student {
-  present?: boolean;
+  present?: boolean | null;
 }
 
 const AsistenciaView = () => {
@@ -188,8 +189,8 @@ const AsistenciaView = () => {
         // Sort students with undefined attendance first, then by lowest attendance percentage
         const studentsOrdered = [...students].sort((a, b) => {
           // Undefined attendance comes first
-          if (a.present === undefined && b.present !== undefined) return -1;
-          if (a.present !== undefined && b.present === undefined) return 1;
+          if (a.present == null && b.present != null) return -1;
+          if (a.present != null && b.present == null) return 1;
 
           // Then sort by name
           return a.firstName.localeCompare(b.firstName);
@@ -200,7 +201,7 @@ const AsistenciaView = () => {
         // Initialize currentAttendanceRecords with existing data
         const records: Record<string, boolean> = {};
         studentsOrdered.forEach((student) => {
-          if (student.present !== undefined) {
+          if (student.present != null) {
             records[student.id] = student.present;
           }
         });
@@ -782,8 +783,20 @@ const AsistenciaView = () => {
         id: "presentStudents",
         header: "Presentes",
         cell: ({ row }) => {
-          const present = row.original.records.filter((r) => r.present).length;
-          return <span className="text-muted-foreground">{present}</span>;
+          const stats = getAttendanceStats(row.original.records);
+          return (
+            <span className="text-muted-foreground">{stats.presentCount}</span>
+          );
+        },
+      },
+      {
+        id: "skippedStudents",
+        header: "Saltados",
+        cell: ({ row }) => {
+          const stats = getAttendanceStats(row.original.records);
+          return (
+            <span className="text-muted-foreground">{stats.skippedCount}</span>
+          );
         },
       },
       {
@@ -797,18 +810,12 @@ const AsistenciaView = () => {
             <ArrowUpDown className="ml-2 h-4 w-4" />
           </Button>
         ),
-        accessorFn: (row) => {
-          const total = row.records.length;
-          return total > 0
-            ? Math.round(
-                (row.records.filter((r) => r.present).length / total) * 100,
-              )
-            : 0;
-        },
+        accessorFn: (row) =>
+          getAttendanceStats(row.records).attendancePercentage,
         cell: ({ row }) => {
-          const total = row.original.records.length;
-          const present = row.original.records.filter((r) => r.present).length;
-          const pct = total > 0 ? Math.round((present / total) * 100) : 0;
+          const pct = getAttendanceStats(
+            row.original.records,
+          ).attendancePercentage;
           return (
             <div className="flex items-center gap-2">
               <div className="w-20 bg-muted rounded-full h-1.5">

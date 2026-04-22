@@ -1,6 +1,7 @@
 import { NextRequest } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { hasPermission, getProjectIdFromClass } from "@/lib/permissions";
+import { getAttendanceStats } from "@/lib/utils";
 import { studentSchema } from "@/lib/validations";
 import { Role } from "@prisma/client";
 import {
@@ -53,12 +54,9 @@ export async function GET(req: NextRequest) {
     });
 
     const result = students.map((s) => {
-      const totalRecords = s.attendanceRecords.length;
-      const presentRecords = s.attendanceRecords.filter(
-        (r) => r.present,
-      ).length;
+      const stats = getAttendanceStats(s.attendanceRecords);
       const attendancePercentage =
-        totalRecords > 0 ? (presentRecords / totalRecords) * 100 : null;
+        stats.markedCount > 0 ? stats.attendancePercentage : null;
 
       return {
         id: s.id,
@@ -100,6 +98,25 @@ export async function POST(req: NextRequest) {
 
     const canModify = await hasPermission(user.id, projectId, Role.EDITOR);
     if (!canModify) return forbidden();
+
+    const existingStudent = await prisma.student.findFirst({
+      where: {
+        firstName: {
+          equals: firstName,
+          mode: "insensitive",
+        },
+        lastName: {
+          equals: lastName,
+          mode: "insensitive",
+        },
+        classId,
+      },
+      select: { id: true },
+    });
+
+    if (existingStudent) {
+      return badRequest("Ya existe un estudiante con este nombre en la clase");
+    }
 
     const student = await prisma.student.create({
       data: { firstName, lastName, gender, age, classId },
@@ -150,6 +167,30 @@ export async function PUT(req: NextRequest) {
     });
     if (!parsed.success) {
       return badRequest("Datos inválidos");
+    }
+
+    const existingStudent = await prisma.student.findFirst({
+      where: {
+        firstName: {
+          equals: parsed.data.firstName,
+          mode: "insensitive",
+        },
+        lastName: {
+          equals: parsed.data.lastName,
+          mode: "insensitive",
+        },
+        classId: parsed.data.classId,
+        id: {
+          not: id,
+        },
+      },
+      select: { id: true },
+    });
+
+    if (existingStudent) {
+      return badRequest(
+        "Ya existe otro estudiante con este nombre en la clase",
+      );
     }
 
     const student = await prisma.student.update({

@@ -27,7 +27,7 @@ import {
   getCachedData,
   initDB,
 } from "./offline-storage";
-import { normalizeDateToLocalMidnight } from "./utils";
+import { getAttendanceStats, normalizeDateToLocalMidnight } from "./utils";
 
 // Tipo de retorno para acciones offline
 export type OfflineActionResult =
@@ -373,7 +373,7 @@ export async function offlineUpdateAttendanceRecord(
       const records =
         (a.records as Array<{
           studentId: string;
-          present: boolean;
+          present: boolean | null;
           id?: string;
           attendanceId?: string;
         }>) || [];
@@ -736,10 +736,9 @@ export async function offlineCalculateStudentAttendance(
       return 0;
     }
 
-    const records = student.attendanceRecords as Array<{ present: boolean }>;
-    if (records.length === 0) return 0;
-
-    const presentCount = records.filter((record) => record.present).length;
-    return Math.round((presentCount / records.length) * 100);
+    const records = student.attendanceRecords as Array<{
+      present: boolean | null;
+    }>;
+    return getAttendanceStats(records).attendancePercentage;
   }
 }

@@ -16,10 +16,19 @@ export async function PUT(req: NextRequest) {
     const user = await authenticateRequest(req);
     if (!user) return unauthorized();
 
-    const body = await req.json();
+    const body = (await req.json()) as {
+      studentId?: string;
+      attendanceId?: string;
+      present?: boolean | null;
+    };
     const { studentId, attendanceId, present } = body;
 
-    if (!studentId || !attendanceId || typeof present !== "boolean") {
+    if (
+      !studentId ||
+      !attendanceId ||
+      !Object.prototype.hasOwnProperty.call(body, "present") ||
+      (present != null && typeof present !== "boolean")
+    ) {
       return badRequest("studentId, attendanceId y present son requeridos");
     }
 

@@ -103,7 +103,10 @@ export async function GET(req: NextRequest) {
 
     const result = attendances.map((a) => {
       const totalRecords = a.records.length;
-      const presentCount = a.records.filter((r) => r.present).length;
+      const presentCount = a.records.filter((r) => r.present === true).length;
+      const absentCount = a.records.filter((r) => r.present === false).length;
+      const skippedCount = a.records.filter((r) => r.present == null).length;
+      const markedCount = presentCount + absentCount;
 
       return {
         id: a.id,
@@ -111,9 +114,10 @@ export async function GET(req: NextRequest) {
         classId: a.classId,
         totalRecords,
         presentCount,
-        absentCount: totalRecords - presentCount,
+        absentCount,
+        skippedCount,
         attendanceRate:
-          totalRecords > 0 ? (presentCount / totalRecords) * 100 : 0,
+          markedCount > 0 ? (presentCount / markedCount) * 100 : 0,
         records: a.records.map((r) => ({
           id: r.id,
           studentId: r.studentId,
@@ -165,7 +169,7 @@ export async function POST(req: NextRequest) {
       return badRequest("Ya existe un registro de asistencia para esta fecha");
     }
 
-    // Create attendance with records for all students in the class (default absent)
+    // Create attendance with records for all students in the class (default skipped)
     const students = await prisma.student.findMany({
       where: { classId },
       select: { id: true },
@@ -178,7 +182,7 @@ export async function POST(req: NextRequest) {
         records: {
           create: students.map((s) => ({
             studentId: s.id,
-            present: false,
+            present: null,
           })),
         },
       },

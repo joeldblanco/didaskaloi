@@ -41,6 +41,7 @@ import {
   Legend,
 } from "recharts";
 import { toast } from "sonner";
+import { getAttendanceStats } from "@/lib/utils";
 
 interface ClassWithCount extends Class {
   _count: {
@@ -56,7 +57,7 @@ interface ExtendedStudent extends Student {
     id: string;
     createdAt: Date;
     updatedAt: Date;
-    present: boolean;
+    present: boolean | null;
     studentId: string;
     attendanceId: string;
     attendance?: {
@@ -122,14 +123,8 @@ const ReportesView = () => {
           // Calculate attendance percentage based on attendance records
           const attendanceRecords =
             (student as unknown as ExtendedStudent).attendanceRecords || [];
-          const totalRecords = attendanceRecords.length;
-          const presentCount = attendanceRecords.filter(
-            (record: { present: boolean }) => record.present,
-          ).length;
           const attendancePercentage =
-            totalRecords > 0
-              ? Math.round((presentCount / totalRecords) * 100)
-              : 0;
+            getAttendanceStats(attendanceRecords).attendancePercentage;
 
           return {
             ...student,

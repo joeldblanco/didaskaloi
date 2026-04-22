@@ -125,7 +125,7 @@ model Attendance {
 
 model AttendanceRecord {
   id           String     @id @default(cuid())
-  present      Boolean
+  present      Boolean?
   studentId    String
   student      Student    @relation(fields: [studentId], references: [id], onDelete: Cascade)
   attendanceId String

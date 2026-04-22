@@ -44,6 +44,35 @@ export function calculateAttendancePercentage(
   return Math.round((present / total) * 100);
 }
 
+export type AttendancePresence = boolean | null | undefined;
+
+export function getAttendanceStats<T extends { present: AttendancePresence }>(
+  records: T[],
+) {
+  const presentCount = records.filter(
+    (record) => record.present === true,
+  ).length;
+  const absentCount = records.filter(
+    (record) => record.present === false,
+  ).length;
+  const skippedCount = records.filter(
+    (record) => record.present == null,
+  ).length;
+  const markedCount = presentCount + absentCount;
+
+  return {
+    presentCount,
+    absentCount,
+    skippedCount,
+    markedCount,
+    totalCount: records.length,
+    attendancePercentage: calculateAttendancePercentage(
+      presentCount,
+      markedCount,
+    ),
+  };
+}
+
 /**
  * Gets color class based on attendance percentage
  */

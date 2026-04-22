@@ -21,6 +21,7 @@ import {
   verifyClassAccess,
   getActiveProjectId,
 } from "@/lib/permissions";
+import { getAttendanceStats } from "@/lib/utils";
 
 // Class actions
 export async function createClass(data: ClassFormValues, projectId?: string) {
@@ -56,7 +57,10 @@ export async function createClass(data: ClassFormValues, projectId?: string) {
     });
 
     if (existingClass) {
-      return { success: false, error: "Ya existe una clase con este nombre en este proyecto" };
+      return {
+        success: false,
+        error: "Ya existe una clase con este nombre en este proyecto",
+      };
     }
 
     await prisma.class.create({
@@ -93,9 +97,16 @@ export async function updateClass(data: ClassFormValues) {
     }
 
     // Verify access to this class
-    const { hasAccess, projectId } = await verifyClassAccess(user.id, validatedData.id, Role.EDITOR);
+    const { hasAccess, projectId } = await verifyClassAccess(
+      user.id,
+      validatedData.id,
+      Role.EDITOR,
+    );
     if (!hasAccess || !projectId) {
-      return { success: false, error: "No tienes permisos para actualizar esta clase" };
+      return {
+        success: false,
+        error: "No tienes permisos para actualizar esta clase",
+      };
     }
 
     // Check for duplicate class name (excluding current class)
@@ -132,7 +143,10 @@ export async function updateClass(data: ClassFormValues) {
         return { success: false, error: "Clase no encontrada" };
       }
       if (error.code === "P2002") {
-        return { success: false, error: "Ya existe otra clase con este nombre" };
+        return {
+          success: false,
+          error: "Ya existe otra clase con este nombre",
+        };
       }
     }
     return { success: false, error: "Error al actualizar la clase" };
@@ -149,7 +163,10 @@ export async function deleteClass(id: string) {
     // Verify access to this class
     const { hasAccess } = await verifyClassAccess(user.id, id, Role.EDITOR);
     if (!hasAccess) {
-      return { success: false, error: "No tienes permisos para eliminar esta clase" };
+      return {
+        success: false,
+        error: "No tienes permisos para eliminar esta clase",
+      };
     }
 
     await prisma.class.delete({
@@ -180,9 +197,16 @@ export async function createStudent(data: StudentFormValues) {
     }
 
     // Verify access to the class
-    const { hasAccess } = await verifyClassAccess(user.id, validatedData.classId, Role.EDITOR);
+    const { hasAccess } = await verifyClassAccess(
+      user.id,
+      validatedData.classId,
+      Role.EDITOR,
+    );
     if (!hasAccess) {
-      return { success: false, error: "No tienes permisos para crear estudiantes en esta clase" };
+      return {
+        success: false,
+        error: "No tienes permisos para crear estudiantes en esta clase",
+      };
     }
 
     // Check for duplicate student in the same class
@@ -245,9 +269,16 @@ export async function updateStudent(data: StudentFormValues) {
     }
 
     // Verify access to the class
-    const { hasAccess } = await verifyClassAccess(user.id, validatedData.classId, Role.EDITOR);
+    const { hasAccess } = await verifyClassAccess(
+      user.id,
+      validatedData.classId,
+      Role.EDITOR,
+    );
     if (!hasAccess) {
-      return { success: false, error: "No tienes permisos para actualizar estudiantes en esta clase" };
+      return {
+        success: false,
+        error: "No tienes permisos para actualizar estudiantes en esta clase",
+      };
     }
 
     // Check for duplicate student in the same class (excluding current student)
@@ -321,9 +352,16 @@ export async function deleteStudent(id: string) {
     }
 
     // Verify access to the class
-    const { hasAccess } = await verifyClassAccess(user.id, student.classId, Role.EDITOR);
+    const { hasAccess } = await verifyClassAccess(
+      user.id,
+      student.classId,
+      Role.EDITOR,
+    );
     if (!hasAccess) {
-      return { success: false, error: "No tienes permisos para eliminar estudiantes en esta clase" };
+      return {
+        success: false,
+        error: "No tienes permisos para eliminar estudiantes en esta clase",
+      };
     }
 
     await prisma.student.delete({
@@ -345,7 +383,10 @@ export async function deleteStudent(id: string) {
 }
 
 // Age Range actions
-export async function createAgeRange(data: AgeRangeFormValues, projectId?: string) {
+export async function createAgeRange(
+  data: AgeRangeFormValues,
+  projectId?: string,
+) {
   const validatedData = ageRangeSchema.parse(data);
 
   try {
@@ -363,7 +404,10 @@ export async function createAgeRange(data: AgeRangeFormValues, projectId?: strin
     // Check if user can edit
     const hasEditPermission = await canEdit(user.id, activeProjectId);
     if (!hasEditPermission) {
-      return { success: false, error: "No tienes permisos para crear rangos de edad" };
+      return {
+        success: false,
+        error: "No tienes permisos para crear rangos de edad",
+      };
     }
 
     await prisma.ageRange.create({
@@ -409,7 +453,10 @@ export async function updateAgeRange(data: AgeRangeFormValues) {
     // Check if user can edit
     const hasEditPermission = await canEdit(user.id, ageRange.projectId);
     if (!hasEditPermission) {
-      return { success: false, error: "No tienes permisos para actualizar este rango de edad" };
+      return {
+        success: false,
+        error: "No tienes permisos para actualizar este rango de edad",
+      };
     }
 
     await prisma.ageRange.update({
@@ -449,7 +496,10 @@ export async function deleteAgeRange(id: string) {
     // Check if user can edit
     const hasEditPermission = await canEdit(user.id, ageRange.projectId);
     if (!hasEditPermission) {
-      return { success: false, error: "No tienes permisos para eliminar este rango de edad" };
+      return {
+        success: false,
+        error: "No tienes permisos para eliminar este rango de edad",
+      };
     }
 
     await prisma.ageRange.delete({
@@ -480,9 +530,16 @@ export async function createAttendance(data: AttendanceFormValues) {
     }
 
     // Verify access to the class
-    const { hasAccess } = await verifyClassAccess(user.id, validatedData.classId, Role.EDITOR);
+    const { hasAccess } = await verifyClassAccess(
+      user.id,
+      validatedData.classId,
+      Role.EDITOR,
+    );
     if (!hasAccess) {
-      return { success: false, error: "No tienes permisos para crear asistencia en esta clase" };
+      return {
+        success: false,
+        error: "No tienes permisos para crear asistencia en esta clase",
+      };
     }
 
     // Check for duplicate attendance (same date and class)
@@ -518,7 +575,7 @@ export async function createAttendance(data: AttendanceFormValues) {
     const attendanceRecords = attendance.class.students.map((student) => ({
       studentId: student.id,
       attendanceId: attendance.id,
-      present: false,
+      present: null,
     }));
 
     if (attendanceRecords.length > 0) {
@@ -566,9 +623,16 @@ export async function updateAttendanceRecord(data: AttendanceRecordFormValues) {
     }
 
     // Verify access to the class
-    const { hasAccess } = await verifyClassAccess(user.id, attendance.classId, Role.EDITOR);
+    const { hasAccess } = await verifyClassAccess(
+      user.id,
+      attendance.classId,
+      Role.EDITOR,
+    );
     if (!hasAccess) {
-      return { success: false, error: "No tienes permisos para actualizar la asistencia en esta clase" };
+      return {
+        success: false,
+        error: "No tienes permisos para actualizar la asistencia en esta clase",
+      };
     }
 
     await prisma.attendanceRecord.upsert({
@@ -617,9 +681,16 @@ export async function deleteAttendance(id: string) {
     }
 
     // Verify access to the class
-    const { hasAccess } = await verifyClassAccess(user.id, attendance.classId, Role.EDITOR);
+    const { hasAccess } = await verifyClassAccess(
+      user.id,
+      attendance.classId,
+      Role.EDITOR,
+    );
     if (!hasAccess) {
-      return { success: false, error: "No tienes permisos para eliminar la asistencia en esta clase" };
+      return {
+        success: false,
+        error: "No tienes permisos para eliminar la asistencia en esta clase",
+      };
     }
 
     await prisma.attendance.delete({
@@ -632,7 +703,10 @@ export async function deleteAttendance(id: string) {
     console.error("Error deleting attendance:", error);
     if (error instanceof Prisma.PrismaClientKnownRequestError) {
       if (error.code === "P2025") {
-        return { success: false, error: "Registro de asistencia no encontrado" };
+        return {
+          success: false,
+          error: "Registro de asistencia no encontrado",
+        };
       }
     }
     return { success: false, error: "Error al eliminar la asistencia" };
@@ -830,7 +904,10 @@ export async function getAttendance(id: string) {
     }
 
     // Verify user has access to this project
-    const hasEditPermission = await canEdit(user.id, attendance.class.projectId);
+    const hasEditPermission = await canEdit(
+      user.id,
+      attendance.class.projectId,
+    );
     if (!hasEditPermission) {
       return null;
     }
@@ -851,10 +928,7 @@ export async function calculateStudentAttendance(studentId: string) {
       },
     });
 
-    if (records.length === 0) return 0;
-
-    const presentCount = records.filter((record) => record.present).length;
-    return Math.round((presentCount / records.length) * 100);
+    return getAttendanceStats(records).attendancePercentage;
   } catch (error) {
     console.error("Error calculating student attendance:", error);
     return 0;

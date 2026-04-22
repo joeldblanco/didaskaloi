@@ -52,7 +52,7 @@ export const attendanceRecordSchema = z.object({
   id: z.string().optional(),
   studentId: z.string(),
   attendanceId: z.string(),
-  present: z.boolean(),
+  present: z.boolean().nullable(),
 });
 
 export type ClassFormValues = z.infer<typeof classSchema>;
