@@ -85,6 +85,7 @@ enum Role {
 model Class {
   id          String       @id @default(cuid())
   name        String
+  iconKey     String       @default("class")
   projectId   String
   project     Project      @relation(fields: [projectId], references: [id], onDelete: Cascade)
   students    Student[]

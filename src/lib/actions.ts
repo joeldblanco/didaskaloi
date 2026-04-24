@@ -66,6 +66,7 @@ export async function createClass(data: ClassFormValues, projectId?: string) {
     await prisma.class.create({
       data: {
         name: validatedData.name,
+        iconKey: validatedData.iconKey ?? "class",
         projectId: activeProjectId,
       },
     });
@@ -131,6 +132,7 @@ export async function updateClass(data: ClassFormValues) {
       where: { id: validatedData.id },
       data: {
         name: validatedData.name,
+        iconKey: validatedData.iconKey,
       },
     });
 

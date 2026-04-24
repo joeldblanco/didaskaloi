@@ -36,6 +36,7 @@ export async function GET(req: NextRequest) {
     const result = classes.map((c) => ({
       id: c.id,
       name: c.name,
+      iconKey: c.iconKey,
       projectId: c.projectId,
       studentCount: c._count.students,
       createdAt: c.createdAt,
@@ -72,13 +73,18 @@ export async function POST(req: NextRequest) {
     }
 
     const newClass = await prisma.class.create({
-      data: { name: parsed.data.name, projectId },
+      data: {
+        name: parsed.data.name,
+        iconKey: parsed.data.iconKey ?? "class",
+        projectId,
+      },
       include: { _count: { select: { students: true } } },
     });
 
     return success({
       id: newClass.id,
       name: newClass.name,
+      iconKey: newClass.iconKey,
       projectId: newClass.projectId,
       studentCount: newClass._count.students,
       createdAt: newClass.createdAt,
@@ -94,7 +100,7 @@ export async function PUT(req: NextRequest) {
     if (!user) return unauthorized();
 
     const body = await req.json();
-    const { id, name } = body;
+    const { id, name, iconKey } = body;
 
     if (!id || !name) return badRequest("ID y nombre son requeridos");
 
@@ -114,13 +120,14 @@ export async function PUT(req: NextRequest) {
 
     const updated = await prisma.class.update({
       where: { id },
-      data: { name },
+      data: { name, iconKey: iconKey ?? undefined },
       include: { _count: { select: { students: true } } },
     });
 
     return success({
       id: updated.id,
       name: updated.name,
+      iconKey: updated.iconKey,
       projectId: updated.projectId,
       studentCount: updated._count.students,
     });

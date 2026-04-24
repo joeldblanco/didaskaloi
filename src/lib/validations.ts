@@ -3,6 +3,7 @@ import { z } from "zod";
 export const classSchema = z.object({
   id: z.string().optional(),
   name: z.string().min(3, "El nombre debe tener al menos 3 caracteres"),
+  iconKey: z.string().trim().min(1).max(32).optional(),
 });
 
 export const studentSchema = z.object({
