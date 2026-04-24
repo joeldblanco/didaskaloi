@@ -7,6 +7,7 @@ import {
   createStudent,
   updateStudent,
   deleteStudent,
+  mergeStudents,
   createAgeRange,
   updateAgeRange,
   deleteAgeRange,
@@ -25,13 +26,20 @@ import {
   addPendingAction,
   cacheData,
   getCachedData,
+  getPendingActions,
   initDB,
 } from "./offline-storage";
+import { syncManager } from "./sync-manager";
 import { getAttendanceStats, normalizeDateToLocalMidnight } from "./utils";
 
 // Tipo de retorno para acciones offline
 export type OfflineActionResult =
-  | { success: true; offline?: boolean; attendanceId?: string }
+  | {
+      success: true;
+      offline?: boolean;
+      attendanceId?: string;
+      keptStudentId?: string;
+    }
   | { success: false; error: string };
 
 // Verificar si estamos online
@@ -237,6 +245,45 @@ export async function offlineDeleteStudent(
   }
 
   return { success: true, offline: true };
+}
+
+export async function offlineMergeStudents(data: {
+  firstStudentId: string;
+  secondStudentId: string;
+  keepStudentId: string;
+}): Promise<OfflineActionResult> {
+  if (!isOnline()) {
+    return {
+      success: false,
+      error: "Necesitas conexión para fusionar estudiantes",
+    };
+  }
+
+  const pendingActions = await getPendingActions();
+  if (pendingActions.length > 0) {
+    const syncResult = await syncManager.syncAll();
+    if (!syncResult.success || syncResult.failed > 0) {
+      return {
+        success: false,
+        error:
+          syncResult.message ??
+          "Sincroniza los cambios pendientes antes de fusionar estudiantes",
+      };
+    }
+  }
+
+  try {
+    const result = await mergeStudents(data);
+    if (!result.success) {
+      return result;
+    }
+
+    await initializeCache();
+    return result as OfflineActionResult;
+  } catch (error) {
+    console.error("Error merging students online:", error);
+    return { success: false, error: "Error al fusionar los estudiantes" };
+  }
 }
 
 // ============ AGE RANGE ACTIONS ============
