@@ -32,20 +32,12 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import {
   offlineCreateStudent,
   offlineUpdateStudent,
   offlineDeleteStudent,
   offlineGetStudents,
   offlineCalculateStudentAttendance,
   offlineGetClasses,
-  offlineMergeStudents,
 } from "@/lib/offline-actions";
 import { studentSchema, type StudentFormValues } from "@/lib/validations";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -53,7 +45,6 @@ import { Class, Student } from "@prisma/client";
 import {
   ArrowDown,
   ArrowLeft,
-  ArrowRightLeft,
   ArrowUp,
   Loader2,
   Plus,
@@ -70,24 +61,6 @@ import { toast } from "sonner";
 interface ExtendedStudent extends Student {
   attendancePercentage: number;
 }
-
-interface MergeStudentsState {
-  firstStudentId: string;
-  secondStudentId: string;
-  keepStudentId: string;
-}
-
-const createEmptyMergeStudentsState = (): MergeStudentsState => ({
-  firstStudentId: "",
-  secondStudentId: "",
-  keepStudentId: "",
-});
-
-const formatMergeStudentLabel = (student: ExtendedStudent) => {
-  const ageLabel = student.age != null ? `${student.age} años` : "Sin edad";
-  const genderLabel = student.gender === "M" ? "Masculino" : "Femenino";
-  return `${student.firstName} ${student.lastName} · ${ageLabel} · ${genderLabel}`;
-};
 
 interface Props {
   params: Promise<{
@@ -113,25 +86,8 @@ const ClassDetailPage = ({ params }: Props) => {
   const [studentToEdit, setStudentToEdit] = useState<ExtendedStudent | null>(
     null,
   );
-  const [showMergeDialog, setShowMergeDialog] = useState(false);
-  const [mergeStudentsState, setMergeStudentsState] =
-    useState<MergeStudentsState>(createEmptyMergeStudentsState);
-  const [isMergingStudents, setIsMergingStudents] = useState(false);
 
   const classId = pageParams.id;
-  const studentsForMerge = [...students].sort((a, b) => {
-    const fullNameA = `${a.firstName} ${a.lastName}`;
-    const fullNameB = `${b.firstName} ${b.lastName}`;
-    return fullNameA.localeCompare(fullNameB);
-  });
-  const firstMergeStudent =
-    students.find(
-      (student) => student.id === mergeStudentsState.firstStudentId,
-    ) ?? null;
-  const secondMergeStudent =
-    students.find(
-      (student) => student.id === mergeStudentsState.secondStudentId,
-    ) ?? null;
 
   // Form for creating or editing a student
   const form = useForm<StudentFormValues>({
@@ -170,82 +126,6 @@ const ClassDetailPage = ({ params }: Props) => {
       toast.error("Error al cargar los estudiantes");
     }
   }, [classId]);
-
-  const resetMergeStudentsState = useCallback(() => {
-    setMergeStudentsState(createEmptyMergeStudentsState());
-  }, []);
-
-  const handleMergeStudentSelection = useCallback(
-    (field: "firstStudentId" | "secondStudentId", value: string) => {
-      setMergeStudentsState((prev) => {
-        const nextState = {
-          ...prev,
-          [field]: value,
-        };
-
-        if (field === "firstStudentId" && nextState.secondStudentId === value) {
-          nextState.secondStudentId = "";
-        }
-
-        if (field === "secondStudentId" && nextState.firstStudentId === value) {
-          nextState.firstStudentId = "";
-        }
-
-        if (
-          nextState.keepStudentId !== nextState.firstStudentId &&
-          nextState.keepStudentId !== nextState.secondStudentId
-        ) {
-          nextState.keepStudentId = "";
-        }
-
-        return nextState;
-      });
-    },
-    [],
-  );
-
-  const handleMergeStudents = useCallback(async () => {
-    if (
-      !mergeStudentsState.firstStudentId ||
-      !mergeStudentsState.secondStudentId
-    ) {
-      toast.error("Debes seleccionar dos estudiantes para fusionar");
-      return;
-    }
-
-    if (
-      mergeStudentsState.firstStudentId === mergeStudentsState.secondStudentId
-    ) {
-      toast.error("Debes seleccionar dos estudiantes distintos");
-      return;
-    }
-
-    if (!mergeStudentsState.keepStudentId) {
-      toast.error("Debes elegir cuál estudiante conservar");
-      return;
-    }
-
-    setIsMergingStudents(true);
-
-    try {
-      const result = await offlineMergeStudents(mergeStudentsState);
-
-      if (!result.success) {
-        toast.error(result.error);
-        return;
-      }
-
-      toast.success("Estudiantes fusionados correctamente");
-      setShowMergeDialog(false);
-      resetMergeStudentsState();
-      await refreshStudents();
-    } catch (error) {
-      console.error("Error merging students:", error);
-      toast.error("Error al fusionar los estudiantes");
-    } finally {
-      setIsMergingStudents(false);
-    }
-  }, [mergeStudentsState, refreshStudents, resetMergeStudentsState]);
 
   // Load class and student data
   useEffect(() => {
@@ -619,15 +499,6 @@ const ClassDetailPage = ({ params }: Props) => {
           <h1 className="text-xl font-bold">{classData?.name}</h1>
         </div>
         <Button
-          variant="outline"
-          size="sm"
-          onClick={() => setShowMergeDialog(true)}
-          disabled={students.length < 2}
-        >
-          <ArrowRightLeft size={16} />
-          Fusionar
-        </Button>
-        <Button
           onClick={() => setShowAddStudentDialog(true)}
           className="fixed right-4 bottom-20 bg-blue-500 text-white w-14 h-14 rounded-full flex items-center justify-center shadow-lg"
         >
@@ -828,155 +699,6 @@ const ClassDetailPage = ({ params }: Props) => {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
-
-      <Dialog
-        open={showMergeDialog}
-        onOpenChange={(open) => {
-          if (isMergingStudents) {
-            return;
-          }
-
-          setShowMergeDialog(open);
-          if (!open) {
-            resetMergeStudentsState();
-          }
-        }}
-      >
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Fusionar estudiantes</DialogTitle>
-            <DialogDescription>
-              Selecciona dos estudiantes de esta clase y elige cuál registro
-              conservar. Si hay asistencias cruzadas, se tomará como asistente
-              cuando al menos uno esté marcado presente.
-            </DialogDescription>
-          </DialogHeader>
-
-          <div className="flex flex-col gap-4">
-            <div className="flex flex-col gap-2">
-              <Label htmlFor="merge-student-a">Primer estudiante</Label>
-              <Select
-                value={mergeStudentsState.firstStudentId}
-                onValueChange={(value) =>
-                  handleMergeStudentSelection("firstStudentId", value)
-                }
-              >
-                <SelectTrigger id="merge-student-a">
-                  <SelectValue placeholder="Selecciona el primer estudiante" />
-                </SelectTrigger>
-                <SelectContent>
-                  {studentsForMerge
-                    .filter(
-                      (student) =>
-                        student.id !== mergeStudentsState.secondStudentId,
-                    )
-                    .map((student) => (
-                      <SelectItem key={student.id} value={student.id}>
-                        {formatMergeStudentLabel(student)}
-                      </SelectItem>
-                    ))}
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div className="flex flex-col gap-2">
-              <Label htmlFor="merge-student-b">Segundo estudiante</Label>
-              <Select
-                value={mergeStudentsState.secondStudentId}
-                onValueChange={(value) =>
-                  handleMergeStudentSelection("secondStudentId", value)
-                }
-              >
-                <SelectTrigger id="merge-student-b">
-                  <SelectValue placeholder="Selecciona el segundo estudiante" />
-                </SelectTrigger>
-                <SelectContent>
-                  {studentsForMerge
-                    .filter(
-                      (student) =>
-                        student.id !== mergeStudentsState.firstStudentId,
-                    )
-                    .map((student) => (
-                      <SelectItem key={student.id} value={student.id}>
-                        {formatMergeStudentLabel(student)}
-                      </SelectItem>
-                    ))}
-                </SelectContent>
-              </Select>
-            </div>
-
-            {firstMergeStudent && secondMergeStudent && (
-              <div className="flex flex-col gap-2 rounded-md border p-4">
-                <Label>Registro a conservar</Label>
-                <RadioGroup
-                  value={mergeStudentsState.keepStudentId}
-                  onValueChange={(value) =>
-                    setMergeStudentsState((prev) => ({
-                      ...prev,
-                      keepStudentId: value,
-                    }))
-                  }
-                  className="flex flex-col gap-3"
-                >
-                  <div className="flex items-start gap-2 rounded-md border p-3">
-                    <RadioGroupItem
-                      value={firstMergeStudent.id}
-                      id={`keep-${firstMergeStudent.id}`}
-                    />
-                    <Label
-                      htmlFor={`keep-${firstMergeStudent.id}`}
-                      className="cursor-pointer"
-                    >
-                      {formatMergeStudentLabel(firstMergeStudent)}
-                    </Label>
-                  </div>
-                  <div className="flex items-start gap-2 rounded-md border p-3">
-                    <RadioGroupItem
-                      value={secondMergeStudent.id}
-                      id={`keep-${secondMergeStudent.id}`}
-                    />
-                    <Label
-                      htmlFor={`keep-${secondMergeStudent.id}`}
-                      className="cursor-pointer"
-                    >
-                      {formatMergeStudentLabel(secondMergeStudent)}
-                    </Label>
-                  </div>
-                </RadioGroup>
-              </div>
-            )}
-
-            <div className="flex justify-end gap-2 pt-2">
-              <Button
-                type="button"
-                variant="outline"
-                onClick={() => {
-                  setShowMergeDialog(false);
-                  resetMergeStudentsState();
-                }}
-                disabled={isMergingStudents}
-              >
-                Cancelar
-              </Button>
-              <Button
-                type="button"
-                onClick={handleMergeStudents}
-                disabled={
-                  isMergingStudents ||
-                  !mergeStudentsState.firstStudentId ||
-                  !mergeStudentsState.secondStudentId ||
-                  !mergeStudentsState.keepStudentId
-                }
-              >
-                {isMergingStudents && (
-                  <Loader2 className="h-4 w-4 animate-spin" />
-                )}
-                Fusionar
-              </Button>
-            </div>
-          </div>
-        </DialogContent>
-      </Dialog>
 
       {/* Add Student Dialog */}
       <Dialog
