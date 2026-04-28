@@ -92,9 +92,7 @@ export async function POST(req: NextRequest) {
     const canModify = await hasPermission(user.id, projectId, Role.EDITOR);
     if (!canModify) return forbidden();
 
-    const removedStudentIds = studentIds
-      .where((id) => id != keepStudentId)
-      .toList();
+    const removedStudentIds = studentIds.filter((id) => id !== keepStudentId);
 
     await prisma.$transaction(async (tx) => {
       const attendanceRecords = await tx.attendanceRecord.findMany({
@@ -108,10 +106,14 @@ export async function POST(req: NextRequest) {
         },
       });
 
-      const recordsByAttendance = new Map<string, typeof attendanceRecords>();
+      type AttendanceRecordEntry = (typeof attendanceRecords)[number];
+
+      const recordsByAttendance = new Map<string, AttendanceRecordEntry[]>();
 
       for (const record of attendanceRecords) {
-        const current = recordsByAttendance.get(record.attendanceId) ?? [];
+        const current =
+          recordsByAttendance.get(record.attendanceId) ??
+          ([] as AttendanceRecordEntry[]);
         current.push(record);
         recordsByAttendance.set(record.attendanceId, current);
       }
@@ -122,15 +124,15 @@ export async function POST(req: NextRequest) {
             mergeAttendancePresence(currentPresence, record.present),
           null,
         );
-        const recordToKeep =
-          records.find((record) => record.studentId == keepStudentId) ??
+        const recordToKeep: AttendanceRecordEntry =
+          records.find((record) => record.studentId === keepStudentId) ??
           records[0];
         const recordsToDelete = records.filter(
-          (record) => record.id != recordToKeep.id,
+          (record) => record.id !== recordToKeep.id,
         );
 
         if (
-          recordToKeep.studentId != keepStudentId ||
+          recordToKeep.studentId !== keepStudentId ||
           recordToKeep.present !== mergedPresence
         ) {
           await tx.attendanceRecord.update({
@@ -158,7 +160,7 @@ export async function POST(req: NextRequest) {
       });
     });
 
-    return success({ keptStudentId, mergedStudentIds: removedStudentIds });
+    return success({ keepStudentId, mergedStudentIds: removedStudentIds });
   } catch (error) {
     return serverError(error);
   }
