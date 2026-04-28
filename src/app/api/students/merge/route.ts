@@ -42,11 +42,12 @@ export async function POST(req: NextRequest) {
     const keepStudentId = body.keepStudentId?.trim();
     const studentIds = Array.from(
       new Set(
-        (body.studentIds ??
-                [body.firstStudentId, body.secondStudentId]
-                    .filter((value): value is string => Boolean(value))
-                    .map((value) => value.trim()))
-            .filter((value) => value.length > 0),
+        (
+          body.studentIds ??
+          [body.firstStudentId, body.secondStudentId]
+            .filter((value): value is string => Boolean(value))
+            .map((value) => value.trim())
+        ).filter((value) => value.length > 0),
       ),
     );
 
@@ -91,7 +92,9 @@ export async function POST(req: NextRequest) {
     const canModify = await hasPermission(user.id, projectId, Role.EDITOR);
     if (!canModify) return forbidden();
 
-    const removedStudentIds = studentIds.where((id) => id != keepStudentId).toList();
+    const removedStudentIds = studentIds
+      .where((id) => id != keepStudentId)
+      .toList();
 
     await prisma.$transaction(async (tx) => {
       const attendanceRecords = await tx.attendanceRecord.findMany({
@@ -105,7 +108,7 @@ export async function POST(req: NextRequest) {
         },
       });
 
-        const recordsByAttendance = new Map<string, typeof attendanceRecords>();
+      const recordsByAttendance = new Map<string, typeof attendanceRecords>();
 
       for (const record of attendanceRecords) {
         const current = recordsByAttendance.get(record.attendanceId) ?? [];
