@@ -33,31 +33,39 @@ export async function POST(req: NextRequest) {
     if (!user) return unauthorized();
 
     const body = (await req.json()) as {
+      studentIds?: string[];
       firstStudentId?: string;
       secondStudentId?: string;
       keepStudentId?: string;
     };
 
-    const firstStudentId = body.firstStudentId?.trim();
-    const secondStudentId = body.secondStudentId?.trim();
     const keepStudentId = body.keepStudentId?.trim();
+    const studentIds = Array.from(
+      new Set(
+        (body.studentIds ??
+                [body.firstStudentId, body.secondStudentId]
+                    .filter((value): value is string => Boolean(value))
+                    .map((value) => value.trim()))
+            .filter((value) => value.length > 0),
+      ),
+    );
 
-    if (!firstStudentId || !secondStudentId || !keepStudentId) {
-      return badRequest("Debes seleccionar dos estudiantes y cuál conservar");
+    if (!keepStudentId || studentIds.length < 2) {
+      return badRequest(
+        "Debes seleccionar al menos dos estudiantes y cuál conservar",
+      );
     }
 
-    if (firstStudentId === secondStudentId) {
-      return badRequest("Debes seleccionar dos estudiantes distintos");
-    }
-
-    if (keepStudentId != firstStudentId && keepStudentId != secondStudentId) {
-      return badRequest("Debes elegir cuál de los dos estudiantes conservar");
+    if (!studentIds.includes(keepStudentId)) {
+      return badRequest(
+        "Debes elegir cuál de los estudiantes seleccionados conservar",
+      );
     }
 
     const students = await prisma.student.findMany({
       where: {
         id: {
-          in: [firstStudentId, secondStudentId],
+          in: studentIds,
         },
       },
       select: {
@@ -66,29 +74,30 @@ export async function POST(req: NextRequest) {
       },
     });
 
-    if (students.length != 2) {
-      return badRequest("No se encontraron ambos estudiantes para fusionar");
+    if (students.length != studentIds.length) {
+      return badRequest(
+        "No se encontraron todos los estudiantes seleccionados para fusionar",
+      );
     }
 
-    const [firstStudent, secondStudent] = students;
-    if (firstStudent.classId != secondStudent.classId) {
+    const classId = students[0].classId;
+    if (students.some((student) => student.classId != classId)) {
       return badRequest("Solo puedes fusionar estudiantes de la misma clase");
     }
 
-    const projectId = await getProjectIdFromClass(firstStudent.classId);
+    const projectId = await getProjectIdFromClass(classId);
     if (!projectId) return badRequest("Clase no encontrada");
 
     const canModify = await hasPermission(user.id, projectId, Role.EDITOR);
     if (!canModify) return forbidden();
 
-    const removedStudentId =
-      keepStudentId == firstStudentId ? secondStudentId : firstStudentId;
+    const removedStudentIds = studentIds.where((id) => id != keepStudentId).toList();
 
     await prisma.$transaction(async (tx) => {
       const attendanceRecords = await tx.attendanceRecord.findMany({
         where: {
           studentId: {
-            in: [keepStudentId, removedStudentId],
+            in: studentIds,
           },
         },
         orderBy: {
@@ -96,60 +105,57 @@ export async function POST(req: NextRequest) {
         },
       });
 
-      const recordsByAttendance = new Map<
-        string,
-        {
-          kept?: (typeof attendanceRecords)[number];
-          removed?: (typeof attendanceRecords)[number];
-        }
-      >();
+        const recordsByAttendance = new Map<string, typeof attendanceRecords>();
 
       for (const record of attendanceRecords) {
-        const current = recordsByAttendance.get(record.attendanceId) ?? {};
-
-        if (record.studentId == keepStudentId) {
-          current.kept = record;
-        } else {
-          current.removed = record;
-        }
-
+        const current = recordsByAttendance.get(record.attendanceId) ?? [];
+        current.push(record);
         recordsByAttendance.set(record.attendanceId, current);
       }
 
-      for (const { kept, removed } of recordsByAttendance.values()) {
-        if (kept && removed) {
-          const mergedPresence = mergeAttendancePresence(
-            kept.present,
-            removed.present,
-          );
+      for (const records of recordsByAttendance.values()) {
+        const mergedPresence = records.reduce<boolean | null>(
+          (currentPresence, record) =>
+            mergeAttendancePresence(currentPresence, record.present),
+          null,
+        );
+        const recordToKeep =
+          records.find((record) => record.studentId == keepStudentId) ??
+          records[0];
+        const recordsToDelete = records.filter(
+          (record) => record.id != recordToKeep.id,
+        );
 
-          if (kept.present !== mergedPresence) {
-            await tx.attendanceRecord.update({
-              where: { id: kept.id },
-              data: { present: mergedPresence },
-            });
-          }
-
-          await tx.attendanceRecord.delete({
-            where: { id: removed.id },
+        if (
+          recordToKeep.studentId != keepStudentId ||
+          recordToKeep.present !== mergedPresence
+        ) {
+          await tx.attendanceRecord.update({
+            where: { id: recordToKeep.id },
+            data: {
+              studentId: keepStudentId,
+              present: mergedPresence,
+            },
           });
-          continue;
         }
 
-        if (removed) {
-          await tx.attendanceRecord.update({
-            where: { id: removed.id },
-            data: { studentId: keepStudentId },
+        for (const recordToDelete of recordsToDelete) {
+          await tx.attendanceRecord.delete({
+            where: { id: recordToDelete.id },
           });
         }
       }
 
-      await tx.student.delete({
-        where: { id: removedStudentId },
+      await tx.student.deleteMany({
+        where: {
+          id: {
+            in: removedStudentIds,
+          },
+        },
       });
     });
 
-    return success({ keptStudentId });
+    return success({ keptStudentId, mergedStudentIds: removedStudentIds });
   } catch (error) {
     return serverError(error);
   }
