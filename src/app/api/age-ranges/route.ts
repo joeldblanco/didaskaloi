@@ -43,10 +43,12 @@ export async function POST(req: NextRequest) {
 
     const body = await req.json();
     const { projectId, ...data } = body;
-    const parsed = ageRangeSchema.safeParse(data);
 
-    if (!parsed.success || !projectId) {
-      return badRequest("Datos inválidos");
+    if (!projectId) return badRequest("projectId es requerido");
+
+    const parsed = ageRangeSchema.safeParse(data);
+    if (!parsed.success) {
+      return badRequest(parsed.error.issues[0]?.message ?? "Datos inválidos");
     }
 
     const canModify = await hasPermission(user.id, projectId, Role.EDITOR);
@@ -92,7 +94,9 @@ export async function PUT(req: NextRequest) {
     if (!canModify) return forbidden();
 
     const parsed = ageRangeSchema.safeParse(data);
-    if (!parsed.success) return badRequest("Datos inválidos");
+    if (!parsed.success) {
+      return badRequest(parsed.error.issues[0]?.message ?? "Datos inválidos");
+    }
 
     const updated = await prisma.ageRange.update({
       where: { id },

@@ -31,8 +31,8 @@ export const ageRangeSchema = z
   .object({
     id: z.string().optional(),
     label: z.string().min(3, "La etiqueta debe tener al menos 3 caracteres"),
-    minAge: z.coerce.number().min(1, "La edad mínima es 1 año"),
-    maxAge: z.coerce.number().max(100, "La edad máxima es 100 años"),
+    minAge: z.coerce.number().min(0, "La edad mínima no puede ser negativa"),
+    maxAge: z.coerce.number().max(120, "La edad máxima es 120 años"),
   })
   .refine((data) => data.minAge <= data.maxAge, {
     message: "La edad mínima debe ser menor o igual a la edad máxima",
