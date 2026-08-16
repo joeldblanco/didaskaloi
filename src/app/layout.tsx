@@ -10,6 +10,7 @@ import { OfflineSyncProvider } from "@/components/offline-sync-provider";
 import { ProjectProvider } from "@/contexts/project-context";
 import { PathTracker } from "@/components/path-tracker";
 import { CacheWarmup } from "@/components/cache-warmup";
+import Script from "next/script";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -78,6 +79,13 @@ export default function RootLayout({
             </ProjectProvider>
           </ThemeProvider>
         </SessionProvider>
+        <Script
+          src="https://analytics.lingowow.com/script.js"
+          data-website-id="642b3140-2865-4609-a973-44728a1e51c9"
+          data-domains="d1j63r121ay4igytrpi7fiz0.137.184.8.53.sslip.io"
+          data-exclude-search="true"
+          strategy="afterInteractive"
+        />
       </body>
     </html>
   );
